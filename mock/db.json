@@ -1,0 +1,1005 @@
+{
+  "dashboard": {
+    "total_users": 284,
+    "total_clients": 180,
+    "total_workers": 104,
+    "pending_verifications": 12,
+    "active_bookings": 8,
+    "open_disputes": 3,
+    "completed_bookings_today": 15
+  },
+  "verifications": [
+    {
+      "id": "1",
+      "worker_profile_id": 5,
+      "user": {
+        "id": 10,
+        "name": "Liza Dimaano",
+        "email": "liza@email.com",
+        "barangay": "Poblacion"
+      },
+      "verification_status": "approved",
+      "trust_tier": "verified",
+      "submitted_at": "2026-09-14T08:00:00Z",
+      "documents": [
+        {
+          "id": 1,
+          "type": "government_id",
+          "file_url": "https://placehold.co/400x300",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "type": "barangay_certificate",
+          "file_url": "https://placehold.co/400x300",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "type": "selfie_with_id",
+          "file_url": "https://placehold.co/400x300",
+          "status": "pending"
+        }
+      ],
+      "history": [
+        {
+          "id": 1,
+          "status": "pending",
+          "remarks": null,
+          "changed_at": "2026-09-14T08:00:00Z",
+          "changed_by": "System"
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "worker_profile_id": 6,
+      "user": {
+        "id": 11,
+        "name": "Marco Reyes",
+        "email": "marco@email.com",
+        "barangay": "Banlasan"
+      },
+      "verification_status": "approved",
+      "trust_tier": "trusted",
+      "submitted_at": "2026-09-13T10:00:00Z",
+      "documents": [
+        {
+          "id": 4,
+          "type": "government_id",
+          "file_url": "https://placehold.co/400x300",
+          "status": "approved"
+        },
+        {
+          "id": 5,
+          "type": "barangay_certificate",
+          "file_url": "https://placehold.co/400x300",
+          "status": "approved"
+        },
+        {
+          "id": 6,
+          "type": "selfie_with_id",
+          "file_url": "https://placehold.co/400x300",
+          "status": "approved"
+        },
+        {
+          "id": 7,
+          "type": "skill_certificate",
+          "file_url": "https://placehold.co/400x300",
+          "status": "approved"
+        }
+      ],
+      "history": [
+        {
+          "id": 1,
+          "status": "pending",
+          "remarks": null,
+          "changed_at": "2026-09-13T10:00:00Z",
+          "changed_by": "System"
+        },
+        {
+          "id": 2,
+          "status": "approved",
+          "remarks": "All documents verified and complete.",
+          "changed_at": "2026-09-14T09:00:00Z",
+          "changed_by": "Admin User"
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "worker_profile_id": 7,
+      "user": {
+        "id": 12,
+        "name": "Sofia Tan",
+        "email": "sofia@email.com",
+        "barangay": "San Roque"
+      },
+      "verification_status": "resubmission_requested",
+      "trust_tier": "flagged",
+      "submitted_at": "2026-09-12T09:00:00Z",
+      "documents": [
+        {
+          "id": 8,
+          "type": "government_id",
+          "file_url": "https://placehold.co/400x300",
+          "status": "resubmission_requested"
+        },
+        {
+          "id": 9,
+          "type": "barangay_certificate",
+          "file_url": "https://placehold.co/400x300",
+          "status": "pending"
+        }
+      ],
+      "history": [
+        {
+          "id": 1,
+          "status": "pending",
+          "remarks": null,
+          "changed_at": "2026-09-12T09:00:00Z",
+          "changed_by": "System"
+        },
+        {
+          "id": 2,
+          "status": "resubmission_requested",
+          "remarks": "Please resubmit a clearer government ID.",
+          "changed_at": "2026-09-13T11:00:00Z",
+          "changed_by": "Admin User"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "worker_profile_id": 8,
+      "user": {
+        "id": 13,
+        "name": "Ramon Villanueva",
+        "email": "ramon@email.com",
+        "barangay": "Sta. Cruz"
+      },
+      "verification_status": "rejected",
+      "trust_tier": "verified",
+      "submitted_at": "2026-09-11T07:00:00Z",
+      "documents": [
+        {
+          "id": 10,
+          "type": "government_id",
+          "file_url": "https://placehold.co/400x300",
+          "status": "rejected"
+        }
+      ],
+      "history": [
+        {
+          "id": 1,
+          "status": "pending",
+          "remarks": null,
+          "changed_at": "2026-09-11T07:00:00Z",
+          "changed_by": "System"
+        },
+        {
+          "id": 2,
+          "status": "resubmission_requested",
+          "remarks": "Please provide a valid government ID.",
+          "changed_at": "2026-09-11T14:00:00Z",
+          "changed_by": "Admin User"
+        },
+        {
+          "id": 3,
+          "status": "rejected",
+          "remarks": "Resubmitted documents still invalid.",
+          "changed_at": "2026-09-12T10:00:00Z",
+          "changed_by": "Admin User"
+        }
+      ],
+      "remarks": "sdfsdgf"
+    }
+  ],
+  "users": [
+    {
+      "id": "1",
+      "name": "Juan dela Cruz",
+      "email": "juan@email.com",
+      "role": "client",
+      "barangay": "Calanggaman",
+      "is_active": false,
+      "created_at": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "2",
+      "name": "Maria Santos",
+      "email": "maria@email.com",
+      "role": "worker",
+      "barangay": "Poblacion",
+      "is_active": true,
+      "created_at": "2026-08-05T00:00:00Z"
+    },
+    {
+      "id": "3",
+      "name": "Pedro Alonzo",
+      "email": "pedro@email.com",
+      "role": "worker",
+      "barangay": "Banlasan",
+      "is_active": true,
+      "created_at": "2026-08-10T00:00:00Z"
+    }
+  ],
+  "bookings": [
+    {
+      "id": "1",
+      "booking_code": "HB-2026-00001",
+      "status": "completed",
+      "client": "Juan dela Cruz",
+      "worker": "Pedro Alonzo",
+      "service_category": "Plumbing",
+      "scheduled_at": "2026-09-15T09:00:00Z",
+      "created_at": "2026-09-10T00:00:00Z",
+      "notes": "Client requested extra pipe fittings."
+    },
+    {
+      "id": "2",
+      "booking_code": "HB-2026-00002",
+      "status": "active",
+      "client": "Ana Cruz",
+      "worker": "Marco Reyes",
+      "service_category": "Electrical Works",
+      "scheduled_at": "2026-09-20T08:00:00Z",
+      "created_at": "2026-09-15T00:00:00Z"
+    },
+    {
+      "id": "3",
+      "booking_code": "HB-2026-00003",
+      "status": "pending",
+      "client": "Rosa Lim",
+      "worker": "Carlo Santos",
+      "service_category": "Carpentry",
+      "scheduled_at": "2026-09-22T10:00:00Z",
+      "created_at": "2026-09-18T00:00:00Z"
+    },
+    {
+      "id": "4",
+      "booking_code": "HB-2026-00004",
+      "status": "accepted",
+      "client": "Ben Flores",
+      "worker": "Liza Dimaano",
+      "service_category": "Housekeeping",
+      "scheduled_at": "2026-09-23T07:00:00Z",
+      "created_at": "2026-09-19T00:00:00Z"
+    },
+    {
+      "id": "5",
+      "booking_code": "HB-2026-00005",
+      "status": "cancelled",
+      "client": "Mae Reyes",
+      "worker": "Pedro Alonzo",
+      "service_category": "Plumbing",
+      "scheduled_at": "2026-09-18T11:00:00Z",
+      "created_at": "2026-09-16T00:00:00Z"
+    },
+    {
+      "id": "6",
+      "booking_code": "HB-2026-00006",
+      "status": "declined",
+      "client": "Tony Aquino",
+      "worker": "Marco Reyes",
+      "service_category": "Electrical Works",
+      "scheduled_at": "2026-09-17T09:00:00Z",
+      "created_at": "2026-09-14T00:00:00Z"
+    }
+  ],
+  "reports": [
+    {
+      "id": "1",
+      "booking_id": "1",
+      "booking_code": "HB-2026-00001",
+      "reported_by": "Juan dela Cruz",
+      "reported_user": "Pedro Alonzo",
+      "reason": "no_show",
+      "description": "Worker did not show up.",
+      "status": "resolved",
+      "evidence_urls": [
+        "https://placehold.co/400x300",
+        "https://placehold.co/400x300/006e11/ffffff"
+      ],
+      "created_at": "2026-09-16T00:00:00Z",
+      "history": [
+        {
+          "id": "1",
+          "action": "report_filed",
+          "status": "under_review",
+          "remarks": null,
+          "changed_at": "2026-09-16T00:00:00Z",
+          "changed_by": "System"
+        },
+        {
+          "id": "2",
+          "action": "report_resolved",
+          "status": "resolved",
+          "remarks": "sd",
+          "changed_at": "2026-08-27T03:47:39.032Z",
+          "changed_by": "Admin User"
+        }
+      ],
+      "resolution_action": "verification_revoked",
+      "admin_remarks": "sd"
+    },
+    {
+      "id": "2",
+      "booking_id": "3",
+      "booking_code": "HB-2026-00003",
+      "reported_by": "Rosa Lim",
+      "reported_user": "Carlo Santos",
+      "reason": "unsatisfactory_work",
+      "description": "Carpentry work was poorly done.",
+      "status": "resolved",
+      "evidence_urls": [
+        "https://placehold.co/400x300/34a835/ffffff"
+      ],
+      "created_at": "2026-09-19T08:00:00Z",
+      "history": [
+        {
+          "id": "1",
+          "action": "report_filed",
+          "status": "under_review",
+          "remarks": null,
+          "changed_at": "2026-09-19T08:00:00Z",
+          "changed_by": "System"
+        },
+        {
+          "id": "2",
+          "action": "report_resolved",
+          "status": "resolved",
+          "remarks": "gbfg",
+          "changed_at": "2026-08-27T03:48:24.301Z",
+          "changed_by": "Admin User"
+        }
+      ],
+      "resolution_action": "verification_revoked",
+      "admin_remarks": "gbfg"
+    },
+    {
+      "id": "3",
+      "booking_id": "2",
+      "booking_code": "HB-2026-00002",
+      "reported_by": "Ana Cruz",
+      "reported_user": "Marco Reyes",
+      "reason": "misconduct",
+      "description": "Worker was rude and unresponsive.",
+      "status": "resolved",
+      "resolution_action": "warning_issued",
+      "admin_remarks": "First offense — warning issued.",
+      "evidence_urls": [],
+      "created_at": "2026-09-17T10:00:00Z",
+      "history": [
+        {
+          "id": "1",
+          "action": "report_filed",
+          "status": "under_review",
+          "remarks": null,
+          "changed_at": "2026-09-17T10:00:00Z",
+          "changed_by": "System"
+        },
+        {
+          "id": "2",
+          "action": "report_resolved",
+          "status": "resolved",
+          "remarks": "First offense. Warning issued to worker.",
+          "changed_at": "2026-09-18T09:00:00Z",
+          "changed_by": "Admin User"
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "booking_id": "5",
+      "booking_code": "HB-2026-00005",
+      "reported_by": "Mae Reyes",
+      "reported_user": "Pedro Alonzo",
+      "reason": "false_information",
+      "description": "Worker claimed to have certifications that do not exist.",
+      "status": "dismissed",
+      "admin_remarks": "Unable to substantiate claim.",
+      "evidence_urls": [],
+      "created_at": "2026-09-18T14:00:00Z",
+      "history": [
+        {
+          "id": "1",
+          "action": "report_filed",
+          "status": "under_review",
+          "remarks": null,
+          "changed_at": "2026-09-18T14:00:00Z",
+          "changed_by": "System"
+        },
+        {
+          "id": "2",
+          "action": "report_dismissed",
+          "status": "dismissed",
+          "remarks": "Insufficient evidence to proceed.",
+          "changed_at": "2026-09-19T11:00:00Z",
+          "changed_by": "Admin User"
+        }
+      ]
+    }
+  ],
+  "reviews": [
+    {
+      "id": "1",
+      "booking_id": "1",
+      "booking_code": "HB-2026-00001",
+      "reviewer_name": "Juan dela Cruz",
+      "reviewer_role": "client",
+      "reviewed_name": "Pedro Alonzo",
+      "reviewed_role": "worker",
+      "rating": 2,
+      "comment": "Worker did not show up on time and was rude.",
+      "status": "visible",
+      "is_flagged": false,
+      "flagged_reason": null,
+      "created_at": "2026-09-16T10:00:00Z",
+      "flagged_at": null,
+      "flagged_by": null
+    },
+    {
+      "id": "2",
+      "booking_id": "2",
+      "booking_code": "HB-2026-00002",
+      "reviewer_name": "Ana Cruz",
+      "reviewer_role": "client",
+      "reviewed_name": "Marco Reyes",
+      "reviewed_role": "worker",
+      "rating": 5,
+      "comment": "Excellent work! Very professional and on time.",
+      "status": "visible",
+      "is_flagged": false,
+      "flagged_reason": null,
+      "created_at": "2026-09-17T09:00:00Z",
+      "flagged_at": null,
+      "flagged_by": null
+    },
+    {
+      "id": "3",
+      "booking_id": "3",
+      "booking_code": "HB-2026-00003",
+      "reviewer_name": "Rosa Gomez",
+      "reviewer_role": "client",
+      "reviewed_name": "Carlo Santos",
+      "reviewed_role": "worker",
+      "rating": 1,
+      "comment": "This worker is a scammer. Do not hire!!!",
+      "status": "visible",
+      "is_flagged": false,
+      "flagged_reason": null,
+      "created_at": "2026-09-18T08:00:00Z",
+      "flagged_at": null,
+      "flagged_by": null
+    },
+    {
+      "id": "4",
+      "booking_id": "4",
+      "booking_code": "HB-2026-00004",
+      "reviewer_name": "Mae Villanueva",
+      "reviewer_role": "client",
+      "reviewed_name": "Pedro Alonzo",
+      "reviewed_role": "worker",
+      "rating": 3,
+      "comment": "Average service. Nothing special.",
+      "status": "removed",
+      "is_flagged": true,
+      "flagged_reason": "Spam review.",
+      "created_at": "2026-09-19T07:00:00Z",
+      "flagged_at": "2026-09-19T08:00:00Z",
+      "flagged_by": "Admin User"
+    }
+  ],
+  "chat_logs": [
+    {
+      "id": "1",
+      "booking_id": "1",
+      "booking_code": "HB-2026-00001",
+      "client_name": "Juan dela Cruz",
+      "worker_name": "Pedro Alonzo",
+      "messages": [
+        {
+          "id": "1",
+          "sender_name": "Juan dela Cruz",
+          "sender_role": "client",
+          "message": "Hi, are you available tomorrow at 9am?",
+          "sent_at": "2026-09-14T08:00:00Z",
+          "is_flagged": false
+        },
+        {
+          "id": "2",
+          "sender_name": "Pedro Alonzo",
+          "sender_role": "worker",
+          "message": "Yes, I will be there.",
+          "sent_at": "2026-09-14T08:05:00Z",
+          "is_flagged": false
+        },
+        {
+          "id": "3",
+          "sender_name": "Juan dela Cruz",
+          "sender_role": "client",
+          "message": "Great, please bring your tools.",
+          "sent_at": "2026-09-14T08:07:00Z",
+          "is_flagged": false
+        },
+        {
+          "id": "4",
+          "sender_name": "Pedro Alonzo",
+          "sender_role": "worker",
+          "message": "No problem, I have everything ready.",
+          "sent_at": "2026-09-14T08:10:00Z",
+          "is_flagged": false
+        },
+        {
+          "id": "5",
+          "sender_name": "Juan dela Cruz",
+          "sender_role": "client",
+          "message": "You never showed up. This is unacceptable.",
+          "sent_at": "2026-09-15T11:00:00Z",
+          "is_flagged": true
+        },
+        {
+          "id": "6",
+          "sender_name": "Pedro Alonzo",
+          "sender_role": "worker",
+          "message": "I got sick. I tried calling you.",
+          "sent_at": "2026-09-15T11:15:00Z",
+          "is_flagged": false
+        },
+        {
+          "id": "7",
+          "sender_name": "Juan dela Cruz",
+          "sender_role": "client",
+          "message": "You should have notified me earlier. I wasted the whole day waiting.",
+          "sent_at": "2026-09-15T11:18:00Z",
+          "is_flagged": true
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "booking_id": "2",
+      "booking_code": "HB-2026-00002",
+      "client_name": "Ana Cruz",
+      "worker_name": "Marco Reyes",
+      "messages": [
+        {
+          "id": "1",
+          "sender_name": "Ana Cruz",
+          "sender_role": "client",
+          "message": "Hello, I need electrical work done in my kitchen.",
+          "sent_at": "2026-09-15T07:00:00Z",
+          "is_flagged": false
+        },
+        {
+          "id": "2",
+          "sender_name": "Marco Reyes",
+          "sender_role": "worker",
+          "message": "Sure, I can do that. What time works for you?",
+          "sent_at": "2026-09-15T07:05:00Z",
+          "is_flagged": false
+        },
+        {
+          "id": "3",
+          "sender_name": "Ana Cruz",
+          "sender_role": "client",
+          "message": "September 20 at 8am.",
+          "sent_at": "2026-09-15T07:10:00Z",
+          "is_flagged": false
+        },
+        {
+          "id": "4",
+          "sender_name": "Marco Reyes",
+          "sender_role": "worker",
+          "message": "Confirmed.",
+          "sent_at": "2026-09-15T07:12:00Z",
+          "is_flagged": false
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "booking_id": "3",
+      "booking_code": "HB-2026-00003",
+      "client_name": "Rosa Lim",
+      "worker_name": "Carlo Santos",
+      "messages": [
+        {
+          "id": "1",
+          "sender_name": "Rosa Lim",
+          "sender_role": "client",
+          "message": "I need a bookshelf built. Can you do that?",
+          "sent_at": "2026-09-18T09:00:00Z",
+          "is_flagged": false
+        },
+        {
+          "id": "2",
+          "sender_name": "Carlo Santos",
+          "sender_role": "worker",
+          "message": "Yes, I can. I will bring materials.",
+          "sent_at": "2026-09-18T09:08:00Z",
+          "is_flagged": false
+        },
+        {
+          "id": "3",
+          "sender_name": "Rosa Lim",
+          "sender_role": "client",
+          "message": "The work looks terrible. The shelves are crooked!",
+          "sent_at": "2026-09-22T15:00:00Z",
+          "is_flagged": true
+        },
+        {
+          "id": "4",
+          "sender_name": "Carlo Santos",
+          "sender_role": "worker",
+          "message": "I did my best with the materials provided.",
+          "sent_at": "2026-09-22T15:30:00Z",
+          "is_flagged": false
+        }
+      ]
+    }
+  ],
+  "deletion_requests": [
+    {
+      "id": "1",
+      "user_id": "2",
+      "user_name": "Maria Santos",
+      "user_email": "maria@email.com",
+      "user_role": "worker",
+      "reason": "I no longer need this account.",
+      "status": "approved",
+      "requested_at": "2026-09-18T10:00:00Z",
+      "processed_at": "2026-08-27T03:15:06.384Z",
+      "admin_remarks": "sd"
+    },
+    {
+      "id": "2",
+      "user_id": "3",
+      "user_name": "Pedro Alonzo",
+      "user_email": "pedro@email.com",
+      "user_role": "worker",
+      "reason": "Privacy concerns.",
+      "status": "approved",
+      "requested_at": "2026-09-10T08:00:00Z",
+      "processed_at": "2026-09-11T09:00:00Z",
+      "admin_remarks": "Account and data deleted per user request."
+    },
+    {
+      "id": "3",
+      "user_id": "1",
+      "user_name": "Juan dela Cruz",
+      "user_email": "juan@email.com",
+      "user_role": "client",
+      "reason": "Switching to a different service.",
+      "status": "denied",
+      "requested_at": "2026-09-12T07:00:00Z",
+      "processed_at": "2026-09-13T08:00:00Z",
+      "admin_remarks": "Request denied due to active ongoing booking."
+    }
+  ],
+  "audit_logs": [
+    {
+      "id": "1",
+      "admin_name": "Admin User",
+      "action": "approved_worker_verification",
+      "target_type": "WorkerProfile",
+      "target_id": 5,
+      "details": {
+        "worker_name": "Liza Dimaano"
+      },
+      "created_at": "2026-09-20T10:00:00Z"
+    },
+    {
+      "id": "2",
+      "admin_name": "Admin User",
+      "action": "suspended_user",
+      "target_type": "User",
+      "target_id": 3,
+      "details": {
+        "user_name": "Pedro Alonzo",
+        "reason": "Repeated violations"
+      },
+      "created_at": "2026-09-20T09:30:00Z"
+    },
+    {
+      "id": "3",
+      "admin_name": "Admin User",
+      "action": "rejected_worker_verification",
+      "target_type": "WorkerProfile",
+      "target_id": 6,
+      "details": {
+        "worker_name": "Marco Reyes",
+        "remarks": "Documents blurry"
+      },
+      "created_at": "2026-09-19T14:00:00Z"
+    },
+    {
+      "id": "4",
+      "admin_name": "Admin User",
+      "action": "reactivated_user",
+      "target_type": "User",
+      "target_id": 2,
+      "details": {
+        "user_name": "Maria Santos"
+      },
+      "created_at": "2026-09-19T11:00:00Z"
+    },
+    {
+      "id": "5",
+      "admin_name": "Admin User",
+      "action": "resolved_report",
+      "target_type": "Report",
+      "target_id": 3,
+      "details": {
+        "booking_code": "HB-2026-00002",
+        "resolution_action": "warning_issued"
+      },
+      "created_at": "2026-09-18T16:00:00Z"
+    },
+    {
+      "id": "6",
+      "admin_name": "Admin User",
+      "action": "force_cancelled_booking",
+      "target_type": "Booking",
+      "target_id": 2,
+      "details": {
+        "booking_code": "HB-2026-00002",
+        "reason": "Worker unresponsive"
+      },
+      "created_at": "2026-09-18T15:00:00Z"
+    },
+    {
+      "id": "7",
+      "admin_name": "Admin User",
+      "action": "updated_trust_tier",
+      "target_type": "User",
+      "target_id": 1,
+      "details": {
+        "user_name": "Juan dela Cruz",
+        "tier": "Silver"
+      },
+      "created_at": "2026-09-17T09:00:00Z"
+    }
+  ],
+  "service_categories": [
+    {
+      "id": "1",
+      "name": "Plumbing",
+      "description": "Pipe repairs, installations, and water systems",
+      "is_active": true,
+      "created_at": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "2",
+      "name": "Electrical Works",
+      "description": "Wiring, installations, and electrical repairs",
+      "is_active": true,
+      "created_at": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "3",
+      "name": "Carpentry",
+      "description": "Furniture assembly, repairs, and woodwork",
+      "is_active": true,
+      "created_at": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "4",
+      "name": "Cleaning Services",
+      "description": "Home and office cleaning",
+      "is_active": true,
+      "created_at": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "5",
+      "name": "Gardening",
+      "description": "Lawn care, pruning, and landscaping",
+      "is_active": true,
+      "created_at": "2026-08-01T00:00:00Z"
+    },
+    {
+      "name": "Test Work",
+      "description": "kasfjklajsflkjasfjweoifjw",
+      "is_active": true,
+      "id": "t880ikoPo5E"
+    }
+  ],
+  "report_reasons": [
+    {
+      "id": "1",
+      "code": "no_show",
+      "label": "No Show",
+      "description": "Worker did not show up for the booking",
+      "is_active": true
+    },
+    {
+      "id": "2",
+      "code": "unsatisfactory_work",
+      "label": "Unsatisfactory Work",
+      "description": "Work quality did not meet expectations",
+      "is_active": true
+    },
+    {
+      "id": "3",
+      "code": "misconduct",
+      "label": "Misconduct",
+      "description": "Inappropriate behavior during service",
+      "is_active": true
+    },
+    {
+      "id": "4",
+      "code": "non_payment",
+      "label": "Non Payment",
+      "description": "Client did not pay for the service",
+      "is_active": true
+    },
+    {
+      "id": "5",
+      "code": "unsafe_environment",
+      "label": "Unsafe Environment",
+      "description": "Working conditions were unsafe",
+      "is_active": true
+    },
+    {
+      "id": "6",
+      "code": "abusive_behavior",
+      "label": "Abusive Behavior",
+      "description": "Verbal or physical abuse during service",
+      "is_active": true
+    },
+    {
+      "id": "7",
+      "code": "false_information",
+      "label": "False Information",
+      "description": "User provided false details",
+      "is_active": true
+    },
+    {
+      "id": "8",
+      "code": "other",
+      "label": "Other",
+      "description": "Other reason not listed above",
+      "is_active": true
+    }
+  ],
+  "notification_templates": [
+    {
+      "id": "1",
+      "key": "booking_confirmed",
+      "title": "Booking Confirmed",
+      "channel": "push",
+      "subject": null,
+      "body": "Your booking {{booking_code}} has been confirmed. Your worker will arrive on {{scheduled_date}}.",
+      "variables": [
+        "booking_code",
+        "scheduled_date"
+      ],
+      "is_active": true,
+      "last_updated_at": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "2",
+      "key": "booking_cancelled",
+      "title": "Booking Cancelled",
+      "channel": "push",
+      "subject": null,
+      "body": "Your booking {{booking_code}} has been cancelled. Please rebook at your convenience.",
+      "variables": [
+        "booking_code"
+      ],
+      "is_active": true,
+      "last_updated_at": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "3",
+      "key": "verification_approved",
+      "title": "Verification Approved",
+      "channel": "push",
+      "subject": null,
+      "body": "Congratulations {{worker_name}}! Your account has been verified. You can now accept bookings.",
+      "variables": [
+        "worker_name"
+      ],
+      "is_active": true,
+      "last_updated_at": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "4",
+      "key": "verification_rejected",
+      "title": "Verification Rejected",
+      "channel": "push",
+      "subject": null,
+      "body": "Your verification was not approved. Reason: {{remarks}}. Please resubmit your documents.",
+      "variables": [
+        "remarks"
+      ],
+      "is_active": false,
+      "last_updated_at": "2026-08-01T00:00:00Z"
+    },
+    {
+      "id": "5",
+      "key": "account_suspended",
+      "title": "Account Suspended",
+      "channel": "email",
+      "subject": "Your HanapBuhay account has been suspended",
+      "body": "Dear {{user_name}}, your account has been suspended due to: {{reason}}. Please contact support.",
+      "variables": [
+        "user_name",
+        "reason"
+      ],
+      "is_active": true,
+      "last_updated_at": "2026-08-27T06:46:11.864Z"
+    }
+  ],
+  "announcements": [
+    {
+      "id": "1",
+      "title": "Platform Maintenance Notice",
+      "body": "HanapBuhay will undergo scheduled maintenance on September 25, 2026 from 12:00 AM to 4:00 AM. Services will be temporarily unavailable.",
+      "target_audience": "all",
+      "status": "published",
+      "published_at": "2026-09-20T08:00:00Z",
+      "expires_at": "2026-09-25T04:00:00Z",
+      "created_at": "2026-09-20T07:00:00Z"
+    },
+    {
+      "id": "2",
+      "title": "New Feature: Trust Tier System",
+      "body": "We are introducing a new Trust Tier system for workers. Verified workers will now display a trust badge on their profiles.",
+      "target_audience": "workers",
+      "status": "published",
+      "published_at": "2026-09-18T09:00:00Z",
+      "expires_at": null,
+      "created_at": "2026-09-18T08:00:00Z"
+    },
+    {
+      "id": "3",
+      "title": "Holiday Reminder",
+      "body": "Please be reminded that bookings during the holiday season may experience delays. Plan your bookings in advance.",
+      "target_audience": "clients",
+      "status": "draft",
+      "published_at": null,
+      "expires_at": null,
+      "created_at": "2026-09-21T10:00:00Z"
+    }
+  ],
+  "admin_profile": {
+    "id": 1,
+    "name": "Admin User",
+    "email": "admin@hanapbuhay.com",
+    "role": "admin",
+    "avatar_url": null,
+    "phone": "09171234567",
+    "created_at": "2026-01-01T00:00:00Z"
+  },
+  "login_activity": [
+    {
+      "id": "1",
+      "device": "Chrome on Windows",
+      "location": "Cebu City, Philippines",
+      "ip_address": "203.0.113.45",
+      "logged_in_at": "2026-09-20T08:00:00Z",
+      "is_current_session": true
+    },
+    {
+      "id": "2",
+      "device": "Safari on iPhone",
+      "location": "Cebu City, Philippines",
+      "ip_address": "203.0.113.90",
+      "logged_in_at": "2026-09-18T14:30:00Z",
+      "is_current_session": false,
+      "revoked": true
+    },
+    {
+      "id": "3",
+      "device": "Chrome on Windows",
+      "location": "Manila, Philippines",
+      "ip_address": "198.51.100.12",
+      "logged_in_at": "2026-09-15T09:00:00Z",
+      "is_current_session": false,
+      "revoked": true
+    }
+  ],
+  "$schema": "./node_modules/json-server/schema.json"
+}

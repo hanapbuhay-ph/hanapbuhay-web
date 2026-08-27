@@ -1,0 +1,124 @@
+:root {
+  /* Tarsi Verdant — light mode */
+  --radius: 0.5rem;
+  --background: #f9f9f8;
+  --foreground: #191c1c;
+  --card: #fefdfb;
+  --card-foreground: #191c1c;
+  --popover: #fefdfb;
+  --popover-foreground: #191c1c;
+  --primary: #006e11;
+  --primary-foreground: #ffffff;
+  --secondary: #2a6b2c;
+  --secondary-foreground: #ffffff;
+  --muted: #edeeed;
+  --muted-foreground: #3f4a3b;
+  --accent: #edeeed;
+  --accent-foreground: #191c1c;
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: #becab6;
+  --input: #becab6;
+  --ring: #006e11;
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+}
+
+.dark {
+  --sidebar: #111810;
+  --sidebar-foreground: #dce8d8;
+  --sidebar-primary: #4caf50;
+  --sidebar-primary-foreground: #0d1410;
+  --sidebar-accent: #1a2417;
+  --sidebar-accent-foreground: #dce8d8;
+  --sidebar-border: #2a3d26;
+  --sidebar-ring: #4caf50;
+}
+
+.dark {
+  /* Tarsi Verdant — dark mode */
+  --background: #0d1410;
+  --foreground: #dce8d8;
+  --card: #131a10;
+  --card-foreground: #dce8d8;
+  --popover: #1a2417;
+  --popover-foreground: #dce8d8;
+  --primary: #4caf50;
+  --primary-foreground: #0d1410;
+  --secondary: #2a4d2c;
+  --secondary-foreground: #dce8d8;
+  --muted: #1e2b1a;
+  --muted-foreground: #8aab84;
+  --accent: #1e2b1a;
+  --accent-foreground: #dce8d8;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: #2a3d26;
+  --input: #2a3d26;
+  --ring: #4caf50;
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+}
+
+@theme inline {
+  --font-sans: 'Plus Jakarta Sans', 'sans-serif';
+  --font-inter: 'Plus Jakarta Sans', 'sans-serif';
+  --font-manrope: 'Plus Jakarta Sans', 'sans-serif';
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Tarsi Verdant — custom palette */
+  --color-primary-container: #34a835;
+  --color-surface-cream: #fefdfb;
+  --color-surface-dim: #d9dad9;
+  --color-leaf-bright: #4caf50;
+  --color-outline-variant: #becab6;
+  --color-charcoal-soft: #2d312e;
+}
