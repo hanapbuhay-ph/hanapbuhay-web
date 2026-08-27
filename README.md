@@ -1,119 +1,165 @@
-# Shadcn Admin Dashboard
+# HanapBuhay — Web Admin Panel
 
-Admin Dashboard UI crafted with Shadcn and Vite. Built with responsiveness and accessibility in mind.
+A web-based admin panel for **HanapBuhay**, a barangay-verified community marketplace for local skilled workers. Built with React, TypeScript, Vite, TanStack Router, and shadcn/ui.
 
-![alt text](public/images/shadcn-admin.png)
-
-[![Sponsored by Clerk](https://img.shields.io/badge/Sponsored%20by-Clerk-5b6ee1?logo=clerk)](https://go.clerk.com/GttUAaK)
-
-I've been creating dashboard UIs at work and for my personal projects. I always wanted to make a reusable collection of dashboard UI for future projects; and here it is now. While I've created a few custom components, some of the code is directly adapted from ShadcnUI examples.
-
-> This is not a starter project (template) though. I'll probably make one in the future.
+---
 
 ## Features
 
-- Light/dark mode
-- Responsive
-- Accessible
-- With built-in Sidebar component
-- Global search command
-- 10+ pages
-- Extra custom components
-- RTL support
+- Admin authentication with role-based access guard
+- Dashboard with platform-wide statistics
+- Worker verification queue (approve / reject / request resubmission)
+- User account management (suspend, reactivate, deletion requests)
+- Booking oversight with force-cancel capability
+- Reports & dispute management with resolution history
+- Chat log viewer for dispute investigation
+- Ratings & reviews moderation (flag, remove, restore)
+- Platform settings (service categories, report reasons, notification templates, announcements)
+- Audit log of all admin actions
+- Admin account management (profile, security, login activity)
+- Light / dark mode
+- Responsive layout
 
-<details>
-<summary>Customized Components (click to expand)</summary>
-
-This project uses Shadcn UI components, but some have been slightly modified for better RTL (Right-to-Left) support and other improvements. These customized components differ from the original Shadcn UI versions.
-
-If you want to update components using the Shadcn CLI (e.g., `npx shadcn@latest add <component>`), it's generally safe for non-customized components. For the listed customized ones, you may need to manually merge changes to preserve the project's modifications and avoid overwriting RTL support or other updates.
-
-> If you don't require RTL support, you can safely update the 'RTL Updated Components' via the Shadcn CLI, as these changes are primarily for RTL compatibility. The 'Modified Components' may have other customizations to consider.
-
-### Modified Components
-
-- scroll-area
-- sonner
-- separator
-
-### RTL Updated Components
-
-- alert-dialog
-- calendar
-- command
-- dialog
-- dropdown-menu
-- select
-- table
-- sheet
-- sidebar
-- switch
-
-**Notes:**
-
-- **Modified Components**: These have general updates, potentially including RTL adjustments.
-- **RTL Updated Components**: These have specific changes for RTL language support (e.g., layout, positioning).
-- For implementation details, check the source files in `src/components/ui/`.
-- All other Shadcn UI components in the project are standard and can be safely updated via the CLI.
-
-</details>
+---
 
 ## Tech Stack
 
-**UI:** [ShadcnUI](https://ui.shadcn.com) (TailwindCSS + RadixUI)
+| Layer         | Technology                                                                |
+| ------------- | ------------------------------------------------------------------------- |
+| UI Components | [shadcn/ui](https://ui.shadcn.com) (Radix UI + Tailwind CSS v4)           |
+| Build Tool    | [Vite](https://vitejs.dev/)                                               |
+| Routing       | [TanStack Router](https://tanstack.com/router/latest)                     |
+| Server State  | [TanStack Query](https://tanstack.com/query/latest)                       |
+| Forms         | [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/) |
+| HTTP Client   | [Axios](https://axios-http.com/)                                          |
+| Mock API      | [json-server](https://github.com/typicode/json-server)                    |
+| Language      | [TypeScript](https://www.typescriptlang.org/)                             |
+| Linting       | [ESLint](https://eslint.org/) + [Prettier](https://prettier.io/)          |
+| Icons         | [Lucide React](https://lucide.dev/)                                       |
 
-**Build Tool:** [Vite](https://vitejs.dev/)
+---
 
-**Routing:** [TanStack Router](https://tanstack.com/router/latest)
+## Prerequisites
 
-**Type Checking:** [TypeScript](https://www.typescriptlang.org/)
+Make sure you have these installed before running the project:
 
-**Linting/Formatting:** [ESLint](https://eslint.org/) & [Prettier](https://prettier.io/)
+- [Node.js](https://nodejs.org/) v18 or higher
+- [pnpm](https://pnpm.io/) v8 or higher
 
-**Icons:** [Lucide Icons](https://lucide.dev/icons/), [Tabler Icons](https://tabler.io/icons) (Brand icons only)
-
-**Auth (partial):** [Clerk](https://go.clerk.com/GttUAaK)
-
-## Run Locally
-
-Clone the project
-
-```bash
-  git clone https://github.com/satnaing/shadcn-admin.git
-```
-
-Go to the project directory
-
-```bash
-  cd shadcn-admin
-```
-
-Install dependencies
+Install pnpm if you don't have it:
 
 ```bash
-  pnpm install
+npm install -g pnpm
 ```
 
-Start the server
+---
+
+## Getting Started
+
+### 1. Clone the repository
 
 ```bash
-  pnpm run dev
+git clone <your-repo-url>
+cd <repo-folder>
 ```
 
-## Sponsoring this project ❤️
+### 2. Install dependencies
 
-If you find this project helpful or use this in your own work, consider [sponsoring me](https://github.com/sponsors/satnaing) to support development and maintenance. You can [buy me a coffee](https://buymeacoffee.com/satnaing) as well. Don’t worry, every penny helps. Thank you! 🙏
+```bash
+pnpm install
+```
 
-For questions or sponsorship inquiries, feel free to reach out at [satnaingdev@gmail.com](mailto:satnaingdev@gmail.com).
+### 3. Set up environment variables
 
-### Current Sponsor
+Copy the example env file and fill in the values:
 
-- [Clerk](https://go.clerk.com/GttUAaK) - authentication and user management for the modern web
+```bash
+cp .env.example .env.local
+```
 
-## Author
+Open `.env.local` and set:
 
-Crafted with 🤍 by [@satnaing](https://github.com/satnaing)
+```env
+VITE_API_URL=http://localhost:3001
+```
 
-## License
+> `VITE_API_URL` points to the mock API server (json-server). Keep it as `http://localhost:3001` for local development.
 
-Licensed under the [MIT License](https://choosealicense.com/licenses/mit/)
+### 4. Start the mock API
+
+The project uses json-server as a local mock backend. Run it in a separate terminal:
+
+```bash
+pnpm mock
+```
+
+This starts json-server at `http://localhost:3001` using the data in `mock/db.json`.
+
+### 5. Start the development server
+
+In another terminal:
+
+```bash
+pnpm dev
+```
+
+Open your browser at `http://localhost:5173`.
+
+---
+
+## Logging In (Local Development)
+
+The login page includes a **Dev Login** button that bypasses authentication and sets a mock token automatically. This button is only visible when `VITE_API_URL` points to localhost.
+
+To use the full login flow, the mock API would need a `/api/auth/login` endpoint. For local development, the Dev Login button is the intended path.
+
+---
+
+## Available Scripts
+
+| Script         | Description                             |
+| -------------- | --------------------------------------- |
+| `pnpm dev`     | Start the Vite development server       |
+| `pnpm mock`    | Start json-server mock API on port 3001 |
+| `pnpm build`   | Type-check and build for production     |
+| `pnpm preview` | Preview the production build locally    |
+| `pnpm lint`    | Run ESLint                              |
+| `pnpm format`  | Format all files with Prettier          |
+| `pnpm test`    | Run tests headlessly                    |
+
+---
+
+## Project Structure
+
+```
+src/
+├── assets/          # SVG icons and brand assets
+├── components/      # Shared UI components and layout
+├── context/         # React context providers (theme, layout, search)
+├── features/        # Feature modules (one folder per section)
+├── hooks/           # Shared custom hooks
+├── lib/             # Utilities (api.ts, auth.ts, utils.ts)
+├── routes/          # TanStack Router file-based route files
+├── stores/          # Zustand stores
+└── styles/          # Global CSS and theme variables
+
+mock/
+└── db.json          # json-server mock database
+```
+
+---
+
+## Environment Variables
+
+| Variable       | Required | Description                                                       |
+| -------------- | -------- | ----------------------------------------------------------------- |
+| `VITE_API_URL` | Yes      | Base URL for the API. Use `http://localhost:3001` for local mock. |
+
+---
+
+## Notes
+
+- All routes under `/_authenticated` are protected by an auth guard. Navigating to them without a token redirects to `/login`.
+- The token is stored in `localStorage` under the key `hanapbuhay_admin_token`.
+- `mock/db.json` is the single source of truth for all mock data. Edits to it are picked up by json-server automatically (it watches the file).
+- Route files are auto-generated into `src/routeTree.gen.ts` by the TanStack Router Vite plugin on every `pnpm dev` or `pnpm build` run. Do not edit this file manually.
