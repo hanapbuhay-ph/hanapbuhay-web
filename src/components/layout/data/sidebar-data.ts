@@ -8,6 +8,7 @@ import {
   Star,
   ShieldAlert,
   Settings2,
+  Briefcase,
 } from 'lucide-react'
 import { HanapBuhayLogo } from '@/assets/logo'
 import { type SidebarData } from '../types'
@@ -43,6 +44,11 @@ export const sidebarData: SidebarData = {
           title: 'Users',
           url: '/users',
           icon: Users,
+        },
+        {
+          title: 'Job Posts',
+          url: '/job-posts',
+          icon: Briefcase,
         },
         {
           title: 'Bookings',

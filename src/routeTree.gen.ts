@@ -32,6 +32,7 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedReviewsIndexRouteImport } from './routes/_authenticated/reviews/index'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
 import { Route as AuthenticatedPlatformSettingsIndexRouteImport } from './routes/_authenticated/platform-settings/index'
+import { Route as AuthenticatedJobPostsIndexRouteImport } from './routes/_authenticated/job-posts/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedChatLogsIndexRouteImport } from './routes/_authenticated/chat-logs/index'
@@ -177,6 +178,12 @@ const AuthenticatedPlatformSettingsIndexRoute =
   AuthenticatedPlatformSettingsIndexRouteImport.update({
     id: '/platform-settings/',
     path: '/platform-settings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedJobPostsIndexRoute =
+  AuthenticatedJobPostsIndexRouteImport.update({
+    id: '/job-posts/',
+    path: '/job-posts/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedHelpCenterIndexRoute =
@@ -374,6 +381,7 @@ export interface FileRoutesByFullPath {
   '/chat-logs/': typeof AuthenticatedChatLogsIndexRoute
   '/chats/': typeof AuthenticatedChatsIndexRoute
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
+  '/job-posts/': typeof AuthenticatedJobPostsIndexRoute
   '/platform-settings/': typeof AuthenticatedPlatformSettingsIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/reviews/': typeof AuthenticatedReviewsIndexRoute
@@ -421,6 +429,7 @@ export interface FileRoutesByTo {
   '/chat-logs': typeof AuthenticatedChatLogsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/job-posts': typeof AuthenticatedJobPostsIndexRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/reviews': typeof AuthenticatedReviewsIndexRoute
@@ -474,6 +483,7 @@ export interface FileRoutesById {
   '/_authenticated/chat-logs/': typeof AuthenticatedChatLogsIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
+  '/_authenticated/job-posts/': typeof AuthenticatedJobPostsIndexRoute
   '/_authenticated/platform-settings/': typeof AuthenticatedPlatformSettingsIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/reviews/': typeof AuthenticatedReviewsIndexRoute
@@ -525,6 +535,7 @@ export interface FileRouteTypes {
     | '/chat-logs/'
     | '/chats/'
     | '/help-center/'
+    | '/job-posts/'
     | '/platform-settings/'
     | '/reports/'
     | '/reviews/'
@@ -572,6 +583,7 @@ export interface FileRouteTypes {
     | '/chat-logs'
     | '/chats'
     | '/help-center'
+    | '/job-posts'
     | '/platform-settings'
     | '/reports'
     | '/reviews'
@@ -624,6 +636,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chat-logs/'
     | '/_authenticated/chats/'
     | '/_authenticated/help-center/'
+    | '/_authenticated/job-posts/'
     | '/_authenticated/platform-settings/'
     | '/_authenticated/reports/'
     | '/_authenticated/reviews/'
@@ -808,6 +821,13 @@ declare module '@tanstack/react-router' {
       path: '/platform-settings'
       fullPath: '/platform-settings/'
       preLoaderRoute: typeof AuthenticatedPlatformSettingsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/job-posts/': {
+      id: '/_authenticated/job-posts/'
+      path: '/job-posts'
+      fullPath: '/job-posts/'
+      preLoaderRoute: typeof AuthenticatedJobPostsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/help-center/': {
@@ -1065,6 +1085,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatLogsIndexRoute: typeof AuthenticatedChatLogsIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
+  AuthenticatedJobPostsIndexRoute: typeof AuthenticatedJobPostsIndexRoute
   AuthenticatedPlatformSettingsIndexRoute: typeof AuthenticatedPlatformSettingsIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedReviewsIndexRoute: typeof AuthenticatedReviewsIndexRoute
@@ -1098,6 +1119,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatLogsIndexRoute: AuthenticatedChatLogsIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
+  AuthenticatedJobPostsIndexRoute: AuthenticatedJobPostsIndexRoute,
   AuthenticatedPlatformSettingsIndexRoute:
     AuthenticatedPlatformSettingsIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
