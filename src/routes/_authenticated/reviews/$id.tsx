@@ -1,9 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { ReviewDetailPage } from '@/features/reviews/detail-page'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_authenticated/reviews/$id')({
-  component: function ReviewDetailRoute() {
-    const { id } = Route.useParams()
-    return <ReviewDetailPage id={id} />
+  beforeLoad: () => {
+    throw redirect({ to: '/reviews' })
   },
+  component: () => null,
 })
