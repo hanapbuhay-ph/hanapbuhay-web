@@ -6,58 +6,36 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { Button } from '@/components/ui/button'
-import { useServiceCategories } from './hooks/use-service-categories'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { useSettings } from './hooks/use-settings'
 import { useServiceCategoryAction } from './hooks/use-service-category-action'
-import { ServiceCategoryCard } from './components/service-category-card'
-import { ServiceCategoryDialog } from './components/service-category-dialog'
-import { type ServiceCategory, type ServiceCategoryPayload } from './types'
 
 export function ServiceCategoriesPage() {
-  const { data, isLoading, error, refetch } = useServiceCategories()
-  const { isSubmitting, add, edit, toggle } = useServiceCategoryAction()
+  const { data, isLoading, error, refetch } = useSettings()
+  const { isSubmitting, add } = useServiceCategoryAction()
 
-  // Dialog state
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editing, setEditing] = useState<ServiceCategory | undefined>(undefined)
+  const [name, setName] = useState('')
+  const [icon, setIcon] = useState('')
 
-  // Track which card's toggle is in-flight (for per-card disabled state)
-  const [togglingId, setTogglingId] = useState<number | null>(null)
+  const categories = data?.service_categories ?? []
 
-  // Optimistic local overrides so the UI responds immediately
-  const [localOverrides, setLocalOverrides] = useState<Map<number, ServiceCategory>>(new Map())
-
-  const displayed = data.map((c) => localOverrides.get(c.id) ?? c)
-
-  function openAdd() {
-    setEditing(undefined)
-    setDialogOpen(true)
-  }
-
-  function openEdit(category: ServiceCategory) {
-    setEditing(category)
-    setDialogOpen(true)
-  }
-
-  function handleConfirm(payload: ServiceCategoryPayload) {
-    if (editing) {
-      edit(editing.id, payload, (updated) => {
-        setLocalOverrides((m) => new Map(m).set(updated.id, updated))
-        setDialogOpen(false)
-      })
-    } else {
-      add(payload, () => {
-        setDialogOpen(false)
-        refetch()
-      })
-    }
-  }
-
-  function handleToggle(category: ServiceCategory) {
-    setTogglingId(category.id)
-    toggle(category, (updated) => {
-      setLocalOverrides((m) => new Map(m).set(updated.id, updated))
-      setTogglingId(null)
-    }).finally(() => setTogglingId(null))
+  function handleAdd() {
+    add({ name: name.trim(), icon: icon.trim() }, () => {
+      setDialogOpen(false)
+      setName('')
+      setIcon('')
+      refetch()
+    })
   }
 
   return (
@@ -70,7 +48,6 @@ export function ServiceCategoriesPage() {
       </Header>
 
       <Main>
-        {/* Back link */}
         <Link
           to='/platform-settings'
           className='mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors'
@@ -79,7 +56,6 @@ export function ServiceCategoriesPage() {
           Platform Settings
         </Link>
 
-        {/* Page header */}
         <div className='mb-6 flex items-start justify-between gap-4'>
           <div>
             <h1 className='text-2xl font-bold tracking-tight text-foreground'>
@@ -89,25 +65,23 @@ export function ServiceCategoriesPage() {
               Manage the service types workers can offer on HanapBuhay.
             </p>
           </div>
-          <Button onClick={openAdd} className='shrink-0 bg-green-600 hover:bg-green-700 text-white'>
+          <Button
+            onClick={() => setDialogOpen(true)}
+            className='shrink-0 bg-green-600 hover:bg-green-700 text-white'
+          >
             <Plus size={16} className='mr-1.5' />
             Add Category
           </Button>
         </div>
 
-        {/* Loading */}
         {isLoading && (
           <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
             {Array.from({ length: 5 }).map((_, i) => (
-              <div
-                key={i}
-                className='h-44 animate-pulse rounded-xl bg-muted'
-              />
+              <Skeleton key={i} className='h-20 rounded-xl' />
             ))}
           </div>
         )}
 
-        {/* Error */}
         {!isLoading && error && (
           <div className='rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive'>
             {error}
@@ -122,30 +96,67 @@ export function ServiceCategoriesPage() {
           </div>
         )}
 
-        {/* Card grid */}
         {!isLoading && !error && (
-          <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
-            {displayed.map((category) => (
-              <ServiceCategoryCard
-                key={category.id}
-                category={category}
-                isTogglingId={togglingId}
-                onEdit={openEdit}
-                onToggle={handleToggle}
-              />
+          <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3'>
+            {categories.map((c) => (
+              <div
+                key={c.id}
+                className='rounded-xl border border-border bg-card p-4'
+                style={{ boxShadow: '0 2px 8px rgba(52,168,53,0.06)' }}
+              >
+                <p className='font-medium text-foreground'>{c.name}</p>
+                <p className='mt-0.5 text-xs text-muted-foreground'>
+                  icon: {c.icon}
+                </p>
+              </div>
             ))}
           </div>
         )}
       </Main>
 
-      {/* Add / Edit dialog */}
-      <ServiceCategoryDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        category={editing}
-        isSubmitting={isSubmitting}
-        onConfirm={handleConfirm}
-      />
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Service Category</DialogTitle>
+          </DialogHeader>
+          <div className='flex flex-col gap-4 py-2'>
+            <div className='flex flex-col gap-1.5'>
+              <Label htmlFor='cat-name'>Name</Label>
+              <Input
+                id='cat-name'
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder='e.g. Tailoring'
+              />
+            </div>
+            <div className='flex flex-col gap-1.5'>
+              <Label htmlFor='cat-icon'>Icon key</Label>
+              <Input
+                id='cat-icon'
+                value={icon}
+                onChange={(e) => setIcon(e.target.value)}
+                placeholder='e.g. tailoring'
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant='outline'
+              onClick={() => setDialogOpen(false)}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAdd}
+              disabled={isSubmitting || !name.trim() || !icon.trim()}
+              className='bg-primary text-white hover:bg-primary/90'
+            >
+              {isSubmitting ? 'Adding…' : 'Add'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

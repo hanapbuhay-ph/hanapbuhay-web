@@ -1,57 +1,24 @@
-import { useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { useNotificationTemplates } from './hooks/use-notification-templates'
-import { useNotificationTemplateAction } from './hooks/use-notification-template-action'
-import { NotificationTemplatesTable } from './components/notification-templates-table'
-import { NotificationTemplateDialog } from './components/notification-template-dialog'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
-  type NotificationTemplate,
-  type NotificationTemplatePayload,
-} from './types'
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { useSettings } from './hooks/use-settings'
 
 export function NotificationTemplatesPage() {
-  const { data, isLoading, error, refetch } = useNotificationTemplates()
-  const { isSubmitting, edit, toggle } = useNotificationTemplateAction()
-
-  // Dialog state — always editing (no add flow)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editing, setEditing] = useState<NotificationTemplate | null>(null)
-
-  // Per-row toggle loading
-  const [togglingId, setTogglingId] = useState<number | null>(null)
-
-  // Optimistic local overrides so rows update instantly
-  const [localOverrides, setLocalOverrides] = useState<
-    Map<number, NotificationTemplate>
-  >(new Map())
-
-  const displayed = data.map((t) => localOverrides.get(t.id) ?? t)
-
-  function openEdit(template: NotificationTemplate) {
-    setEditing(template)
-    setDialogOpen(true)
-  }
-
-  function handleConfirm(payload: NotificationTemplatePayload) {
-    if (!editing) return
-    edit(editing.id, payload, (updated) => {
-      setLocalOverrides((m) => new Map(m).set(updated.id, updated))
-      setDialogOpen(false)
-    })
-  }
-
-  function handleToggle(template: NotificationTemplate) {
-    setTogglingId(template.id)
-    toggle(template, (updated) => {
-      setLocalOverrides((m) => new Map(m).set(updated.id, updated))
-      setTogglingId(null)
-    }).finally(() => setTogglingId(null))
-  }
+  const { data, isLoading, error, refetch } = useSettings()
+  const templates = data?.notification_templates ?? []
 
   return (
     <>
@@ -63,7 +30,6 @@ export function NotificationTemplatesPage() {
       </Header>
 
       <Main>
-        {/* Back link */}
         <Link
           to='/platform-settings'
           className='mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors'
@@ -72,38 +38,73 @@ export function NotificationTemplatesPage() {
           Platform Settings
         </Link>
 
-        {/* Page header */}
         <div className='mb-6'>
           <h1 className='text-2xl font-bold tracking-tight text-foreground'>
             Notification Templates
           </h1>
           <p className='mt-1 text-sm text-muted-foreground'>
-            Edit the content of system notifications sent to users. Templates
-            are system-defined — only content and active status can be changed.
+            System-defined notification templates. Read-only — managed via the
+            API contract.
           </p>
         </div>
 
-        <NotificationTemplatesTable
-          data={displayed}
-          isLoading={isLoading}
-          error={error}
-          togglingId={togglingId}
-          onEdit={openEdit}
-          onToggle={handleToggle}
-          onRetry={refetch}
-        />
-      </Main>
+        {!isLoading && error && (
+          <div className='rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive'>
+            {error}
+            <Button
+              variant='link'
+              size='sm'
+              className='ml-2 h-auto p-0 text-destructive underline'
+              onClick={refetch}
+            >
+              Retry
+            </Button>
+          </div>
+        )}
 
-      {/* Edit dialog — only rendered when a template is selected */}
-      {editing && (
-        <NotificationTemplateDialog
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          template={editing}
-          isSubmitting={isSubmitting}
-          onConfirm={handleConfirm}
-        />
-      )}
+        <div
+          className='overflow-x-auto rounded-2xl border border-border bg-card'
+          style={{ boxShadow: '0 2px 12px rgba(52,168,53,0.08)' }}
+        >
+          <Table>
+            <TableHeader>
+              <TableRow className='bg-background hover:bg-background'>
+                <TableHead className='ps-4 font-semibold text-foreground'>
+                  Key
+                </TableHead>
+                <TableHead className='font-semibold text-foreground'>
+                  Body
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoading &&
+                Array.from({ length: 4 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell className='ps-4'>
+                      <Skeleton className='h-4 w-36' />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className='h-4 w-56' />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              {!isLoading &&
+                !error &&
+                templates.map((t, i) => (
+                  <TableRow key={t.key ?? i}>
+                    <TableCell className='ps-4 font-mono text-sm text-muted-foreground'>
+                      {t.key}
+                    </TableCell>
+                    <TableCell className='max-w-xs truncate text-sm text-muted-foreground'>
+                      {t.body}
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </div>
+      </Main>
     </>
   )
 }
