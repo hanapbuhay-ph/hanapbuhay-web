@@ -26,7 +26,6 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { DismissDialog } from './components/dismiss-dialog'
 import { EvidenceGrid } from './components/evidence-grid'
 import { ReportStatusBadge } from './components/report-status-badge'
-import { ResolutionHistory } from './components/resolution-history'
 import { ResolveDialog } from './components/resolve-dialog'
 import { useReport } from './hooks/use-report'
 import { useReportAction } from './hooks/use-report-action'
@@ -42,7 +41,7 @@ interface ReportDetailPageProps {
 
 export function ReportDetailPage({ id }: ReportDetailPageProps) {
   const navigate = useNavigate()
-  const { data, isLoading, error, refetch, setData } = useReport(id)
+  const { data, isLoading, error, refetch } = useReport(id)
   const { isSubmitting, resolve, dismiss } = useReportAction()
   const [showResolve, setShowResolve] = useState(false)
   const [showDismiss, setShowDismiss] = useState(false)
@@ -57,18 +56,18 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
     resolve(
       data.id,
       { resolution_action: resolutionAction, admin_remarks: adminRemarks },
-      (updated) => {
-        setData(updated)
+      () => {
         setShowResolve(false)
+        refetch()
       }
     )
   }
 
   function handleDismissConfirm(adminRemarks: string) {
     if (!data) return
-    dismiss(data.id, { admin_remarks: adminRemarks }, (updated) => {
-      setData(updated)
+    dismiss(data.id, { admin_remarks: adminRemarks }, () => {
       setShowDismiss(false)
+      refetch()
     })
   }
 
@@ -146,11 +145,11 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
               <CardContent className='flex flex-col gap-2'>
                 <InfoRow
                   icon={User}
-                  label={`Reported by: ${data.reported_by}`}
+                  label={`Reported by: ${data.filed_by.name} (${data.filed_by.role})`}
                 />
                 <InfoRow
                   icon={UserX}
-                  label={`Reported user: ${data.reported_user}`}
+                  label={`Reported user: ${data.reported_user.name} (${data.reported_user.role})`}
                 />
                 <InfoRow
                   icon={Flag}
@@ -189,7 +188,7 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
                       onClick={() =>
                         navigate({
                           to: '/chat-logs/$id',
-                          params: { id: data.booking_id },
+                          params: { id: String(data.booking_id) },
                           search: { from: `/reports/${data.id}` },
                         })
                       }
@@ -241,8 +240,7 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
               </div>
             )}
 
-            {/* Resolution History — collapsible timeline, hidden if empty */}
-            <ResolutionHistory history={data.history} />
+            {/* Resolution History — removed: not returned by real API */}
           </div>
         )}
       </Main>

@@ -26,8 +26,8 @@ export function useReports(
       statusFilter !== 'all' ? { status: statusFilter } : undefined
 
     api
-      .get<Report[]>('/reports', { params })
-      .then((res) => { if (!cancelled) setData(res.data) })
+      .get<{ success: boolean; data: { reports: Report[] } }>('/admin/reports', { params })
+      .then((res) => { if (!cancelled) setData(res.data.data.reports) })
       .catch((err) => {
         if (!cancelled)
           setError(err instanceof Error ? err.message : 'Failed to load reports.')

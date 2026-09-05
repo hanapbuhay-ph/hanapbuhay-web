@@ -134,17 +134,17 @@ export function ReportsTable({
                 key={r.id}
                 className='cursor-pointer hover:bg-primary/5'
                 onClick={() =>
-                  navigate({ to: '/reports/$id', params: { id: r.id } })
+                  navigate({ to: '/reports/$id', params: { id: String(r.id) } })
                 }
               >
                 <TableCell className='ps-4 font-mono text-sm font-medium text-foreground'>
                   {r.booking_code}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
-                  {r.reported_by}
+                  {r.filed_by.name}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
-                  {r.reported_user}
+                  {r.reported_user.name}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
                   {REASON_LABELS[r.reason] ?? r.reason}

@@ -22,8 +22,8 @@ export function useReport(id: string): UseReportResult {
     setError(null)
 
     api
-      .get<Report>(`/reports/${id}`)
-      .then((res) => { if (!cancelled) setData(res.data) })
+      .get<{ success: boolean; data: Report }>(`/admin/reports/${id}`)
+      .then((res) => { if (!cancelled) setData(res.data.data) })
       .catch((err) => {
         if (!cancelled)
           setError(err instanceof Error ? err.message : 'Failed to load report.')

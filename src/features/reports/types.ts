@@ -16,44 +16,26 @@ export type ResolutionAction =
   | 'verification_revoked'
   | 'no_action'
 
-export type ReportHistoryAction =
-  | 'report_filed'
-  | 'report_resolved'
-  | 'report_dismissed'
-  | 'resolution_updated'
-
-export interface ReportHistoryEntry {
-  id: string
-  action: ReportHistoryAction
-  status: ReportStatus
-  remarks: string | null
-  changed_at: string
-  changed_by: string
-}
-
-export const HISTORY_ACTION_LABELS: Record<ReportHistoryAction, string> = {
-  report_filed: 'Report Filed',
-  report_resolved: 'Report Resolved',
-  report_dismissed: 'Report Dismissed',
-  resolution_updated: 'Resolution Updated',
+export interface ReportParty {
+  name: string
+  role: string
+  trust_tier?: string
 }
 
 export interface Report {
-  id: string
-  booking_id: string
+  id: number
+  booking_id: number
   booking_code: string
-  reported_by: string
-  reported_user: string
+  filed_by: ReportParty
+  reported_user: ReportParty
   reason: ReportReason
-  description: string
+  description?: string
   status: ReportStatus
   evidence_urls: string[]
   created_at: string
   // Present on resolved/dismissed records
   resolution_action?: ResolutionAction
   admin_remarks?: string
-  // Audit trail — may be absent on older records
-  history?: ReportHistoryEntry[]
 }
 
 export type ReportStatusFilter = ReportStatus | 'all'
