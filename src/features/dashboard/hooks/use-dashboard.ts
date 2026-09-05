@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 
+export interface RecentActivityItem {
+  type: string
+  description: string
+  created_at: string
+}
+
 export interface DashboardStats {
   total_users: number
   total_clients: number
@@ -9,10 +15,20 @@ export interface DashboardStats {
   active_bookings: number
   open_disputes: number
   completed_bookings_today: number
+  total_active_job_posts: number
+}
+
+// Real API response shape from GET /admin/dashboard
+interface DashboardApiResponse {
+  success: boolean
+  data: DashboardStats & {
+    recent_activity: RecentActivityItem[]
+  }
 }
 
 interface UseDashboardResult {
   data: DashboardStats | null
+  recentActivity: RecentActivityItem[]
   isLoading: boolean
   error: string | null
   refetch: () => void
@@ -20,6 +36,7 @@ interface UseDashboardResult {
 
 export function useDashboard(): UseDashboardResult {
   const [data, setData] = useState<DashboardStats | null>(null)
+  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
@@ -31,8 +48,12 @@ export function useDashboard(): UseDashboardResult {
       setIsLoading(true)
       setError(null)
       try {
-        const res = await api.get<DashboardStats>('/dashboard')
-        if (!cancelled) setData(res.data)
+        const res = await api.get<DashboardApiResponse>('/admin/dashboard')
+        if (!cancelled) {
+          const { recent_activity, ...stats } = res.data.data
+          setData(stats)
+          setRecentActivity(recent_activity ?? [])
+        }
       } catch (err) {
         if (!cancelled) {
           const msg =
@@ -52,6 +73,7 @@ export function useDashboard(): UseDashboardResult {
 
   return {
     data,
+    recentActivity,
     isLoading,
     error,
     refetch: () => setTick((t) => t + 1),

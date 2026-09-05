@@ -73,6 +73,12 @@ const CARD_DEFS: CardDef[] = [
     icon: CheckCircle2,
     variant: () => 'default',
   },
+  {
+    label: 'Active Job Posts',
+    key: 'total_active_job_posts',
+    icon: CheckCircle2,
+    variant: () => 'default',
+  },
 ]
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -82,7 +88,7 @@ export function StatGrid({ data, isLoading, error, onRetry }: StatGridProps) {
   if (isLoading) {
     return (
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        {Array.from({ length: 7 }).map((_, i) => (
+        {Array.from({ length: 8 }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
       </div>

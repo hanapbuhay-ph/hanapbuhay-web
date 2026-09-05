@@ -1,7 +1,11 @@
-import { useEffect, useState } from 'react'
-import { api } from '@/lib/api'
+// MISMATCH NOTE: The mock made 5 separate GET calls to /verifications, /reports,
+// /reviews, /deletion_requests. The real API provides pending_verifications and
+// open_disputes directly in GET /admin/dashboard. Other counts (resubmission,
+// flagged reviews, pending deletions) are not in the dashboard endpoint — they
+// are set to null until dedicated endpoints are wired up.
 
-// Each row has a count (null = fetch failed for that row)
+import { type DashboardStats } from './use-dashboard'
+
 export interface NeedsAttentionData {
   pendingVerifications: number | null
   resubmissionRequested: number | null
@@ -10,72 +14,12 @@ export interface NeedsAttentionData {
   pendingDeletions: number | null
 }
 
-interface UseNeedsAttentionResult {
-  data: NeedsAttentionData
-  isLoading: boolean
-  refetch: () => void
-}
-
-// Safe fetch: resolves to the array length or null on failure
-async function safeCount<T>(
-  endpoint: string,
-  params?: Record<string, string>
-): Promise<number | null> {
-  try {
-    const res = await api.get<T[]>(endpoint, { params })
-    return Array.isArray(res.data) ? res.data.length : null
-  } catch {
-    return null
+export function deriveNeedsAttention(stats: DashboardStats | null): NeedsAttentionData {
+  return {
+    pendingVerifications: stats?.pending_verifications ?? null,
+    resubmissionRequested: null, // not in dashboard endpoint
+    underReviewReports: stats?.open_disputes ?? null,
+    flaggedReviews: null,        // not in dashboard endpoint
+    pendingDeletions: null,      // not in dashboard endpoint
   }
-}
-
-export function useNeedsAttention(): UseNeedsAttentionResult {
-  const [data, setData] = useState<NeedsAttentionData>({
-    pendingVerifications: null,
-    resubmissionRequested: null,
-    underReviewReports: null,
-    flaggedReviews: null,
-    pendingDeletions: null,
-  })
-  const [isLoading, setIsLoading] = useState(true)
-  const [tick, setTick] = useState(0)
-
-  useEffect(() => {
-    let cancelled = false
-    setIsLoading(true)
-
-    // All 5 fetches run in parallel; individual failures return null (not null for all)
-    Promise.all([
-      safeCount('/verifications', { verification_status: 'pending' }),
-      safeCount('/verifications', { verification_status: 'resubmission_requested' }),
-      safeCount('/reports', { status: 'under_review' }),
-      safeCount('/reviews', { status: 'flagged' }),
-      safeCount('/deletion_requests', { status: 'pending' }),
-    ]).then(
-      ([
-        pendingVerifications,
-        resubmissionRequested,
-        underReviewReports,
-        flaggedReviews,
-        pendingDeletions,
-      ]) => {
-        if (!cancelled) {
-          setData({
-            pendingVerifications,
-            resubmissionRequested,
-            underReviewReports,
-            flaggedReviews,
-            pendingDeletions,
-          })
-          setIsLoading(false)
-        }
-      }
-    )
-
-    return () => {
-      cancelled = true
-    }
-  }, [tick])
-
-  return { data, isLoading, refetch: () => setTick((t) => t + 1) }
 }

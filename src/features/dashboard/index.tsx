@@ -1,4 +1,4 @@
-﻿import { Header } from '@/components/layout/header'
+import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { Search } from '@/components/search'
@@ -8,13 +8,11 @@ import { QuickActions } from './components/quick-actions'
 import { RecentActivity } from './components/recent-activity'
 import { StatGrid } from './components/stat-grid'
 import { useDashboard } from './hooks/use-dashboard'
-import { useNeedsAttention } from './hooks/use-needs-attention'
-import { useRecentActivity } from './hooks/use-recent-activity'
+import { deriveNeedsAttention } from './hooks/use-needs-attention'
 
 export function Dashboard() {
-  const { data, isLoading, error, refetch } = useDashboard()
-  const needsAttention = useNeedsAttention()
-  const recentActivity = useRecentActivity()
+  const { data, recentActivity, isLoading, error, refetch } = useDashboard()
+  const needsAttentionData = deriveNeedsAttention(data)
 
   return (
     <>
@@ -50,14 +48,14 @@ export function Dashboard() {
         {/* ── Needs Attention + Recent Activity ──────────────────────── */}
         <div className='mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2'>
           <NeedsAttention
-            data={needsAttention.data}
-            isLoading={needsAttention.isLoading}
+            data={needsAttentionData}
+            isLoading={isLoading}
           />
           <RecentActivity
-            data={recentActivity.data}
-            isLoading={recentActivity.isLoading}
-            error={recentActivity.error}
-            onRetry={recentActivity.refetch}
+            data={recentActivity}
+            isLoading={isLoading}
+            error={error}
+            onRetry={refetch}
           />
         </div>
 

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -7,7 +7,7 @@ import { Loader2, LogIn, Zap } from 'lucide-react'
 import { toast } from 'sonner'
 import { AxiosError } from 'axios'
 import { api } from '@/lib/api'
-import { setToken, isDevMode } from '@/lib/auth'
+import { setToken, setUser, isDevMode } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -22,13 +22,18 @@ import { PasswordInput } from '@/components/password-input'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface LoginResponse {
-  token: string
-  user: {
-    id: number
-    name: string
-    email: string
-    role: string
+// Real API response shape: { success: true, data: { token, user } }
+interface LoginApiResponse {
+  success: boolean
+  message: string
+  data: {
+    token: string
+    user: {
+      id: number
+      name: string
+      email: string
+      role: string
+    }
   }
 }
 
@@ -65,26 +70,39 @@ export function LoginForm() {
   async function onSubmit(data: FormValues) {
     setIsLoading(true)
     try {
-      const res = await api.post<LoginResponse>('/api/auth/login', {
+      const res = await api.post<LoginApiResponse>('/auth/login', {
         email: data.email,
         password: data.password,
       })
 
-      if (res.data.user.role !== 'admin') {
+      const { token, user } = res.data.data
+
+      if (user.role !== 'admin') {
         toast.error('Access denied. Admin accounts only.')
         return
       }
 
-      setToken(res.data.token)
-      toast.success(`Welcome back, ${res.data.user.name}!`)
+      setToken(token)
+      setUser(user)
+      toast.success(`Welcome back, ${user.name}!`)
       navigate({ to: getRedirectTarget(), replace: true })
     } catch (err) {
       const axiosErr = err instanceof AxiosError ? err : null
-      const message =
-        axiosErr?.response?.data?.message ??
-        axiosErr?.message ??
-        'Something went wrong. Please try again.'
-      toast.error(message)
+      const status = axiosErr?.response?.status
+
+      if (status === 401) {
+        toast.error('Invalid email or password.')
+      } else if (status === 403) {
+        // API returns the specific reason (e.g. suspended, email not verified)
+        const message = axiosErr?.response?.data?.message ?? 'Access denied.'
+        toast.error(message)
+      } else {
+        const message =
+          axiosErr?.response?.data?.message ??
+          axiosErr?.message ??
+          'Something went wrong. Please try again.'
+        toast.error(message)
+      }
     } finally {
       setIsLoading(false)
     }

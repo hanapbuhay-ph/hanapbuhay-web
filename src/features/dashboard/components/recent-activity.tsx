@@ -1,3 +1,8 @@
+// MISMATCH NOTE: Mock used AuditLog shape { id, admin_name, action, target_type,
+// target_id, details, created_at }. Real API returns recent_activity items as
+// { type: string, description: string, created_at: string } — no id field.
+// The component now renders description directly instead of mapping action labels.
+
 import { formatDistanceToNow } from 'date-fns'
 import { Link } from '@tanstack/react-router'
 import { Activity, ArrowRight, RefreshCw } from 'lucide-react'
@@ -10,23 +15,18 @@ import {
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
-import { ACTION_LABELS } from '@/features/audit-logs/types'
-import { type AuditLog } from '@/features/audit-logs/types'
+import { type RecentActivityItem } from '../hooks/use-dashboard'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface RecentActivityProps {
-  data: AuditLog[]
+  data: RecentActivityItem[]
   isLoading: boolean
   error: string | null
   onRetry: () => void
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function getActionLabel(action: string): string {
-  return ACTION_LABELS[action as keyof typeof ACTION_LABELS] ?? action
-}
 
 function relativeTime(iso: string): string {
   try {
@@ -114,8 +114,8 @@ export function RecentActivity({
         {/* Feed */}
         {!error && data.length > 0 && (
           <ul className='space-y-0 divide-y divide-border'>
-            {data.map((entry) => (
-              <li key={entry.id} className='flex items-start gap-3 py-3 first:pt-0 last:pb-0'>
+            {data.map((entry, index) => (
+              <li key={index} className='flex items-start gap-3 py-3 first:pt-0 last:pb-0'>
                 {/* Dot avatar */}
                 <div className='mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10'>
                   <Activity className='h-3.5 w-3.5 text-primary' aria-hidden />
@@ -124,13 +124,9 @@ export function RecentActivity({
                 {/* Content */}
                 <div className='min-w-0 flex-1'>
                   <p className='truncate text-sm font-medium text-foreground'>
-                    {getActionLabel(entry.action)}
+                    {entry.description}
                   </p>
                   <p className='mt-0.5 text-xs text-muted-foreground'>
-                    <span className='font-medium text-foreground/70'>
-                      {entry.admin_name}
-                    </span>
-                    {' · '}
                     <span>{relativeTime(entry.created_at)}</span>
                   </p>
                 </div>
