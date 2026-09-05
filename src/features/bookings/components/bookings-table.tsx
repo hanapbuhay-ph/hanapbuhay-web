@@ -140,20 +140,20 @@ export function BookingsTable({
                 key={b.id}
                 className='cursor-pointer hover:bg-primary/5'
                 onClick={() =>
-                  navigate({ to: '/bookings/$id', params: { id: b.id } })
+                  navigate({ to: '/bookings/$id', params: { id: String(b.id) } })
                 }
               >
                 <TableCell className='ps-4 font-mono text-sm font-medium text-foreground'>
                   {b.booking_code}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
-                  {b.client}
+                  {b.client.name}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
-                  {b.worker}
+                  {b.worker.name}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
-                  {b.service_category}
+                  {b.service_category.name}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
                   {format(new Date(b.scheduled_at), 'MMM d, yyyy')}

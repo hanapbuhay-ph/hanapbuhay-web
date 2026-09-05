@@ -22,8 +22,8 @@ export function useBooking(id: string): UseBookingResult {
     setError(null)
 
     api
-      .get<Booking>(`/bookings/${id}`)
-      .then((res) => { if (!cancelled) setData(res.data) })
+      .get(`/admin/bookings/${id}`)
+      .then((res) => { if (!cancelled) setData(res.data.data) })
       .catch((err) => {
         if (!cancelled)
           setError(err instanceof Error ? err.message : 'Failed to load booking.')

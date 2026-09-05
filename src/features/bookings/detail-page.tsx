@@ -47,7 +47,7 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
   function handleForceCancelConfirm(reason: string) {
     if (!data) return
     forceCancel(data.id, reason, (updated) => {
-      setData(updated)
+      setData((prev) => prev ? { ...prev, ...updated } : prev)
       setShowCancel(false)
     })
   }
@@ -124,11 +124,11 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
               </CardHeader>
 
               <CardContent className='flex flex-col gap-2'>
-                <InfoRow icon={User} label={`Client: ${data.client}`} />
-                <InfoRow icon={HardHat} label={`Worker: ${data.worker}`} />
+                <InfoRow icon={User} label={`Client: ${data.client.name}`} />
+                <InfoRow icon={HardHat} label={`Worker: ${data.worker.name}`} />
                 <InfoRow
                   icon={Wrench}
-                  label={`Service: ${data.service_category}`}
+                  label={`Service: ${data.service_category.name}`}
                 />
                 <InfoRow
                   icon={Calendar}

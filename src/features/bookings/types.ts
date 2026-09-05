@@ -14,16 +14,21 @@ export const CANCELLABLE_STATUSES: BookingStatus[] = [
 ]
 
 export interface Booking {
-  id: string
+  id: number
   booking_code: string
   status: BookingStatus
-  client: string
-  worker: string
-  service_category: string
+  client: { id: number; name: string }
+  worker: { id: number; name: string }
+  service_category: { name: string }
   scheduled_at: string
   created_at: string
-  // Optional — present on detail, not guaranteed in list
-  notes?: string
+  // Present on detail only
+  notes?: string | null
+  started_at?: string | null
+  completed_at?: string | null
+  cancelled_by?: string | null
+  cancellation_reason?: string | null
+  updated_at?: string
 }
 
 export type BookingStatusFilter = BookingStatus | 'all'
