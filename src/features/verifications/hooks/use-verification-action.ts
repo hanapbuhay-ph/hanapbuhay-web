@@ -1,41 +1,35 @@
+// Real API:
+//   POST /admin/verifications/{workerProfileId}/review  → K3
+//     body: { action: 'approve'|'reject'|'request_resubmission', admin_notes }
+//   POST /admin/workers/{workerProfileId}/trust-tier    → K4
+//     body: { trust_tier, remarks }
+// The id passed to these actions is worker_profile_id, not the record id.
+
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { AxiosError } from 'axios'
 import { api } from '@/lib/api'
-import { type TrustTier, type Verification } from '../types'
+import { type TrustTier } from '../types'
 
 interface UseVerificationActionResult {
   isSubmitting: boolean
-  approve: (id: number | string, onSuccess: () => void) => Promise<void>
+  approve: (workerProfileId: number | string, onSuccess: () => void) => Promise<void>
   reject: (
-    id: number | string,
+    workerProfileId: number | string,
     remarks: string,
     onSuccess: () => void
   ) => Promise<void>
   requestResubmission: (
-    id: number | string,
+    workerProfileId: number | string,
     remarks: string,
     onSuccess: () => void
   ) => Promise<void>
   changeTrustTier: (
-    id: number | string,
+    workerProfileId: number | string,
     tier: TrustTier,
     remarks: string,
     onSuccess: (tier: TrustTier) => void
   ) => Promise<void>
-}
-
-/**
- * json-server uses full-replacement semantics on PUT.
- * We must fetch the current record first, merge our changes
- * into it, then PUT the complete object back.
- */
-async function mergedPut(
-  id: number | string,
-  changes: Partial<Verification> & Record<string, unknown>
-): Promise<void> {
-  const current = await api.get<Verification>(`/verifications/${id}`)
-  const merged = { ...current.data, ...changes }
-  await api.put(`/verifications/${id}`, merged)
 }
 
 export function useVerificationAction(): UseVerificationActionResult {
@@ -53,7 +47,11 @@ export function useVerificationAction(): UseVerificationActionResult {
       onSuccess()
     } catch (err) {
       const msg =
-        err instanceof Error ? err.message : 'Action failed. Please try again.'
+        err instanceof AxiosError
+          ? (err.response?.data?.message ?? err.message)
+          : err instanceof Error
+            ? err.message
+            : 'Action failed. Please try again.'
       toast.error(msg)
     } finally {
       setIsSubmitting(false)
@@ -63,34 +61,46 @@ export function useVerificationAction(): UseVerificationActionResult {
   return {
     isSubmitting,
 
-    approve: (id, onSuccess) =>
+    approve: (workerProfileId, onSuccess) =>
       runAction(
-        () => mergedPut(id, { verification_status: 'approved' }),
+        () =>
+          api.post(`/admin/verifications/${workerProfileId}/review`, {
+            action: 'approve',
+            admin_notes: 'Documents verified successfully.',
+          }),
         'Worker verification approved.',
         onSuccess
       ),
 
-    reject: (id, remarks, onSuccess) =>
+    reject: (workerProfileId, remarks, onSuccess) =>
       runAction(
-        () => mergedPut(id, { verification_status: 'rejected', remarks }),
+        () =>
+          api.post(`/admin/verifications/${workerProfileId}/review`, {
+            action: 'reject',
+            admin_notes: remarks,
+          }),
         'Worker verification rejected.',
         onSuccess
       ),
 
-    requestResubmission: (id, remarks, onSuccess) =>
+    requestResubmission: (workerProfileId, remarks, onSuccess) =>
       runAction(
         () =>
-          mergedPut(id, {
-            verification_status: 'resubmission_requested',
-            remarks,
+          api.post(`/admin/verifications/${workerProfileId}/review`, {
+            action: 'request_resubmission',
+            admin_notes: remarks,
           }),
         'Resubmission request sent.',
         onSuccess
       ),
 
-    changeTrustTier: (id, tier, remarks, onSuccess) =>
+    changeTrustTier: (workerProfileId, tier, remarks, onSuccess) =>
       runAction(
-        () => mergedPut(id, { trust_tier: tier, remarks }),
+        () =>
+          api.post(`/admin/workers/${workerProfileId}/trust-tier`, {
+            trust_tier: tier,
+            remarks,
+          }),
         'Trust tier updated.',
         () => onSuccess(tier)
       ),

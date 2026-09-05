@@ -23,6 +23,7 @@ export interface VerificationUser {
   id: number
   name: string
   email: string
+  mobile_number?: string // present in real API (K2), absent in mock
   barangay: string
 }
 

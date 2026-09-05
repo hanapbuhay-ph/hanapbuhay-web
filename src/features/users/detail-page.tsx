@@ -21,7 +21,6 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { DeletionRequestStatusBadge } from './components/deletion-request-status-badge'
 import { ReactivateDialog } from './components/reactivate-dialog'
 import { SuspendDialog } from './components/suspend-dialog'
 import { UserRoleBadge } from './components/user-role-badge'
@@ -42,24 +41,22 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
   const navigate = useNavigate()
   const { data, isLoading, error, refetch, setData } = useUser(id)
   const { isSubmitting, suspend, reactivate } = useUserAction()
-  const { data: deletionRequest } = useUserDeletionRequest(id)
+  const { hasPendingDeletion, requestedAt } = useUserDeletionRequest(data)
   const [showSuspend, setShowSuspend] = useState(false)
   const [showReactivate, setShowReactivate] = useState(false)
 
   function handleSuspendConfirm(reason: string) {
     if (!data) return
-    // reason stored for audit purposes — pass to API via the action hook if needed
-    void reason
-    suspend(data.id, (updated) => {
-      setData(updated)
+    suspend(data.id, reason, (isActive) => {
+      setData((prev) => prev ? { ...prev, is_active: isActive } : prev)
       setShowSuspend(false)
     })
   }
 
   function handleReactivateConfirm() {
     if (!data) return
-    reactivate(data.id, (updated) => {
-      setData(updated)
+    reactivate(data.id, (isActive) => {
+      setData((prev) => prev ? { ...prev, is_active: isActive } : prev)
       setShowReactivate(false)
     })
   }
@@ -159,18 +156,13 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
                     }
                   />
                 )}
-                {/* Deletion request info row — shown if any request exists */}
-                {deletionRequest && (
+                {/* Deletion request info row — shown if pending deletion exists */}
+                {hasPendingDeletion && requestedAt && (
                   <div className='mt-1 flex items-center gap-2'>
                     <Trash2 className='h-4 w-4 shrink-0 text-primary' />
                     <span className='text-sm text-muted-foreground'>
-                      Deletion request:
-                    </span>
-                    <DeletionRequestStatusBadge
-                      status={deletionRequest.status}
-                    />
-                    <span className='text-xs text-muted-foreground'>
-                      — {deletionRequest.reason}
+                      Deletion requested on{' '}
+                      {format(new Date(requestedAt), 'MMM d, yyyy')}
                     </span>
                   </div>
                 )}

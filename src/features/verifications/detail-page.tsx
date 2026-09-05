@@ -65,7 +65,7 @@ export function VerificationDetailPage({ id }: VerificationDetailPageProps) {
 
   function handleApproveConfirm() {
     if (!data) return
-    approve(data.id, () => {
+    approve(data.worker_profile_id, () => {
       setShowApprove(false)
       goBack()
     })
@@ -73,7 +73,7 @@ export function VerificationDetailPage({ id }: VerificationDetailPageProps) {
 
   function handleRejectConfirm(remarks: string) {
     if (!data) return
-    reject(data.id, remarks, () => {
+    reject(data.worker_profile_id, remarks, () => {
       setShowReject(false)
       goBack()
     })
@@ -81,7 +81,7 @@ export function VerificationDetailPage({ id }: VerificationDetailPageProps) {
 
   function handleResubmissionConfirm(remarks: string) {
     if (!data) return
-    requestResubmission(data.id, remarks, () => {
+    requestResubmission(data.worker_profile_id, remarks, () => {
       setShowResubmission(false)
       goBack()
     })
@@ -89,7 +89,7 @@ export function VerificationDetailPage({ id }: VerificationDetailPageProps) {
 
   function handleTrustTierConfirm(tier: TrustTier, remarks: string) {
     if (!data) return
-    changeTrustTier(data.id, tier, remarks, (updated) => {
+    changeTrustTier(data.worker_profile_id, tier, remarks, (updated) => {
       setLocalTrustTier(updated)
       setShowTrustTier(false)
     })

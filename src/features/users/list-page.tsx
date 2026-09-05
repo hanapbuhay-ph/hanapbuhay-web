@@ -11,7 +11,6 @@ import { UsersTable } from './components/users-table'
 import { useDeletionRequests } from './hooks/use-deletion-requests'
 import { useUsers } from './hooks/use-users'
 import {
-  type DeletionRequest,
   type RoleFilter,
   type StatusFilter,
 } from './types'
@@ -60,30 +59,13 @@ export function UsersListPage() {
   // Deletion requests tab state
   const {
     data: deletionRequests,
-    pendingCount,
     isLoading: drLoading,
     error: drError,
     refetch: refetchDr,
   } = useDeletionRequests()
 
-  // In-place update when a request is approved/denied
-  const [localDr, setLocalDr] = useState<DeletionRequest[]>([])
-  const mergedDr = useMemo(() => {
-    if (localDr.length === 0) return deletionRequests
-    return deletionRequests.map((r) => localDr.find((l) => l.id === r.id) ?? r)
-  }, [deletionRequests, localDr])
-
-  function handleDrUpdated(updated: DeletionRequest) {
-    setLocalDr((prev) => {
-      const existing = prev.findIndex((r) => r.id === updated.id)
-      if (existing >= 0) {
-        const next = [...prev]
-        next[existing] = updated
-        return next
-      }
-      return [...prev, updated]
-    })
-  }
+  const [processedIds, setProcessedIds] = useState<number[]>([])
+  const visibleDr = deletionRequests.filter((r) => !processedIds.includes(r.id))
 
   return (
     <>
@@ -115,9 +97,9 @@ export function UsersListPage() {
             <TabsTrigger value='users'>All Users</TabsTrigger>
             <TabsTrigger value='deletion_requests' className='gap-1.5'>
               Deletion Requests
-              {pendingCount > 0 && (
+              {deletionRequests.length > 0 && (
                 <span className='inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white'>
-                  {pendingCount}
+                  {deletionRequests.length}
                 </span>
               )}
             </TabsTrigger>
@@ -177,11 +159,11 @@ export function UsersListPage() {
           {/* ── Deletion Requests tab ─────────────────────────────── */}
           <TabsContent value='deletion_requests' className='mt-4'>
             <DeletionRequestsTable
-              data={mergedDr}
+              data={visibleDr}
               isLoading={drLoading}
               error={drError}
               onRetry={refetchDr}
-              onUpdated={handleDrUpdated}
+              onProcessed={(id) => setProcessedIds((prev) => [...prev, id])}
             />
           </TabsContent>
         </Tabs>

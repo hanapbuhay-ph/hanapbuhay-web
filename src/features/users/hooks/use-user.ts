@@ -22,8 +22,8 @@ export function useUser(id: string): UseUserResult {
     setError(null)
 
     api
-      .get<User>(`/users/${id}`)
-      .then((res) => { if (!cancelled) setData(res.data) })
+      .get(`/admin/users/${id}`)
+      .then((res) => { if (!cancelled) setData(res.data.data) })
       .catch((err) => {
         if (!cancelled)
           setError(err instanceof Error ? err.message : 'Failed to load user.')

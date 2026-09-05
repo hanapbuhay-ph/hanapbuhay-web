@@ -137,12 +137,12 @@ export function VerificationsTable({
             !error &&
             data.map((v) => (
               <TableRow
-                key={v.id}
+                key={v.worker_profile_id}
                 className='cursor-pointer hover:bg-primary/5'
                 onClick={() =>
                   navigate({
                     to: '/verifications/$id',
-                    params: { id: String(v.id) },
+                    params: { id: String(v.worker_profile_id) },
                   })
                 }
               >
@@ -166,7 +166,7 @@ export function VerificationsTable({
                     onClick={() =>
                       navigate({
                         to: '/verifications/$id',
-                        params: { id: String(v.id) },
+                        params: { id: String(v.worker_profile_id) },
                       })
                     }
                   >
