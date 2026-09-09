@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { type AuditLog, type AuditActionFilter } from '../types'
 
@@ -12,7 +12,7 @@ interface UseAuditLogsResult {
 export function useAuditLogs(
   actionFilter: AuditActionFilter = 'all'
 ): UseAuditLogsResult {
-  const [raw, setRaw] = useState<AuditLog[]>([])
+  const [data, setData] = useState<AuditLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
@@ -22,40 +22,23 @@ export function useAuditLogs(
     setIsLoading(true)
     setError(null)
 
-    // Fetch all — json-server doesn't support filtering on nested fields,
-    // so we filter client-side after fetching all records.
+    const params =
+      actionFilter !== 'all' ? { action: actionFilter } : undefined
+
     api
-      .get<AuditLog[]>('/audit_logs')
-      .then((res) => {
-        if (!cancelled) {
-          // Sort newest first
-          const sorted = [...res.data].sort(
-            (a, b) =>
-              new Date(b.created_at).getTime() -
-              new Date(a.created_at).getTime()
-          )
-          setRaw(sorted)
-        }
-      })
+      .get<{ success: boolean; data: { logs: AuditLog[] } }>(
+        '/admin/audit-logs',
+        { params }
+      )
+      .then((res) => { if (!cancelled) setData(res.data.data.logs) })
       .catch((err) => {
         if (!cancelled)
-          setError(
-            err instanceof Error ? err.message : 'Failed to load audit logs.'
-          )
+          setError(err instanceof Error ? err.message : 'Failed to load audit logs.')
       })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+      .finally(() => { if (!cancelled) setIsLoading(false) })
 
-    return () => {
-      cancelled = true
-    }
-  }, [tick])
-
-  const data = useMemo(() => {
-    if (actionFilter === 'all') return raw
-    return raw.filter((log) => log.action === actionFilter)
-  }, [raw, actionFilter])
+    return () => { cancelled = true }
+  }, [actionFilter, tick])
 
   return { data, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }

@@ -172,7 +172,7 @@ export function VerificationDetailPage({ id }: VerificationDetailPageProps) {
                 <InfoRow icon={MapPin} label={data.user.barangay} />
                 <InfoRow
                   icon={Calendar}
-                  label={`Submitted ${format(new Date(data.submitted_at), 'MMMM d, yyyy · h:mm a')}`}
+                  label={`Updated ${data.updated_at ? format(new Date(data.updated_at), 'MMMM d, yyyy · h:mm a') : '—'}`}
                 />
 
                 {/* ── Trust Tier row (Feature 3) ─────────────────── */}

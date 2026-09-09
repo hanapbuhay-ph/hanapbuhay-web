@@ -41,7 +41,8 @@ export interface Verification {
   user: VerificationUser
   verification_status: VerificationStatus
   trust_tier?: TrustTier
-  submitted_at: string
+  updated_at: string
+  submitted_at?: string // not returned by real API; kept for type compat
   documents: VerificationDocument[]
   history?: VerificationHistoryEntry[]
 }

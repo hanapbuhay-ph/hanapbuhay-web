@@ -24,6 +24,7 @@ interface AuditLogsTableProps {
 // otherwise "key: value" pairs joined with ·
 
 function renderDetails(details: AuditLog['details']): string {
+  if (!details) return '—'
   const entries = Object.entries(details)
   if (entries.length === 0) return '—'
   if (entries.length === 1) return String(entries[0][1])
@@ -141,7 +142,7 @@ export function AuditLogsTable({
             data.map((log) => (
               <TableRow key={log.id} className='hover:bg-transparent'>
                 <TableCell className='ps-4 font-medium text-foreground'>
-                  {log.admin_name}
+                  {log.admin.name}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
                   {ACTION_LABELS[log.action as keyof typeof ACTION_LABELS] ??
