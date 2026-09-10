@@ -153,7 +153,9 @@ export function VerificationsTable({
                   {v.user.barangay}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
-                  {format(new Date(v.submitted_at), 'MMM d, yyyy')}
+                  {v.updated_at
+                    ? format(new Date(v.updated_at), 'MMM d, yyyy')
+                    : '—'}
                 </TableCell>
                 <TableCell>
                   <StatusBadge status={v.verification_status} />
