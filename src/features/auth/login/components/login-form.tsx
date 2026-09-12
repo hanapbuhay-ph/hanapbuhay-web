@@ -65,6 +65,20 @@ export function LoginForm() {
     return redirect && redirect !== '/' ? redirect : '/'
   }
 
+  function getDeviceName(): string {
+    const ua = navigator.userAgent
+    const platform =
+      (navigator as Navigator & { userAgentData?: { platform?: string } })
+        .userAgentData?.platform ?? navigator.platform ?? 'Web'
+
+    if (ua.includes('Edg/')) return `${platform} • Edge`
+    if (ua.includes('Chrome/')) return `${platform} • Chrome`
+    if (ua.includes('Firefox/')) return `${platform} • Firefox`
+    if (ua.includes('Safari/')) return `${platform} • Safari`
+
+    return `${platform} • Browser`
+  }
+
   // ── Real login ─────────────────────────────────────────────────────────────
 
   async function onSubmit(data: FormValues) {
@@ -73,6 +87,7 @@ export function LoginForm() {
       const res = await api.post<LoginApiResponse>('/auth/login', {
         email: data.email,
         password: data.password,
+        device_name: getDeviceName(),
       })
 
       const { token, user } = res.data.data
