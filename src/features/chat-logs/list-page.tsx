@@ -1,7 +1,10 @@
-﻿import { useNavigate } from '@tanstack/react-router'
+﻿import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import {
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
   InboxIcon,
   RefreshCw,
 } from 'lucide-react'
@@ -26,7 +29,8 @@ import { type Conversation } from './types'
 
 export function ChatLogsListPage() {
   const navigate = useNavigate()
-  const { data, isLoading, error, refetch } = useChatLogs()
+  const [page, setPage] = useState(1)
+  const { data, pagination, isLoading, error, refetch } = useChatLogs(page)
 
   return (
     <>
@@ -35,6 +39,15 @@ export function ChatLogsListPage() {
           <ThemeSwitch />
           <ProfileDropdown />
         </div>
+        {pagination && pagination.last_page > 1 && (
+          <div className='mb-4 flex items-center justify-between text-sm text-muted-foreground'>
+            <span>Page {pagination.current_page} of {pagination.last_page} ({pagination.total} conversations)</span>
+            <div className='flex gap-1'>
+              <Button variant='outline' size='icon' title='Previous page' aria-label='Previous page' disabled={pagination.current_page <= 1} onClick={() => setPage(pagination.current_page - 1)}><ChevronLeft className='h-4 w-4' /></Button>
+              <Button variant='outline' size='icon' title='Next page' aria-label='Next page' disabled={pagination.current_page >= pagination.last_page} onClick={() => setPage(pagination.current_page + 1)}><ChevronRight className='h-4 w-4' /></Button>
+            </div>
+          </div>
+        )}
       </Header>
 
       <Main>

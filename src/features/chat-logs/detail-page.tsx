@@ -1,8 +1,11 @@
-﻿import { format, isSameDay } from 'date-fns'
+﻿import { useState } from 'react'
+import { format, isSameDay } from 'date-fns'
 import { useNavigate, useSearch } from '@tanstack/react-router'
 import {
   AlertTriangle,
   ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
   Flag,
   InboxIcon,
   RefreshCw,
@@ -33,8 +36,9 @@ interface SearchParams {
 
 export function ChatLogDetailPage({ bookingId }: ChatLogDetailPageProps) {
   const navigate = useNavigate()
+  const [page, setPage] = useState(1)
   const search = useSearch({ strict: false }) as SearchParams
-  const { data, bookingCode, isLoading, error, refetch } = useChatLog(bookingId)
+  const { data, bookingCode, pagination, isLoading, error, refetch } = useChatLog(bookingId, page)
 
   function handleBack() {
     if (search.from) {
@@ -158,6 +162,15 @@ export function ChatLogDetailPage({ bookingId }: ChatLogDetailPageProps) {
                 )}
               </CardContent>
             </Card>
+            {pagination && pagination.last_page > 1 && (
+              <div className='flex items-center justify-between text-sm text-muted-foreground'>
+                <span>Page {pagination.current_page} of {pagination.last_page}</span>
+                <div className='flex gap-1'>
+                  <Button variant='outline' size='icon' title='Previous page' aria-label='Previous page' disabled={pagination.current_page <= 1} onClick={() => setPage(pagination.current_page - 1)}><ChevronLeft className='h-4 w-4' /></Button>
+                  <Button variant='outline' size='icon' title='Next page' aria-label='Next page' disabled={pagination.current_page >= pagination.last_page} onClick={() => setPage(pagination.current_page + 1)}><ChevronRight className='h-4 w-4' /></Button>
+                </div>
+              </div>
+            )}
 
             {/* Message bubbles */}
             <Card
@@ -260,6 +273,11 @@ function MessageBubble({ message }: { message: ChatMessage }) {
         ].join(' ')}
       >
         <p className='text-sm leading-relaxed'>{message.content}</p>
+        {message.attachment_url && (
+          <a href={message.attachment_url} target='_blank' rel='noreferrer' className='mt-2 block text-xs underline'>
+            View attachment
+          </a>
+        )}
 
         {/* Time + flagged label row */}
         <div

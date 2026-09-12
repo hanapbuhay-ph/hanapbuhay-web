@@ -40,3 +40,10 @@ export interface ThreadResponse {
     last_page: number
   }
 }
+
+export interface ChatPagination {
+  current_page: number
+  per_page: number
+  total: number
+  last_page: number
+}

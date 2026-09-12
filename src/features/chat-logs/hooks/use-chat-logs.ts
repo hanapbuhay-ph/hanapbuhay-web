@@ -1,29 +1,36 @@
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { type Conversation } from '../types'
+import { type Conversation, type ChatPagination } from '../types'
 
 interface UseChatLogsResult {
   data: Conversation[]
+  pagination: ChatPagination | null
   isLoading: boolean
   error: string | null
   refetch: () => void
 }
 
-export function useChatLogs(): UseChatLogsResult {
+export function useChatLogs(page = 1): UseChatLogsResult {
   const [data, setData] = useState<Conversation[]>([])
+  const [pagination, setPagination] = useState<ChatPagination | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    startTransition(() => {
+      setIsLoading(true)
+      setError(null)
+    })
 
     api
-      .get<{ success: boolean; data: { conversations: Conversation[] } }>('/messages')
+      .get<{ success: boolean; data: { conversations: Conversation[]; pagination: ChatPagination } }>('/admin/chat-logs', { params: { page } })
       .then((res) => {
-        if (!cancelled) setData(res.data.data.conversations)
+        if (!cancelled) {
+          setData(res.data.data.conversations)
+          setPagination(res.data.data.pagination)
+        }
       })
       .catch((err) => {
         if (!cancelled)
@@ -32,7 +39,7 @@ export function useChatLogs(): UseChatLogsResult {
       .finally(() => { if (!cancelled) setIsLoading(false) })
 
     return () => { cancelled = true }
-  }, [tick])
+  }, [page, tick])
 
-  return { data, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }
