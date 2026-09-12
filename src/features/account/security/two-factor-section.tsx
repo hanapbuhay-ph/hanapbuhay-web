@@ -1,74 +1,89 @@
-/**
- * Two-Factor Authentication toggle.
- *
- * NOTE: 2FA toggle is a placeholder. Real implementation requires a backend
- * TOTP/SMS verification flow — out of scope until the backend is ready.
- */
-
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import { api } from '@/lib/api'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 
 export function TwoFactorSection() {
   const [enabled, setEnabled] = useState(false)
-  const [previewOpen, setPreviewOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isUpdating, setIsUpdating] = useState(false)
 
-  function handleToggle(checked: boolean) {
-    if (checked) {
-      // Opening the switch triggers the preview dialog instead of enabling 2FA
-      setPreviewOpen(true)
-    } else {
-      setEnabled(false)
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadPreference() {
+      try {
+        const res = await api.get<{ success: boolean; data: { enabled: boolean } }>(
+          '/user/two-factor'
+        )
+
+        if (isMounted) {
+          setEnabled(Boolean(res.data.data.enabled))
+        }
+      } catch {
+        if (isMounted) {
+          toast.error('Unable to load your two-factor authentication preference.')
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    loadPreference()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  async function handleToggle(checked: boolean) {
+    const previousValue = enabled
+    setEnabled(checked)
+    setIsUpdating(true)
+
+    try {
+      const res = await api.post<{ success: boolean; data: { enabled: boolean } }>(
+        '/user/two-factor',
+        { enabled: checked }
+      )
+
+      setEnabled(Boolean(res.data.data.enabled))
+      toast.success(
+        checked
+          ? 'Two-factor authentication enabled.'
+          : 'Two-factor authentication disabled.'
+      )
+    } catch (error) {
+      setEnabled(previousValue)
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Unable to update your two-factor authentication preference.'
+
+      toast.error(message)
+    } finally {
+      setIsUpdating(false)
     }
   }
 
-  function handleDialogClose() {
-    // Keep the toggle off — this is UI preview only
-    setEnabled(false)
-    setPreviewOpen(false)
-  }
-
   return (
-    <>
-      <div className='flex items-center gap-3'>
-        <Switch
-          id='2fa-toggle'
-          checked={enabled}
-          onCheckedChange={handleToggle}
-        />
-        <Label htmlFor='2fa-toggle' className='cursor-pointer'>
-          Two-Factor Authentication:{' '}
-          <span className={enabled ? 'text-primary' : 'text-muted-foreground'}>
-            {enabled ? 'Enabled' : 'Disabled'}
-          </span>
-        </Label>
-      </div>
-
-      {/* 2FA Preview Dialog */}
-      <Dialog open={previewOpen} onOpenChange={handleDialogClose}>
-        <DialogContent className='sm:max-w-md'>
-          <DialogHeader>
-            <DialogTitle>Two-Factor Authentication</DialogTitle>
-            <DialogDescription>
-              Two-factor authentication setup will be available once backend
-              support is ready. This is a preview of the upcoming security
-              feature.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={handleDialogClose}>OK</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+    <div className='flex items-center gap-3'>
+      <Switch
+        id='2fa-toggle'
+        checked={enabled}
+        onCheckedChange={handleToggle}
+        disabled={isLoading || isUpdating}
+      />
+      <Label htmlFor='2fa-toggle' className='cursor-pointer'>
+        Two-Factor Authentication:{' '}
+        <span className={enabled ? 'text-primary' : 'text-muted-foreground'}>
+          {enabled ? 'Enabled' : 'Disabled'}
+        </span>
+      </Label>
+    </div>
   )
 }

@@ -10,6 +10,14 @@ import { api } from '@/lib/api'
 import { setToken, setUser, isDevMode } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   Form,
   FormControl,
   FormField,
@@ -18,6 +26,12 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+  InputOTPSeparator,
+} from '@/components/ui/input-otp'
 import { PasswordInput } from '@/components/password-input'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -27,13 +41,14 @@ interface LoginApiResponse {
   success: boolean
   message: string
   data: {
-    token: string
-    user: {
+    token?: string
+    user?: {
       id: number
       name: string
       email: string
       role: string
     }
+    requiresOtp?: boolean
   }
 }
 
@@ -51,6 +66,11 @@ type FormValues = z.infer<typeof formSchema>
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [isDevLoading, setIsDevLoading] = useState(false)
+  const [otpDialogOpen, setOtpDialogOpen] = useState(false)
+  const [otpEmail, setOtpEmail] = useState('')
+  const [otpCode, setOtpCode] = useState('')
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false)
+  const [isResendingOtp, setIsResendingOtp] = useState(false)
   const navigate = useNavigate()
   const { redirect } = useSearch({ from: '/(auth)/login' })
 
@@ -90,7 +110,20 @@ export function LoginForm() {
         device_name: getDeviceName(),
       })
 
-      const { token, user } = res.data.data
+      if (res.data.data.requiresOtp) {
+        setOtpEmail(data.email)
+        setOtpCode('')
+        setOtpDialogOpen(true)
+        toast.info('A verification code has been sent to your email.')
+        return
+      }
+
+      const token = res.data.data.token
+      const user = res.data.data.user
+
+      if (!token || !user) {
+        throw new Error('Invalid login response.')
+      }
 
       if (user.role !== 'admin') {
         toast.error('Access denied. Admin accounts only.')
@@ -108,7 +141,6 @@ export function LoginForm() {
       if (status === 401) {
         toast.error('Invalid email or password.')
       } else if (status === 403) {
-        // API returns the specific reason (e.g. suspended, email not verified)
         const message = axiosErr?.response?.data?.message ?? 'Access denied.'
         toast.error(message)
       } else {
@@ -120,6 +152,75 @@ export function LoginForm() {
       }
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  async function verifyOtp() {
+    if (!otpEmail) {
+      return
+    }
+
+    if (otpCode.length !== 6) {
+      toast.error('Please enter the 6-digit verification code.')
+      return
+    }
+
+    setIsVerifyingOtp(true)
+
+    try {
+      const res = await api.post<LoginApiResponse>('/auth/login/verify-otp', {
+        email: otpEmail,
+        code: otpCode,
+        device_name: getDeviceName(),
+      })
+
+      const token = res.data.data.token
+      const user = res.data.data.user
+
+      if (!token || !user) {
+        throw new Error('Invalid verification response.')
+      }
+
+      setToken(token)
+      setUser(user)
+      setOtpDialogOpen(false)
+      setOtpCode('')
+      toast.success(`Welcome back, ${user.name}!`)
+      navigate({ to: getRedirectTarget(), replace: true })
+    } catch (err) {
+      const axiosErr = err instanceof AxiosError ? err : null
+      const message =
+        axiosErr?.response?.data?.message ??
+        axiosErr?.message ??
+        'Unable to verify the code. Please try again.'
+
+      toast.error(message)
+    } finally {
+      setIsVerifyingOtp(false)
+    }
+  }
+
+  async function resendOtp() {
+    if (!otpEmail) {
+      return
+    }
+
+    setIsResendingOtp(true)
+
+    try {
+      await api.post('/auth/login/resend-otp', { email: otpEmail })
+      setOtpCode('')
+      toast.success('A new verification code has been sent.')
+    } catch (err) {
+      const axiosErr = err instanceof AxiosError ? err : null
+      const message =
+        axiosErr?.response?.data?.message ??
+        axiosErr?.message ??
+        'Unable to resend the verification code.'
+
+      toast.error(message)
+    } finally {
+      setIsResendingOtp(false)
     }
   }
 
@@ -193,6 +294,67 @@ export function LoginForm() {
           </Button>
         </form>
       </Form>
+
+      <Dialog
+        open={otpDialogOpen}
+        onOpenChange={(open) => {
+          setOtpDialogOpen(open)
+          if (!open) {
+            setOtpCode('')
+          }
+        }}
+      >
+        <DialogContent className='sm:max-w-md'>
+          <DialogHeader>
+            <DialogTitle>Two-Factor Authentication</DialogTitle>
+            <DialogDescription>
+              Enter the 6-digit code sent to {otpEmail}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className='flex justify-center py-2'>
+            <InputOTP
+              maxLength={6}
+              value={otpCode}
+              onChange={setOtpCode}
+              containerClassName='justify-between sm:[&>[data-slot="input-otp-group"]>div]:w-12'
+            >
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+              </InputOTPGroup>
+              <InputOTPSeparator />
+              <InputOTPGroup>
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+              </InputOTPGroup>
+              <InputOTPSeparator />
+              <InputOTPGroup>
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
+          </div>
+
+          <DialogFooter className='sm:justify-between'>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={resendOtp}
+              disabled={isResendingOtp}
+            >
+              {isResendingOtp ? 'Sending...' : 'Resend code'}
+            </Button>
+            <Button
+              type='button'
+              onClick={verifyOtp}
+              disabled={otpCode.length !== 6 || isVerifyingOtp}
+            >
+              {isVerifyingOtp ? 'Verifying...' : 'Verify'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dev login — only visible when pointing at localhost */}
       {isDevMode() && (
