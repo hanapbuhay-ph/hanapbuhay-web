@@ -26,6 +26,13 @@ export interface User {
 export type RoleFilter = UserRole | 'all'
 export type StatusFilter = 'active' | 'suspended' | 'all'
 
+export interface UserPagination {
+  current_page: number
+  per_page: number
+  total: number
+  last_page: number
+}
+
 // ── Deletion Requests ─────────────────────────────────────────────────────────
 // Real API returns users (not a separate DeletionRequest object).
 // GET /admin/deletion-requests → { data: { users: DeletionUser[], pagination } }

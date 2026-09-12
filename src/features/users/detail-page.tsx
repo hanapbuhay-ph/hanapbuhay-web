@@ -137,7 +137,7 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
 
               <CardContent className='flex flex-col gap-2'>
                 <InfoRow icon={Mail} label={data.email} />
-                <InfoRow icon={MapPin} label={data.barangay} />
+                <InfoRow icon={MapPin} label={data.barangay ?? 'Barangay not set'} />
                 <InfoRow
                   icon={Calendar}
                   label={`Joined ${format(new Date(data.created_at), 'MMMM d, yyyy')}`}
@@ -155,6 +155,18 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
                         : 'Email & password account'
                     }
                   />
+                )}
+                {data.worker_profile && (
+                  <div className='mt-2 border-t border-border pt-3'>
+                    <p className='mb-2 text-sm font-semibold text-foreground'>
+                      Worker Profile
+                    </p>
+                    <div className='grid gap-2 text-sm text-muted-foreground sm:grid-cols-3'>
+                      <span>Verification: {data.worker_profile.verification_status}</span>
+                      <span>Rating: {data.worker_profile.average_rating}</span>
+                      <span>Completed reviews: {data.worker_profile.total_reviews}</span>
+                    </div>
+                  </div>
                 )}
                 {/* Deletion request info row — shown if pending deletion exists */}
                 {hasPendingDeletion && requestedAt && (

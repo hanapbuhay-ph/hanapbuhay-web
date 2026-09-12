@@ -1,17 +1,15 @@
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { type User, type RoleFilter, type StatusFilter } from '../types'
-
-interface Pagination {
-  current_page: number
-  per_page: number
-  total: number
-  last_page: number
-}
+import {
+  type User,
+  type RoleFilter,
+  type StatusFilter,
+  type UserPagination,
+} from '../types'
 
 interface UseUsersResult {
   data: User[]
-  pagination: Pagination | null
+  pagination: UserPagination | null
   isLoading: boolean
   error: string | null
   refetch: () => void
@@ -19,23 +17,29 @@ interface UseUsersResult {
 
 export function useUsers(
   roleFilter: RoleFilter = 'all',
-  statusFilter: StatusFilter = 'all'
+  statusFilter: StatusFilter = 'all',
+  search = '',
+  page = 1
 ): UseUsersResult {
   const [data, setData] = useState<User[]>([])
-  const [pagination, setPagination] = useState<Pagination | null>(null)
+  const [pagination, setPagination] = useState<UserPagination | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    startTransition(() => {
+      setIsLoading(true)
+      setError(null)
+    })
 
     const params: Record<string, string> = {}
     if (roleFilter !== 'all') params.role = roleFilter
     if (statusFilter === 'active') params.status = 'active'
     if (statusFilter === 'suspended') params.status = 'suspended'
+    if (search.trim()) params.search = search.trim()
+    params.page = String(page)
 
     api
       .get('/admin/users', { params })
@@ -52,7 +56,7 @@ export function useUsers(
       .finally(() => { if (!cancelled) setIsLoading(false) })
 
     return () => { cancelled = true }
-  }, [roleFilter, statusFilter, tick])
+  }, [roleFilter, statusFilter, search, page, tick])
 
   return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }

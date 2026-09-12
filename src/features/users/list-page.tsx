@@ -1,5 +1,6 @@
-﻿import { useMemo, useState } from 'react'
-import { SearchIcon } from 'lucide-react'
+﻿import { useState } from 'react'
+import { ChevronLeft, ChevronRight, SearchIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
@@ -13,6 +14,7 @@ import { useUsers } from './hooks/use-users'
 import {
   type RoleFilter,
   type StatusFilter,
+  type UserPagination,
 } from './types'
 
 // ── User filter tab definitions ───────────────────────────────────────────────
@@ -39,22 +41,15 @@ export function UsersListPage() {
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
 
   const {
     data: users,
     isLoading: usersLoading,
     error: usersError,
+    pagination,
     refetch: refetchUsers,
-  } = useUsers(roleFilter, statusFilter)
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return users
-    const q = search.toLowerCase()
-    return users.filter(
-      (u) =>
-        u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-    )
-  }, [users, search])
+  } = useUsers(roleFilter, statusFilter, search, page)
 
   // Deletion requests tab state
   const {
@@ -113,14 +108,20 @@ export function UsersListPage() {
                 <Input
                   placeholder='Search by name or email…'
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                    setPage(1)
+                  }}
                   className='rounded-lg border-border pl-9 focus-visible:ring-ring'
                 />
               </div>
               <div className='overflow-x-auto pb-1'>
                 <Tabs
                   value={statusFilter}
-                  onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+                  onValueChange={(v) => {
+                    setStatusFilter(v as StatusFilter)
+                    setPage(1)
+                  }}
                 >
                   <TabsList className='min-w-max'>
                     {STATUS_TABS.map((t) => (
@@ -136,7 +137,10 @@ export function UsersListPage() {
             <div className='mb-4 w-full overflow-x-auto pb-1'>
               <Tabs
                 value={roleFilter}
-                onValueChange={(v) => setRoleFilter(v as RoleFilter)}
+                onValueChange={(v) => {
+                  setRoleFilter(v as RoleFilter)
+                  setPage(1)
+                }}
               >
                 <TabsList className='min-w-max'>
                   {ROLE_TABS.map((t) => (
@@ -149,10 +153,14 @@ export function UsersListPage() {
             </div>
 
             <UsersTable
-              data={filtered}
+              data={users}
               isLoading={usersLoading}
               error={usersError}
               onRetry={refetchUsers}
+            />
+            <UserPaginationControls
+              pagination={pagination}
+              onPageChange={setPage}
             />
           </TabsContent>
 
@@ -169,5 +177,45 @@ export function UsersListPage() {
         </Tabs>
       </Main>
     </>
+  )
+}
+
+function UserPaginationControls({
+  pagination,
+  onPageChange,
+}: {
+  pagination: UserPagination | null
+  onPageChange: (page: number) => void
+}) {
+  if (!pagination || pagination.last_page <= 1) return null
+
+  return (
+    <div className='mt-4 flex items-center justify-between gap-3 text-sm text-muted-foreground'>
+      <span>
+        Page {pagination.current_page} of {pagination.last_page} ({pagination.total} users)
+      </span>
+      <div className='flex items-center gap-1'>
+        <Button
+          variant='outline'
+          size='icon'
+          title='Previous page'
+          aria-label='Previous page'
+          disabled={pagination.current_page <= 1}
+          onClick={() => onPageChange(pagination.current_page - 1)}
+        >
+          <ChevronLeft className='h-4 w-4' />
+        </Button>
+        <Button
+          variant='outline'
+          size='icon'
+          title='Next page'
+          aria-label='Next page'
+          disabled={pagination.current_page >= pagination.last_page}
+          onClick={() => onPageChange(pagination.current_page + 1)}
+        >
+          <ChevronRight className='h-4 w-4' />
+        </Button>
+      </div>
+    </div>
   )
 }
