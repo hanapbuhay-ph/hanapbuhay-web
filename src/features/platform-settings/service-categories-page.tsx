@@ -10,6 +10,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { ConfirmDialog } from '@/components/confirm-dialog'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -103,6 +104,7 @@ export function ServiceCategoriesPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState<ServiceCategory | null>(null)
+  const [deletingCategory, setDeletingCategory] = useState<ServiceCategory | null>(null)
   const [name, setName] = useState('')
   const [icon, setIcon] = useState(DEFAULT_CATEGORY_ICON)
   const [isActive, setIsActive] = useState(true)
@@ -238,15 +240,16 @@ export function ServiceCategoriesPage() {
   }
 
   function handleDelete(category: ServiceCategory) {
-    if (
-      !window.confirm(
-        `Deactivate "${category.name}"? This will hide it from active listings and can be re-enabled later.`
-      )
-    ) {
+    setDeletingCategory(category)
+  }
+
+  function handleDeleteConfirm() {
+    if (!deletingCategory) {
       return
     }
 
-    remove(category.id, () => {
+    remove(deletingCategory.id, () => {
+      setDeletingCategory(null)
       refetch()
     })
   }
@@ -360,10 +363,10 @@ export function ServiceCategoriesPage() {
                       variant='outline'
                       className='h-8 border-border text-muted-foreground hover:bg-muted/50'
                       onClick={() => handleDelete(category)}
-                      disabled={isSubmitting || isInactive}
+                      disabled={isSubmitting}
                     >
                       <Trash2 className='mr-1 h-3.5 w-3.5' />
-                      Deactivate
+                      Delete
                     </Button>
                   </div>
                 </div>
@@ -372,6 +375,25 @@ export function ServiceCategoriesPage() {
           </div>
         )}
       </Main>
+
+      <ConfirmDialog
+        open={!!deletingCategory}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeletingCategory(null)
+          }
+        }}
+        title='Delete service category?'
+        desc={
+          deletingCategory
+            ? `This will permanently remove "${deletingCategory.name}" from the database. This action cannot be undone.`
+            : 'This action cannot be undone.'
+        }
+        confirmText='Delete'
+        destructive
+        isLoading={isSubmitting}
+        handleConfirm={handleDeleteConfirm}
+      />
 
       <Dialog open={dialogOpen} onOpenChange={(nextOpen) => {
         if (!nextOpen) {
