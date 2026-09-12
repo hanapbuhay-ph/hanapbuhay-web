@@ -1,36 +1,50 @@
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { type JobPost } from '../types'
-
-interface Pagination {
-  current_page: number
-  per_page: number
-  total: number
-  last_page: number
-}
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import {
+  type JobPost,
+  type JobPostPagination,
+  type JobPostStatusFilter,
+  type JobPostVerificationFilter,
+} from '../types'
 
 interface UseJobPostsResult {
   data: JobPost[]
-  pagination: Pagination | null
+  pagination: JobPostPagination | null
   isLoading: boolean
   error: string | null
   refetch: () => void
 }
 
-export function useJobPosts(categoryId: number | null = null): UseJobPostsResult {
+export function useJobPosts(
+  categoryId: number | null = null,
+  barangayId: number | null = null,
+  status: JobPostStatusFilter = 'all',
+  verification: JobPostVerificationFilter = 'all',
+  search = '',
+  page = 1,
+): UseJobPostsResult {
+  const debouncedSearch = useDebouncedValue(search)
   const [data, setData] = useState<JobPost[]>([])
-  const [pagination, setPagination] = useState<Pagination | null>(null)
+  const [pagination, setPagination] = useState<JobPostPagination | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    startTransition(() => {
+      setIsLoading(true)
+      setError(null)
+    })
 
     const params: Record<string, string> = {}
     if (categoryId !== null) params.category_id = String(categoryId)
+    if (barangayId !== null) params.barangay_id = String(barangayId)
+    if (status !== 'all') params.status = status
+    if (verification !== 'all') params.verification = verification
+    if (debouncedSearch.trim()) params.search = debouncedSearch.trim()
+    params.page = String(page)
 
     api
       .get('/admin/posts', { params })
@@ -47,7 +61,7 @@ export function useJobPosts(categoryId: number | null = null): UseJobPostsResult
       .finally(() => { if (!cancelled) setIsLoading(false) })
 
     return () => { cancelled = true }
-  }, [categoryId, tick])
+  }, [categoryId, barangayId, status, verification, debouncedSearch, page, tick])
 
   return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }

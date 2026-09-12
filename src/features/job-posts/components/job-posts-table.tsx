@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { AlertTriangle, RefreshCw, InboxIcon, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -31,6 +32,7 @@ function TableSkeleton() {
           <TableCell><Skeleton className='h-4 w-40' /></TableCell>
           <TableCell><Skeleton className='h-4 w-28' /></TableCell>
           <TableCell><Skeleton className='h-4 w-24' /></TableCell>
+          <TableCell><Skeleton className='h-4 w-24' /></TableCell>
           <TableCell><Skeleton className='h-4 w-20' /></TableCell>
           <TableCell><Skeleton className='h-5 w-14 rounded-full' /></TableCell>
           <TableCell><Skeleton className='h-4 w-24' /></TableCell>
@@ -48,6 +50,7 @@ export function JobPostsTable({
   onRetry,
   onDeleted,
 }: JobPostsTableProps) {
+  const navigate = useNavigate()
   const { isSubmitting, deletePost } = useJobPostAction()
   const [deletingPost, setDeletingPost] = useState<JobPost | null>(null)
 
@@ -57,11 +60,12 @@ export function JobPostsTable({
         className='overflow-x-auto rounded-2xl border border-border bg-card'
         style={{ boxShadow: '0 2px 12px rgba(52,168,53,0.08)' }}
       >
-        <Table className='min-w-[760px]'>
+        <Table className='min-w-[840px]'>
           <TableHeader>
             <TableRow className='bg-background hover:bg-background'>
               <TableHead className='ps-4 font-semibold text-foreground'>Title</TableHead>
               <TableHead className='font-semibold text-foreground'>Worker</TableHead>
+              <TableHead className='font-semibold text-foreground'>Barangay</TableHead>
               <TableHead className='font-semibold text-foreground'>Category</TableHead>
               <TableHead className='font-semibold text-foreground'>Rate</TableHead>
               <TableHead className='font-semibold text-foreground'>Status</TableHead>
@@ -75,7 +79,7 @@ export function JobPostsTable({
 
             {!isLoading && error && (
               <TableRow>
-                <TableCell colSpan={7}>
+                <TableCell colSpan={8}>
                   <div className='flex flex-col items-center gap-2 py-10 text-center'>
                     <AlertTriangle className='h-7 w-7 text-destructive' />
                     <p className='text-sm font-semibold text-foreground'>
@@ -98,7 +102,7 @@ export function JobPostsTable({
 
             {!isLoading && !error && data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7}>
+                <TableCell colSpan={8}>
                   <div className='flex flex-col items-center gap-2 py-10 text-center'>
                     <InboxIcon className='h-7 w-7 text-muted-foreground' />
                     <p className='text-sm font-semibold text-foreground'>
@@ -113,30 +117,39 @@ export function JobPostsTable({
             )}
 
             {!isLoading && !error && data.map((post) => (
-              <TableRow key={post.id} className='hover:bg-primary/5'>
+              <TableRow
+                key={post.id}
+                className='cursor-pointer hover:bg-primary/5'
+                onClick={() => navigate({ to: '/job-posts/$id', params: { id: String(post.id) } })}
+              >
                 <TableCell className='ps-4 font-medium text-foreground'>
                   {post.title}
                   {post.deleted_at && (
                     <span className='ml-2 text-xs text-muted-foreground'>(deleted)</span>
                   )}
                 </TableCell>
-                <TableCell className='text-muted-foreground'>{post.worker.name}</TableCell>
+                <TableCell className='text-muted-foreground'>
+                  {post.worker.name}
+                </TableCell>
+                <TableCell className='text-muted-foreground'>
+                  {post.worker.barangay ?? '—'}
+                </TableCell>
                 <TableCell className='text-muted-foreground'>{post.category.name}</TableCell>
                 <TableCell className='text-muted-foreground'>{post.rate_display}</TableCell>
-                <TableCell>
+                <TableCell onClick={(event) => event.stopPropagation()}>
                   <span className={[
                     'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
-                    post.is_active
+                    post.is_active && !post.deleted_at
                       ? 'bg-primary/10 text-primary'
                       : 'bg-muted text-muted-foreground',
                   ].join(' ')}>
-                    {post.is_active ? 'Active' : 'Inactive'}
+                    {post.deleted_at ? 'Deleted' : post.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
                   {format(new Date(post.created_at), 'MMM d, yyyy')}
                 </TableCell>
-                <TableCell>
+                <TableCell onClick={(event) => event.stopPropagation()}>
                   <Button
                     size='icon'
                     variant='ghost'
@@ -158,9 +171,9 @@ export function JobPostsTable({
         open={!!deletingPost}
         postTitle={deletingPost?.title ?? ''}
         isSubmitting={isSubmitting}
-        onConfirm={() => {
+        onConfirm={(reason) => {
           if (!deletingPost) return
-          void deletePost(deletingPost.id, () => {
+          void deletePost(deletingPost.id, reason, () => {
             onDeleted(deletingPost.id)
             setDeletingPost(null)
           })

@@ -1,5 +1,6 @@
 import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import {
   type User,
   type RoleFilter,
@@ -21,6 +22,7 @@ export function useUsers(
   search = '',
   page = 1
 ): UseUsersResult {
+  const debouncedSearch = useDebouncedValue(search)
   const [data, setData] = useState<User[]>([])
   const [pagination, setPagination] = useState<UserPagination | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -38,7 +40,7 @@ export function useUsers(
     if (roleFilter !== 'all') params.role = roleFilter
     if (statusFilter === 'active') params.status = 'active'
     if (statusFilter === 'suspended') params.status = 'suspended'
-    if (search.trim()) params.search = search.trim()
+    if (debouncedSearch.trim()) params.search = debouncedSearch.trim()
     params.page = String(page)
 
     api
@@ -56,7 +58,7 @@ export function useUsers(
       .finally(() => { if (!cancelled) setIsLoading(false) })
 
     return () => { cancelled = true }
-  }, [roleFilter, statusFilter, search, page, tick])
+  }, [roleFilter, statusFilter, debouncedSearch, page, tick])
 
   return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }

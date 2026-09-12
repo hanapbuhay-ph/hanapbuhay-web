@@ -5,16 +5,16 @@ import { api } from '@/lib/api'
 
 interface UseJobPostActionResult {
   isSubmitting: boolean
-  deletePost: (id: number, onSuccess: () => void) => Promise<void>
+  deletePost: (id: number, reason: string, onSuccess: () => void) => Promise<void>
 }
 
 export function useJobPostAction(): UseJobPostActionResult {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  async function deletePost(id: number, onSuccess: () => void) {
+  async function deletePost(id: number, reason: string, onSuccess: () => void) {
     setIsSubmitting(true)
     try {
-      await api.delete(`/admin/posts/${id}`)
+      await api.delete(`/admin/posts/${id}`, { data: { reason } })
       toast.success('Job post permanently deleted.')
       onSuccess()
     } catch (err) {

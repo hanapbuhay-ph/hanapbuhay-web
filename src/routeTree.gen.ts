@@ -55,6 +55,7 @@ import { Route as AuthenticatedPlatformSettingsServiceCategoriesRouteImport } fr
 import { Route as AuthenticatedPlatformSettingsReportReasonsRouteImport } from './routes/_authenticated/platform-settings/report-reasons'
 import { Route as AuthenticatedPlatformSettingsNotificationTemplatesRouteImport } from './routes/_authenticated/platform-settings/notification-templates'
 import { Route as AuthenticatedPlatformSettingsAnnouncementsRouteImport } from './routes/_authenticated/platform-settings/announcements'
+import { Route as AuthenticatedJobPostsIdRouteImport } from './routes/_authenticated/job-posts/$id'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 import { Route as AuthenticatedChatLogsIdRouteImport } from './routes/_authenticated/chat-logs/$id'
 import { Route as AuthenticatedBookingsIdRouteImport } from './routes/_authenticated/bookings/$id'
@@ -311,6 +312,11 @@ const AuthenticatedPlatformSettingsAnnouncementsRoute =
     path: '/platform-settings/announcements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedJobPostsIdRoute = AuthenticatedJobPostsIdRouteImport.update({
+  id: '/job-posts/$id',
+  path: '/job-posts/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedErrorsErrorRoute =
   AuthenticatedErrorsErrorRouteImport.update({
     id: '/errors/$error',
@@ -359,6 +365,7 @@ export interface FileRoutesByFullPath {
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/chat-logs/$id': typeof AuthenticatedChatLogsIdRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/job-posts/$id': typeof AuthenticatedJobPostsIdRoute
   '/platform-settings/announcements': typeof AuthenticatedPlatformSettingsAnnouncementsRoute
   '/platform-settings/notification-templates': typeof AuthenticatedPlatformSettingsNotificationTemplatesRoute
   '/platform-settings/report-reasons': typeof AuthenticatedPlatformSettingsReportReasonsRoute
@@ -407,6 +414,7 @@ export interface FileRoutesByTo {
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/chat-logs/$id': typeof AuthenticatedChatLogsIdRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/job-posts/$id': typeof AuthenticatedJobPostsIdRoute
   '/platform-settings/announcements': typeof AuthenticatedPlatformSettingsAnnouncementsRoute
   '/platform-settings/notification-templates': typeof AuthenticatedPlatformSettingsNotificationTemplatesRoute
   '/platform-settings/report-reasons': typeof AuthenticatedPlatformSettingsReportReasonsRoute
@@ -461,6 +469,7 @@ export interface FileRoutesById {
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/_authenticated/chat-logs/$id': typeof AuthenticatedChatLogsIdRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/_authenticated/job-posts/$id': typeof AuthenticatedJobPostsIdRoute
   '/_authenticated/platform-settings/announcements': typeof AuthenticatedPlatformSettingsAnnouncementsRoute
   '/_authenticated/platform-settings/notification-templates': typeof AuthenticatedPlatformSettingsNotificationTemplatesRoute
   '/_authenticated/platform-settings/report-reasons': typeof AuthenticatedPlatformSettingsReportReasonsRoute
@@ -513,6 +522,7 @@ export interface FileRouteTypes {
     | '/bookings/$id'
     | '/chat-logs/$id'
     | '/errors/$error'
+    | '/job-posts/$id'
     | '/platform-settings/announcements'
     | '/platform-settings/notification-templates'
     | '/platform-settings/report-reasons'
@@ -561,6 +571,7 @@ export interface FileRouteTypes {
     | '/bookings/$id'
     | '/chat-logs/$id'
     | '/errors/$error'
+    | '/job-posts/$id'
     | '/platform-settings/announcements'
     | '/platform-settings/notification-templates'
     | '/platform-settings/report-reasons'
@@ -614,6 +625,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bookings/$id'
     | '/_authenticated/chat-logs/$id'
     | '/_authenticated/errors/$error'
+    | '/_authenticated/job-posts/$id'
     | '/_authenticated/platform-settings/announcements'
     | '/_authenticated/platform-settings/notification-templates'
     | '/_authenticated/platform-settings/report-reasons'
@@ -984,6 +996,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformSettingsAnnouncementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/job-posts/$id': {
+      id: '/_authenticated/job-posts/$id'
+      path: '/job-posts/$id'
+      fullPath: '/job-posts/$id'
+      preLoaderRoute: typeof AuthenticatedJobPostsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/errors/$error': {
       id: '/_authenticated/errors/$error'
       path: '/errors/$error'
@@ -1071,6 +1090,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBookingsIdRoute: typeof AuthenticatedBookingsIdRoute
   AuthenticatedChatLogsIdRoute: typeof AuthenticatedChatLogsIdRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
+  AuthenticatedJobPostsIdRoute: typeof AuthenticatedJobPostsIdRoute
   AuthenticatedPlatformSettingsAnnouncementsRoute: typeof AuthenticatedPlatformSettingsAnnouncementsRoute
   AuthenticatedPlatformSettingsNotificationTemplatesRoute: typeof AuthenticatedPlatformSettingsNotificationTemplatesRoute
   AuthenticatedPlatformSettingsReportReasonsRoute: typeof AuthenticatedPlatformSettingsReportReasonsRoute
@@ -1101,6 +1121,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBookingsIdRoute: AuthenticatedBookingsIdRoute,
   AuthenticatedChatLogsIdRoute: AuthenticatedChatLogsIdRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
+  AuthenticatedJobPostsIdRoute: AuthenticatedJobPostsIdRoute,
   AuthenticatedPlatformSettingsAnnouncementsRoute:
     AuthenticatedPlatformSettingsAnnouncementsRoute,
   AuthenticatedPlatformSettingsNotificationTemplatesRoute:

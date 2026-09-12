@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight, SearchIcon } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -13,23 +16,47 @@ import {
 import { api } from '@/lib/api'
 import { JobPostsTable } from './components/job-posts-table'
 import { useJobPosts } from './hooks/use-job-posts'
+import {
+  type JobPostStatusFilter,
+  type JobPostVerificationFilter,
+} from './types'
 
 interface Category {
   id: number
   name: string
 }
 
+interface Barangay {
+  id: number
+  name: string
+}
+
 export function JobPostsListPage() {
   const [categoryId, setCategoryId] = useState<number | null>(null)
+  const [barangayId, setBarangayId] = useState<number | null>(null)
+  const [status, setStatus] = useState<JobPostStatusFilter>('all')
+  const [verification, setVerification] = useState<JobPostVerificationFilter>('all')
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
   const [categories, setCategories] = useState<Category[]>([])
-  const { data, isLoading, error, refetch } = useJobPosts(categoryId)
+  const [barangays, setBarangays] = useState<Barangay[]>([])
+  const { data, pagination, isLoading, error, refetch } = useJobPosts(
+    categoryId,
+    barangayId,
+    status,
+    verification,
+    search,
+    page,
+  )
   const [deletedIds, setDeletedIds] = useState<number[]>([])
 
   useEffect(() => {
-    api.get('/service-categories').then((res) => {
-      const raw = res.data?.data ?? res.data
-      setCategories(Array.isArray(raw) ? raw : [])
-    }).catch(() => {})
+    Promise.all([api.get('/service-categories'), api.get('/barangays')])
+      .then(([categoryResponse, barangayResponse]) => {
+        setCategories(Array.isArray(categoryResponse.data?.data) ? categoryResponse.data.data : [])
+        setBarangays(Array.isArray(barangayResponse.data?.data) ? barangayResponse.data.data : [])
+      })
+      .catch(() => {})
   }, [])
 
   const visible = data.filter((p) => !deletedIds.includes(p.id))
@@ -53,11 +80,25 @@ export function JobPostsListPage() {
           </p>
         </div>
 
-        {/* Category filter */}
-        <div className='mb-4 w-48'>
+        <div className='mb-4 flex flex-col gap-3 lg:flex-row lg:items-center'>
+          <div className='relative w-full lg:max-w-xs'>
+            <SearchIcon className='absolute inset-y-0 left-3 my-auto h-4 w-4 text-muted-foreground' />
+            <Input
+              placeholder='Search worker or post title'
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value)
+                setPage(1)
+              }}
+              className='border-border pl-9'
+            />
+          </div>
           <Select
             value={categoryId === null ? 'all' : String(categoryId)}
-            onValueChange={(v) => setCategoryId(v === 'all' ? null : Number(v))}
+            onValueChange={(v) => {
+              setCategoryId(v === 'all' ? null : Number(v))
+              setPage(1)
+            }}
           >
             <SelectTrigger className='border-border'>
               <SelectValue placeholder='All Categories' />
@@ -71,6 +112,45 @@ export function JobPostsListPage() {
               ))}
             </SelectContent>
           </Select>
+          <Select
+            value={barangayId === null ? 'all' : String(barangayId)}
+            onValueChange={(v) => {
+              setBarangayId(v === 'all' ? null : Number(v))
+              setPage(1)
+            }}
+          >
+            <SelectTrigger className='border-border lg:w-48'>
+              <SelectValue placeholder='All Barangays' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>All Barangays</SelectItem>
+              {barangays.map((barangay) => (
+                <SelectItem key={barangay.id} value={String(barangay.id)}>
+                  {barangay.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={status} onValueChange={(value) => { setStatus(value as JobPostStatusFilter); setPage(1) }}>
+            <SelectTrigger className='border-border lg:w-36'>
+              <SelectValue placeholder='All Statuses' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>All Statuses</SelectItem>
+              <SelectItem value='active'>Active</SelectItem>
+              <SelectItem value='inactive'>Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={verification} onValueChange={(value) => { setVerification(value as JobPostVerificationFilter); setPage(1) }}>
+            <SelectTrigger className='border-border lg:w-40'>
+              <SelectValue placeholder='All Verification' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>All Verification</SelectItem>
+              <SelectItem value='verified'>Verified</SelectItem>
+              <SelectItem value='unverified'>Unverified</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <JobPostsTable
@@ -80,6 +160,33 @@ export function JobPostsListPage() {
           onRetry={refetch}
           onDeleted={(id) => setDeletedIds((prev) => [...prev, id])}
         />
+        {pagination && pagination.last_page > 1 && (
+          <div className='mt-4 flex items-center justify-between text-sm text-muted-foreground'>
+            <span>Page {pagination.current_page} of {pagination.last_page} ({pagination.total} posts)</span>
+            <div className='flex items-center gap-1'>
+              <Button
+                variant='outline'
+                size='icon'
+                title='Previous page'
+                aria-label='Previous page'
+                disabled={pagination.current_page <= 1}
+                onClick={() => setPage(pagination.current_page - 1)}
+              >
+                <ChevronLeft className='h-4 w-4' />
+              </Button>
+              <Button
+                variant='outline'
+                size='icon'
+                title='Next page'
+                aria-label='Next page'
+                disabled={pagination.current_page >= pagination.last_page}
+                onClick={() => setPage(pagination.current_page + 1)}
+              >
+                <ChevronRight className='h-4 w-4' />
+              </Button>
+            </div>
+          </div>
+        )}
       </Main>
     </>
   )
