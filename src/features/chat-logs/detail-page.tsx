@@ -34,7 +34,7 @@ interface SearchParams {
 export function ChatLogDetailPage({ bookingId }: ChatLogDetailPageProps) {
   const navigate = useNavigate()
   const search = useSearch({ strict: false }) as SearchParams
-  const { data, isLoading, error, refetch } = useChatLog(bookingId)
+  const { data, bookingCode, isLoading, error, refetch } = useChatLog(bookingId)
 
   function handleBack() {
     if (search.from) {
@@ -69,8 +69,8 @@ export function ChatLogDetailPage({ bookingId }: ChatLogDetailPageProps) {
             <h1 className='text-2xl font-bold tracking-tight text-foreground'>
               {isLoading
                 ? 'Chat Log'
-                : data
-                  ? `Chat Log — ${data.booking_code}`
+                : bookingCode
+                  ? `Chat Log — ${bookingCode}`
                   : 'Chat Log'}
             </h1>
             <p className='text-sm text-muted-foreground'>
@@ -130,25 +130,25 @@ export function ChatLogDetailPage({ bookingId }: ChatLogDetailPageProps) {
                 </CardTitle>
               </CardHeader>
               <CardContent className='flex flex-wrap gap-4 pb-4'>
-                <div className='flex items-center gap-2'>
-                  <span className='h-3 w-3 rounded-full bg-muted' />
-                  <span className='text-sm text-muted-foreground'>
-                    <span className='font-medium text-foreground'>
-                      {data.client_name}
-                    </span>{' '}
-                    — Client
-                  </span>
-                </div>
-                <div className='flex items-center gap-2'>
-                  <span className='h-3 w-3 rounded-full bg-primary' />
-                  <span className='text-sm text-muted-foreground'>
-                    <span className='font-medium text-foreground'>
-                      {data.worker_name}
-                    </span>{' '}
-                    — Worker
-                  </span>
-                </div>
-                {data.messages.some((m) => m.is_flagged) && (
+                {(() => {
+                  const seen = new Map<number, string>()
+                  data.forEach((m) => {
+                    if (!seen.has(m.sender_id)) seen.set(m.sender_id, m.sender_name)
+                  })
+                  const senders = Array.from(seen.values())
+                  return senders.map((name, idx) => (
+                    <div key={idx} className='flex items-center gap-2'>
+                      <span className={['h-3 w-3 rounded-full', idx === 0 ? 'bg-muted' : 'bg-primary'].join(' ')} />
+                      <span className='text-sm text-muted-foreground'>
+                        <span className='font-medium text-foreground'>
+                          {name}
+                        </span>{' '}
+                        — {idx === 0 ? 'Client' : 'Worker'}
+                      </span>
+                    </div>
+                  ))
+                })()}
+                {data.some((m) => m.is_flagged) && (
                   <div className='flex items-center gap-2'>
                     <span className='h-3 w-3 rounded-full bg-amber-400' />
                     <span className='text-sm text-amber-700'>
@@ -165,12 +165,12 @@ export function ChatLogDetailPage({ bookingId }: ChatLogDetailPageProps) {
               style={{ boxShadow: '0 2px 12px rgba(52,168,53,0.08)' }}
             >
               <CardContent className='flex flex-col gap-1 p-4'>
-                {data.messages.length === 0 ? (
+                {data.length === 0 ? (
                   <p className='py-8 text-center text-sm text-muted-foreground'>
                     No messages in this conversation.
                   </p>
                 ) : (
-                  <MessageList messages={data.messages} />
+                  <MessageList messages={data} />
                 )}
               </CardContent>
             </Card>
@@ -198,12 +198,12 @@ function MessageList({ messages }: { messages: ChatMessage[] }) {
       {messages.map((msg, idx) => {
         const prev = messages[idx - 1]
         const showDateSeparator =
-          !prev || !isSameDay(new Date(prev.sent_at), new Date(msg.sent_at))
+          !prev || !isSameDay(new Date(prev.created_at), new Date(msg.created_at))
 
         return (
           <div key={msg.id}>
             {showDateSeparator && (
-              <DateSeparator date={new Date(msg.sent_at)} />
+              <DateSeparator date={new Date(msg.created_at)} />
             )}
             <MessageBubble message={msg} />
           </div>
@@ -259,7 +259,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
             : '',
         ].join(' ')}
       >
-        <p className='text-sm leading-relaxed'>{message.message}</p>
+        <p className='text-sm leading-relaxed'>{message.content}</p>
 
         {/* Time + flagged label row */}
         <div
@@ -274,7 +274,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
               isWorker ? 'text-white/70' : 'text-muted-foreground',
             ].join(' ')}
           >
-            {format(new Date(message.sent_at), 'h:mm a')}
+            {format(new Date(message.created_at), 'h:mm a')}
           </span>
           {message.is_flagged && (
             <span className='inline-flex items-center gap-0.5 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700'>

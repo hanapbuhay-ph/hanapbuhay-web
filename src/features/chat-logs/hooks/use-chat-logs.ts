@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { type ChatLog } from '../types'
+import { type Conversation } from '../types'
 
 interface UseChatLogsResult {
-  data: ChatLog[]
+  data: Conversation[]
   isLoading: boolean
   error: string | null
   refetch: () => void
 }
 
 export function useChatLogs(): UseChatLogsResult {
-  const [data, setData] = useState<ChatLog[]>([])
+  const [data, setData] = useState<Conversation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
@@ -20,12 +20,11 @@ export function useChatLogs(): UseChatLogsResult {
     setIsLoading(true)
     setError(null)
 
-    // When the real API is ready, replace this endpoint with
-    // GET /api/admin/chat-logs
-    // The response shape may include pagination — plan to handle a paginated list.
     api
-      .get<ChatLog[]>('/chat_logs')
-      .then((res) => { if (!cancelled) setData(res.data) })
+      .get<{ success: boolean; data: { conversations: Conversation[] } }>('/messages')
+      .then((res) => {
+        if (!cancelled) setData(res.data.data.conversations)
+      })
       .catch((err) => {
         if (!cancelled)
           setError(err instanceof Error ? err.message : 'Failed to load chat logs.')

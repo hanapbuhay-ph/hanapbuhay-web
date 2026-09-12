@@ -138,13 +138,13 @@ export function ReportsTable({
                 }
               >
                 <TableCell className='ps-4 font-mono text-sm font-medium text-foreground'>
-                  {r.booking_code}
+                  {r.booking?.booking_code}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
-                  {r.filed_by.name}
+                  {r.reporter?.name}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
-                  {r.reported_user.name}
+                  {r.reported_user?.name}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
                   {REASON_LABELS[r.reason] ?? r.reason}

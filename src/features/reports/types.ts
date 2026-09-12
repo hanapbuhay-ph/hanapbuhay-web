@@ -17,24 +17,22 @@ export type ResolutionAction =
   | 'no_action'
 
 export interface ReportParty {
+  id: number
   name: string
-  role: string
-  trust_tier?: string
 }
 
 export interface Report {
   id: number
-  booking_id: number
-  booking_code: string
-  filed_by: ReportParty
+  booking: { id: number; booking_code: string }
+  reporter: ReportParty
   reported_user: ReportParty
   reason: ReportReason
   description?: string
   status: ReportStatus
-  evidence_urls: string[]
+  evidence_paths: string[]
   created_at: string
-  // Present on resolved/dismissed records
   resolution_action?: ResolutionAction
+  admin_notes?: string
   admin_remarks?: string
 }
 

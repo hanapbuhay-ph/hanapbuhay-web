@@ -1,16 +1,18 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { type ChatLog } from '../types'
+import { type ChatMessage, type ThreadResponse } from '../types'
 
 interface UseChatLogResult {
-  data: ChatLog | null
+  data: ChatMessage[]
+  bookingCode: string | null
   isLoading: boolean
   error: string | null
   refetch: () => void
 }
 
 export function useChatLog(bookingId: string): UseChatLogResult {
-  const [data, setData] = useState<ChatLog | null>(null)
+  const [data, setData] = useState<ChatMessage[]>([])
+  const [bookingCode, setBookingCode] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
@@ -20,21 +22,12 @@ export function useChatLog(bookingId: string): UseChatLogResult {
     setIsLoading(true)
     setError(null)
 
-    // When the real API is ready, replace this endpoint with
-    // GET /api/admin/chat-logs?booking_id=:bookingId
-    // The response shape may include pagination — plan to handle a
-    // paginated messages array rather than a flat list.
-    //
-    // NOTE: json-server does not reliably filter string fields via query params,
-    // so we fetch all and filter client-side.
     api
-      .get<ChatLog[]>('/chat_logs')
+      .get<{ success: boolean; data: ThreadResponse }>(`/messages/${bookingId}`)
       .then((res) => {
         if (!cancelled) {
-          const match = res.data.find(
-            (log) => String(log.booking_id) === String(bookingId)
-          )
-          setData(match ?? null)
+          setData(res.data.data.messages)
+          setBookingCode(res.data.data.booking.booking_code)
         }
       })
       .catch((err) => {
@@ -46,5 +39,5 @@ export function useChatLog(bookingId: string): UseChatLogResult {
     return () => { cancelled = true }
   }, [bookingId, tick])
 
-  return { data, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return { data, bookingCode, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }

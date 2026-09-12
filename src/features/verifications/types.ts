@@ -2,7 +2,7 @@ export type VerificationStatus =
   | 'pending'
   | 'approved'
   | 'rejected'
-  | 'resubmission_requested'
+  | 'resubmission_required'
 
 export type TrustTier = 'verified' | 'trusted' | 'flagged' | 'revoked'
 
@@ -41,6 +41,7 @@ export interface Verification {
   user: VerificationUser
   verification_status: VerificationStatus
   trust_tier?: TrustTier
+  remarks?: string | null
   updated_at: string
   submitted_at?: string // not returned by real API; kept for type compat
   documents: VerificationDocument[]

@@ -136,7 +136,7 @@ export function LoginForm() {
                 <FormControl>
                   <Input
                     type='email'
-                    placeholder='admin@hanapbuhay.ph'
+                    placeholder='admin@hanapbuhay.com'
                     className='rounded-lg'
                     {...field}
                   />

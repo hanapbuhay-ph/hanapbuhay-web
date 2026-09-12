@@ -16,7 +16,7 @@ const FILTER_TABS: { value: FilterValue; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'approved', label: 'Approved' },
   { value: 'rejected', label: 'Rejected' },
-  { value: 'resubmission_requested', label: 'Resubmission Requested' },
+  { value: 'resubmission_required', label: 'Resubmission Required' },
 ]
 
 export function VerificationsListPage() {

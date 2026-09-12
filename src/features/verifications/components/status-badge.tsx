@@ -18,8 +18,8 @@ const config: Record<VerificationStatus, { label: string; className: string }> =
       label: 'Rejected',
       className: 'bg-destructive/10 text-destructive',
     },
-    resubmission_requested: {
-      label: 'Resubmission Requested',
+    resubmission_required: {
+      label: 'Resubmission Required',
       className: 'bg-amber-100 text-amber-700',
     },
   }

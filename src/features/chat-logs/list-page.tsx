@@ -3,7 +3,6 @@ import { format } from 'date-fns'
 import {
   AlertTriangle,
   InboxIcon,
-  MessageSquare,
   RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -21,6 +20,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useChatLogs } from './hooks/use-chat-logs'
+import { type Conversation } from './types'
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -60,20 +60,15 @@ export function ChatLogsListPage() {
                   Booking Code
                 </TableHead>
                 <TableHead className='font-semibold text-foreground'>
-                  Client
-                </TableHead>
-                <TableHead className='font-semibold text-foreground'>
-                  Worker
-                </TableHead>
-                <TableHead className='font-semibold text-foreground'>
-                  Messages
+                  Participant
                 </TableHead>
                 <TableHead className='font-semibold text-foreground'>
                   Latest Message
                 </TableHead>
                 <TableHead className='font-semibold text-foreground'>
-                  Action
+                  Unread
                 </TableHead>
+                <TableHead className='font-semibold text-foreground'>Action</TableHead>
               </TableRow>
             </TableHeader>
 
@@ -95,9 +90,6 @@ export function ChatLogsListPage() {
                       <Skeleton className='h-4 w-10' />
                     </TableCell>
                     <TableCell>
-                      <Skeleton className='h-4 w-24' />
-                    </TableCell>
-                    <TableCell>
                       <Skeleton className='h-7 w-16 rounded-lg' />
                     </TableCell>
                   </TableRow>
@@ -106,7 +98,7 @@ export function ChatLogsListPage() {
               {/* Error */}
               {!isLoading && error && (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={5}>
                     <div className='flex flex-col items-center gap-2 py-12 text-center'>
                       <AlertTriangle className='h-7 w-7 text-destructive' />
                       <p className='text-sm font-semibold text-foreground'>
@@ -130,7 +122,7 @@ export function ChatLogsListPage() {
               {/* Empty */}
               {!isLoading && !error && data.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6}>
+                  <TableCell colSpan={5}>
                     <div className='flex flex-col items-center gap-2 py-12 text-center'>
                       <InboxIcon className='h-7 w-7 text-muted-foreground' />
                       <p className='text-sm font-semibold text-foreground'>
@@ -147,50 +139,33 @@ export function ChatLogsListPage() {
               {/* Rows */}
               {!isLoading &&
                 !error &&
-                data.map((log) => {
-                  const lastMsg = log.messages[log.messages.length - 1]
-                  const flaggedCount = log.messages.filter(
-                    (m) => m.is_flagged
-                  ).length
-
-                  return (
+                data.map((log: Conversation) => (
                     <TableRow
-                      key={log.id}
+                      key={log.booking_id}
                       className='cursor-pointer hover:bg-primary/5'
                       onClick={() =>
-                        navigate({ to: '/chat-logs/$id', params: { id: log.booking_id } })
+                        navigate({ to: '/chat-logs/$id', params: { id: String(log.booking_id) }, search: { from: '/chat-logs' } })
                       }
                     >
-                      <TableCell className='ps-4'>
-                        <span className='font-mono text-sm font-semibold text-foreground'>
-                          {log.booking_code}
-                        </span>
-                      </TableCell>
-                      <TableCell className='text-sm text-muted-foreground'>
-                        {log.client_name}
-                      </TableCell>
-                      <TableCell className='text-sm text-muted-foreground'>
-                        {log.worker_name}
-                      </TableCell>
-                      <TableCell>
-                        <div className='flex items-center gap-1.5'>
-                          <MessageSquare className='h-3.5 w-3.5 text-muted-foreground' />
-                          <span className='text-sm text-muted-foreground'>
-                            {log.messages.length}
-                          </span>
-                          {flaggedCount > 0 && (
-                            <span className='ml-1 inline-flex items-center rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700'>
-                              {flaggedCount} flagged
-                            </span>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell className='text-sm text-muted-foreground'>
-                        {lastMsg
-                          ? format(new Date(lastMsg.sent_at), 'MMM d, yyyy')
-                          : '—'}
-                      </TableCell>
-                      <TableCell>
+                    <TableCell className='ps-4'>
+                      <span className='font-mono text-sm font-semibold text-foreground'>
+                        {log.booking_code}
+                      </span>
+                    </TableCell>
+                    <TableCell className='text-sm text-muted-foreground'>
+                      {log.other_party?.name ?? '—'}
+                    </TableCell>
+                    <TableCell className='text-sm text-muted-foreground'>
+                      {log.last_message
+                        ? format(new Date(log.last_message_at ?? log.last_message), 'MMM d, yyyy')
+                        : '—'}
+                    </TableCell>
+                    <TableCell>
+                      <span className='text-sm text-muted-foreground'>
+                        {log.unread_count}
+                      </span>
+                    </TableCell>
+                    <TableCell>
                         <Button
                           size='sm'
                           variant='outline'
@@ -199,16 +174,16 @@ export function ChatLogsListPage() {
                             e.stopPropagation()
                             navigate({
                               to: '/chat-logs/$id',
-                              params: { id: log.booking_id },
+                              params: { id: String(log.booking_id) },
+                              search: { from: '/chat-logs' },
                             })
                           }}
                         >
                           View
                         </Button>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>

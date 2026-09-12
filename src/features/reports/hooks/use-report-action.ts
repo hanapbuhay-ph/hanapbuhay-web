@@ -4,12 +4,17 @@ import { api } from '@/lib/api'
 import { type ResolutionAction } from '../types'
 
 interface ResolvePayload {
+  status: 'resolved'
   resolution_action: ResolutionAction
-  admin_remarks: string
+  admin_notes: string
+  admin_remarks?: string
 }
 
 interface DismissPayload {
-  admin_remarks: string
+  status: 'dismissed'
+  resolution_action: 'no_action'
+  admin_notes: string
+  admin_remarks?: string
 }
 
 interface UseReportActionResult {
@@ -31,13 +36,13 @@ export function useReportAction(): UseReportActionResult {
 
   async function callResolve(
     id: number,
-    body: { resolution_action: ResolutionAction; admin_remarks: string },
+    body: ResolvePayload | DismissPayload,
     successMessage: string,
     onSuccess: () => void
   ) {
     setIsSubmitting(true)
     try {
-      await api.post(`/admin/reports/${id}/resolve`, body)
+      await api.patch(`/admin/reports/${id}/resolve`, body)
       toast.success(successMessage)
       onSuccess()
     } catch (err) {
@@ -52,18 +57,18 @@ export function useReportAction(): UseReportActionResult {
   return {
     isSubmitting,
 
-    resolve: (id, { resolution_action, admin_remarks }, onSuccess) =>
+    resolve: (id, { status, resolution_action, admin_notes, admin_remarks }, onSuccess) =>
       callResolve(
         id,
-        { resolution_action, admin_remarks },
+        { status, resolution_action, admin_notes, admin_remarks },
         'Report resolved successfully.',
         onSuccess
       ),
 
-    dismiss: (id, { admin_remarks }, onSuccess) =>
+    dismiss: (id, { admin_notes, admin_remarks }, onSuccess) =>
       callResolve(
         id,
-        { resolution_action: 'no_action', admin_remarks },
+        { status: 'dismissed', resolution_action: 'no_action', admin_notes, admin_remarks },
         'Report dismissed.',
         onSuccess
       ),

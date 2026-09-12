@@ -21,21 +21,35 @@ import { Input } from '@/components/ui/input'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface AdminProfile {
+interface UserProfile {
   id: number
   name: string
   email: string
+  mobile_number: string | null
   role: string
-  avatar_url: string | null
-  phone: string
-  created_at: string
+  profile_photo_url: string | null
+  barangay?: {
+    id: number
+    name: string
+    latitude?: number
+    longitude?: number
+  } | null
+  email_verified_at?: string | null
+  is_google_account?: boolean
+  notification_preferences?: {
+    booking_updates: boolean
+    messages: boolean
+    promotions: boolean
+    push: boolean
+    email: boolean
+  }
 }
 
 // ── Schema ────────────────────────────────────────────────────────────────────
 
 const profileSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
-  phone: z.string().optional(),
+  mobile_number: z.string().optional(),
 })
 
 type ProfileValues = z.infer<typeof profileSchema>
@@ -58,40 +72,38 @@ export function ProfileForm() {
   const queryClient = useQueryClient()
 
   // ── Fetch profile ──────────────────────────────────────────────────────────
-  const { data: profile, isLoading } = useQuery<AdminProfile>({
-    queryKey: ['admin_profile'],
+  const { data: profile, isLoading } = useQuery<UserProfile>({
+    queryKey: ['user_profile'],
     queryFn: async () => {
-      const res = await api.get<AdminProfile>('/admin_profile')
-      return res.data
+      const res = await api.get<{ success: boolean; data: UserProfile }>('/user')
+      return res.data.data
     },
   })
 
   // ── Form ───────────────────────────────────────────────────────────────────
   const form = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name: '', phone: '' },
+    defaultValues: { name: '', mobile_number: '' },
   })
 
   // Populate form once data arrives
   useEffect(() => {
     if (profile) {
-      form.reset({ name: profile.name, phone: profile.phone ?? '' })
+      form.reset({ name: profile.name, mobile_number: profile.mobile_number ?? '' })
     }
   }, [profile, form])
 
   // ── Mutation ───────────────────────────────────────────────────────────────
   const { mutate: saveProfile, isPending } = useMutation({
     mutationFn: async (values: ProfileValues) => {
-      // Read-then-merge: PUT merges { name, phone } into the existing record
-      const res = await api.put<AdminProfile>('/admin_profile', {
-        ...profile,
+      const res = await api.post<{ success: boolean; data: { user: UserProfile } }>('/user/profile', {
         name: values.name,
-        phone: values.phone ?? '',
+        mobile_number: values.mobile_number ?? '',
       })
-      return res.data
+      return res.data.data.user
     },
     onSuccess: (updated) => {
-      queryClient.setQueryData(['admin_profile'], updated)
+      queryClient.setQueryData(['user_profile'], updated)
       toast.success('Profile updated.')
     },
   })
@@ -159,13 +171,13 @@ export function ProfileForm() {
             </FormDescription>
           </FormItem>
 
-          {/* Phone */}
+          {/* Mobile Number */}
           <FormField
             control={form.control}
-            name='phone'
+            name='mobile_number'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone</FormLabel>
+                <FormLabel>Mobile Number</FormLabel>
                 <FormControl>
                   <Input placeholder='09171234567' {...field} />
                 </FormControl>

@@ -1,19 +1,11 @@
-// MISMATCH NOTE: Mock used GET /verifications/:id returning a single Verification.
-// The real API has no single-record detail endpoint (Section K2–K4 only covers
-// the pending list and review actions). The detail record is served from the
-// verificationCache populated by useVerifications on the list page.
-// If the cache is empty (e.g. user navigates directly to the detail URL),
-// we fall back to re-fetching the pending list to warm the cache.
-
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { type Verification } from '../types'
-import { verificationCache } from './use-verifications'
 
-interface PendingApiResponse {
+interface VerificationApiResponse {
   success: boolean
   data: {
-    verifications: Verification[]
+    verification: Verification
   }
 }
 
@@ -35,25 +27,11 @@ export function useVerification(id: string | number): UseVerificationResult {
     setIsLoading(true)
     setError(null)
 
-    // The route param is worker_profile_id (used as the URL :id)
-    const cached = verificationCache.get(Number(id)) ?? verificationCache.get(id)
-    if (cached) {
-      setData(cached)
-      setIsLoading(false)
-      return
-    }
-
-    // Cache miss — warm the cache by fetching the pending list
     api
-      .get<PendingApiResponse>('/admin/verifications/pending')
+      .get<VerificationApiResponse>(`/admin/verifications/${id}`)
       .then((res) => {
         if (!cancelled) {
-          const list = res.data.data.verifications ?? []
-          list.forEach((v) => verificationCache.set(v.worker_profile_id, v))
-          const found =
-            list.find((v) => String(v.worker_profile_id) === String(id)) ?? null
-          setData(found)
-          if (!found) setError('Verification record not found.')
+          setData(res.data.data.verification)
         }
       })
       .catch((err) => {

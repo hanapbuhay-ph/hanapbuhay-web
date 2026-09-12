@@ -1,16 +1,8 @@
-// MISMATCH NOTE: Mock used GET /verifications?verification_status={status}
-// and returned a flat Verification[].
-// Real API only has GET /admin/verifications/pending (Section K2) which returns:
-//   { success, data: { verifications: [...], pagination: {} } }
-// There is no endpoint for approved/rejected/resubmission_requested status filters.
-// Those filter tabs will return empty results until the backend adds them.
-// The real API also adds time_elapsed and mobile_number on the user object.
-
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { type Verification, type VerificationStatus } from '../types'
 
-interface PendingApiResponse {
+interface VerificationsApiResponse {
   success: boolean
   data: {
     verifications: Verification[]
@@ -30,10 +22,6 @@ interface UseVerificationsResult {
   refetch: () => void
 }
 
-// Module-level cache so the detail page can look up a record by worker_profile_id
-// without a separate fetch (no single-record endpoint exists in the real API).
-export const verificationCache = new Map<string | number, Verification>()
-
 export function useVerifications(
   statusFilter: VerificationStatus | 'all' = 'all'
 ): UseVerificationsResult {
@@ -47,20 +35,13 @@ export function useVerifications(
     setIsLoading(true)
     setError(null)
 
-    // Only 'pending' and 'all' have a real endpoint; other statuses return empty
-    if (statusFilter !== 'pending' && statusFilter !== 'all') {
-      setData([])
-      setIsLoading(false)
-      return
-    }
-
     api
-      .get<PendingApiResponse>('/admin/verifications/pending')
+      .get<VerificationsApiResponse>('/admin/verifications', {
+        params: statusFilter === 'all' ? undefined : { status: statusFilter },
+      })
       .then((res) => {
         if (!cancelled) {
           const list = res.data.data.verifications ?? []
-          // Populate cache keyed by worker_profile_id for detail page lookups
-          list.forEach((v) => verificationCache.set(v.worker_profile_id, v))
           setData(list)
         }
       })

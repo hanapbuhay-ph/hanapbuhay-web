@@ -55,7 +55,7 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
     if (!data) return
     resolve(
       data.id,
-      { resolution_action: resolutionAction, admin_remarks: adminRemarks },
+      { status: 'resolved', resolution_action: resolutionAction, admin_notes: adminRemarks, admin_remarks: adminRemarks },
       () => {
         setShowResolve(false)
         refetch()
@@ -65,7 +65,7 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
 
   function handleDismissConfirm(adminRemarks: string) {
     if (!data) return
-    dismiss(data.id, { admin_remarks: adminRemarks }, () => {
+    dismiss(data.id, { status: 'dismissed', resolution_action: 'no_action', admin_notes: adminRemarks, admin_remarks: adminRemarks }, () => {
       setShowDismiss(false)
       refetch()
     })
@@ -136,7 +136,7 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
               <CardHeader className='pb-3'>
                 <div className='flex flex-wrap items-start justify-between gap-2'>
                   <CardTitle className='font-mono text-lg text-foreground'>
-                    {data.booking_code}
+                    {data.booking?.booking_code}
                   </CardTitle>
                   <ReportStatusBadge status={data.status} />
                 </div>
@@ -145,11 +145,11 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
               <CardContent className='flex flex-col gap-2'>
                 <InfoRow
                   icon={User}
-                  label={`Reported by: ${data.filed_by.name} (${data.filed_by.role})`}
+                  label={`Reported by: ${data.reporter?.name ?? '—'} (${data.reporter?.id ?? '—'})`}
                 />
                 <InfoRow
                   icon={UserX}
-                  label={`Reported user: ${data.reported_user.name} (${data.reported_user.role})`}
+                  label={`Reported user: ${data.reported_user?.name ?? '—'} (${data.reported_user?.id ?? '—'})`}
                 />
                 <InfoRow
                   icon={Flag}
@@ -172,15 +172,15 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
                     label={`Action taken: ${RESOLUTION_ACTION_LABELS[data.resolution_action]}`}
                   />
                 )}
-                {data.admin_remarks && (
+                {data.admin_notes && (
                   <InfoRow
                     icon={FileText}
-                    label={`Admin remarks: ${data.admin_remarks}`}
+                    label={`Admin notes: ${data.admin_notes}`}
                   />
                 )}
 
                 {/* View Chat Log — links to the conversation for this booking */}
-                {data.booking_id && (
+                {data.booking?.id && (
                   <div className='mt-2'>
                     <Button
                       variant='outline'
@@ -188,7 +188,7 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
                       onClick={() =>
                         navigate({
                           to: '/chat-logs/$id',
-                          params: { id: String(data.booking_id) },
+                          params: { id: String(data.booking.id) },
                           search: { from: `/reports/${data.id}` },
                         })
                       }
@@ -209,11 +209,11 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
             >
               <CardHeader className='pb-3'>
                 <CardTitle className='text-base text-foreground'>
-                  Evidence ({data.evidence_urls.length})
+                  Evidence ({data.evidence_paths.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <EvidenceGrid urls={data.evidence_urls} />
+                <EvidenceGrid urls={data.evidence_paths} />
               </CardContent>
             </Card>
 
@@ -250,14 +250,14 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
         <>
           <ResolveDialog
             open={showResolve}
-            bookingCode={data.booking_code}
+            bookingCode={data.booking?.booking_code ?? ''}
             isSubmitting={isSubmitting}
             onConfirm={handleResolveConfirm}
             onCancel={() => setShowResolve(false)}
           />
           <DismissDialog
             open={showDismiss}
-            bookingCode={data.booking_code}
+            bookingCode={data.booking?.booking_code ?? ''}
             isSubmitting={isSubmitting}
             onConfirm={handleDismissConfirm}
             onCancel={() => setShowDismiss(false)}
