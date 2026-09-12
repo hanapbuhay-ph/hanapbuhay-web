@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -69,6 +69,9 @@ export function LoginForm() {
   const [otpDialogOpen, setOtpDialogOpen] = useState(false)
   const [otpEmail, setOtpEmail] = useState('')
   const [otpCode, setOtpCode] = useState('')
+  const [otpExpiresAt, setOtpExpiresAt] = useState<number | null>(null)
+  const [otpCountdown, setOtpCountdown] = useState('10:00')
+  const [otpExpired, setOtpExpired] = useState(false)
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false)
   const [isResendingOtp, setIsResendingOtp] = useState(false)
   const navigate = useNavigate()
@@ -99,6 +102,41 @@ export function LoginForm() {
     return `${platform} • Browser`
   }
 
+  function startOtpExpiryWindow() {
+    const expiry = Date.now() + 10 * 60 * 1000
+    setOtpExpiresAt(expiry)
+    setOtpExpired(false)
+  }
+
+  function formatCountdown(expiry: number) {
+    const remainingMs = Math.max(expiry - Date.now(), 0)
+    const totalSeconds = Math.ceil(remainingMs / 1000)
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = totalSeconds % 60
+
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  }
+
+  useEffect(() => {
+    if (!otpDialogOpen || otpExpiresAt === null) {
+      return
+    }
+
+    setOtpCountdown(formatCountdown(otpExpiresAt))
+
+    const intervalId = window.setInterval(() => {
+      const nextCountdown = formatCountdown(otpExpiresAt)
+      setOtpCountdown(nextCountdown)
+
+      if (Date.now() >= otpExpiresAt) {
+        setOtpExpired(true)
+        window.clearInterval(intervalId)
+      }
+    }, 1000)
+
+    return () => window.clearInterval(intervalId)
+  }, [otpDialogOpen, otpExpiresAt])
+
   // ── Real login ─────────────────────────────────────────────────────────────
 
   async function onSubmit(data: FormValues) {
@@ -113,6 +151,7 @@ export function LoginForm() {
       if (res.data.data.requiresOtp) {
         setOtpEmail(data.email)
         setOtpCode('')
+        startOtpExpiryWindow()
         setOtpDialogOpen(true)
         toast.info('A verification code has been sent to your email.')
         return
@@ -210,6 +249,8 @@ export function LoginForm() {
     try {
       await api.post('/auth/login/resend-otp', { email: otpEmail })
       setOtpCode('')
+      setOtpExpired(false)
+      startOtpExpiryWindow()
       toast.success('A new verification code has been sent.')
     } catch (err) {
       const axiosErr = err instanceof AxiosError ? err : null
@@ -312,12 +353,19 @@ export function LoginForm() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className='flex justify-center py-2'>
+          <div className='flex flex-col items-center gap-3 py-2'>
+            <p className='text-sm text-muted-foreground'>
+              {otpExpired
+                ? 'This code has expired. Request a new one.'
+                : `Code expires in ${otpCountdown}`}
+            </p>
+
             <InputOTP
               maxLength={6}
               value={otpCode}
               onChange={setOtpCode}
               containerClassName='justify-between sm:[&>[data-slot="input-otp-group"]>div]:w-12'
+              disabled={otpExpired}
             >
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
@@ -348,7 +396,7 @@ export function LoginForm() {
             <Button
               type='button'
               onClick={verifyOtp}
-              disabled={otpCode.length !== 6 || isVerifyingOtp}
+              disabled={otpCode.length !== 6 || isVerifyingOtp || otpExpired}
             >
               {isVerifyingOtp ? 'Verifying...' : 'Verify'}
             </Button>
