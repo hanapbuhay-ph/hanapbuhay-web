@@ -7,14 +7,12 @@ interface ResolvePayload {
   status: 'resolved'
   resolution_action: ResolutionAction
   admin_notes: string
-  admin_remarks?: string
 }
 
 interface DismissPayload {
   status: 'dismissed'
   resolution_action: 'no_action'
   admin_notes: string
-  admin_remarks?: string
 }
 
 interface UseReportActionResult {
@@ -57,18 +55,18 @@ export function useReportAction(): UseReportActionResult {
   return {
     isSubmitting,
 
-    resolve: (id, { status, resolution_action, admin_notes, admin_remarks }, onSuccess) =>
+    resolve: (id, { status, resolution_action, admin_notes }, onSuccess) =>
       callResolve(
         id,
-        { status, resolution_action, admin_notes, admin_remarks },
+        { status, resolution_action, admin_notes },
         'Report resolved successfully.',
         onSuccess
       ),
 
-    dismiss: (id, { admin_notes, admin_remarks }, onSuccess) =>
+    dismiss: (id, { admin_notes }, onSuccess) =>
       callResolve(
         id,
-        { status: 'dismissed', resolution_action: 'no_action', admin_notes, admin_remarks },
+        { status: 'dismissed', resolution_action: 'no_action', admin_notes },
         'Report dismissed.',
         onSuccess
       ),

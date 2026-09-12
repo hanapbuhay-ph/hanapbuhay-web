@@ -1,4 +1,6 @@
 ﻿import { useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -6,7 +8,7 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ReportsTable } from './components/reports-table'
 import { useReports } from './hooks/use-reports'
-import { type ReportStatusFilter } from './types'
+import { REASON_LABELS, type ReportReasonFilter, type ReportStatusFilter } from './types'
 
 const STATUS_TABS: { value: ReportStatusFilter; label: string }[] = [
   { value: 'under_review', label: 'Under Review' },
@@ -18,7 +20,9 @@ const STATUS_TABS: { value: ReportStatusFilter; label: string }[] = [
 export function ReportsListPage() {
   const [statusFilter, setStatusFilter] =
     useState<ReportStatusFilter>('under_review')
-  const { data, isLoading, error, refetch } = useReports(statusFilter)
+  const [reasonFilter, setReasonFilter] = useState<ReportReasonFilter>('all')
+  const [page, setPage] = useState(1)
+  const { data, pagination, isLoading, error, refetch } = useReports(statusFilter, reasonFilter, page)
 
   return (
     <>
@@ -42,7 +46,10 @@ export function ReportsListPage() {
         <div className='mb-4 w-full overflow-x-auto pb-1'>
           <Tabs
             value={statusFilter}
-            onValueChange={(v) => setStatusFilter(v as ReportStatusFilter)}
+            onValueChange={(v) => {
+              setStatusFilter(v as ReportStatusFilter)
+              setPage(1)
+            }}
           >
             <TabsList className='min-w-max'>
               {STATUS_TABS.map((t) => (
@@ -54,12 +61,38 @@ export function ReportsListPage() {
           </Tabs>
         </div>
 
+        <div className='mb-4 flex items-center gap-2'>
+          <select
+            aria-label='Filter reports by reason'
+            value={reasonFilter}
+            onChange={(event) => {
+              setReasonFilter(event.target.value as ReportReasonFilter)
+              setPage(1)
+            }}
+            className='h-9 rounded-md border border-border bg-background px-3 text-sm text-foreground'
+          >
+            <option value='all'>All Reasons</option>
+            {Object.entries(REASON_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </div>
+
         <ReportsTable
           data={data}
           isLoading={isLoading}
           error={error}
           onRetry={refetch}
         />
+        {pagination && pagination.last_page > 1 && (
+          <div className='mt-4 flex items-center justify-between text-sm text-muted-foreground'>
+            <span>Page {pagination.current_page} of {pagination.last_page} ({pagination.total} reports)</span>
+            <div className='flex items-center gap-1'>
+              <Button variant='outline' size='icon' title='Previous page' aria-label='Previous page' disabled={pagination.current_page <= 1} onClick={() => setPage(pagination.current_page - 1)}><ChevronLeft className='h-4 w-4' /></Button>
+              <Button variant='outline' size='icon' title='Next page' aria-label='Next page' disabled={pagination.current_page >= pagination.last_page} onClick={() => setPage(pagination.current_page + 1)}><ChevronRight className='h-4 w-4' /></Button>
+            </div>
+          </div>
+        )}
       </Main>
     </>
   )

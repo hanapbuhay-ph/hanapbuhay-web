@@ -55,7 +55,7 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
     if (!data) return
     resolve(
       data.id,
-      { status: 'resolved', resolution_action: resolutionAction, admin_notes: adminRemarks, admin_remarks: adminRemarks },
+      { status: 'resolved', resolution_action: resolutionAction, admin_notes: adminRemarks },
       () => {
         setShowResolve(false)
         refetch()
@@ -65,7 +65,7 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
 
   function handleDismissConfirm(adminRemarks: string) {
     if (!data) return
-    dismiss(data.id, { status: 'dismissed', resolution_action: 'no_action', admin_notes: adminRemarks, admin_remarks: adminRemarks }, () => {
+    dismiss(data.id, { status: 'dismissed', resolution_action: 'no_action', admin_notes: adminRemarks }, () => {
       setShowDismiss(false)
       refetch()
     })
@@ -209,11 +209,11 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
             >
               <CardHeader className='pb-3'>
                 <CardTitle className='text-base text-foreground'>
-                  Evidence ({data.evidence_paths.length})
+                  Evidence ({data.evidence_urls.length})
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <EvidenceGrid urls={data.evidence_paths} />
+                <EvidenceGrid urls={data.evidence_urls} />
               </CardContent>
             </Card>
 

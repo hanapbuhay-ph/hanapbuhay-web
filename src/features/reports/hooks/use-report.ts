@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { type Report } from '../types'
 
@@ -18,8 +18,10 @@ export function useReport(id: string): UseReportResult {
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    startTransition(() => {
+      setIsLoading(true)
+      setError(null)
+    })
 
     api
       .get<{ success: boolean; data: Report }>(`/admin/reports/${id}`)

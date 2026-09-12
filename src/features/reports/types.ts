@@ -29,14 +29,25 @@ export interface Report {
   reason: ReportReason
   description?: string
   status: ReportStatus
-  evidence_paths: string[]
+  evidence_urls: string[]
   created_at: string
   resolution_action?: ResolutionAction
   admin_notes?: string
   admin_remarks?: string
+  resolved_by?: string | null
+  resolved_at?: string | null
 }
 
 export type ReportStatusFilter = ReportStatus | 'all'
+
+export type ReportReasonFilter = ReportReason | 'all'
+
+export interface ReportPagination {
+  current_page: number
+  per_page: number
+  total: number
+  last_page: number
+}
 
 export const REASON_LABELS: Record<ReportReason, string> = {
   no_show: 'No Show',
