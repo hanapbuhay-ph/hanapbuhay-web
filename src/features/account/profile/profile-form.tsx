@@ -1,12 +1,12 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { Loader2 } from 'lucide-react'
+import { Camera, Loader2 } from 'lucide-react'
 import { api } from '@/lib/api'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -70,6 +70,9 @@ function getInitials(name: string): string {
 
 export function ProfileForm() {
   const queryClient = useQueryClient()
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null)
 
   // ── Fetch profile ──────────────────────────────────────────────────────────
   const { data: profile, isLoading } = useQuery<UserProfile>({
@@ -93,17 +96,48 @@ export function ProfileForm() {
     }
   }, [profile, form])
 
+  useEffect(() => {
+    if (!selectedFile) {
+      setPhotoPreview(null)
+      return
+    }
+
+    const objectUrl = URL.createObjectURL(selectedFile)
+    setPhotoPreview(objectUrl)
+
+    return () => URL.revokeObjectURL(objectUrl)
+  }, [selectedFile])
+
   // ── Mutation ───────────────────────────────────────────────────────────────
   const { mutate: saveProfile, isPending } = useMutation({
     mutationFn: async (values: ProfileValues) => {
-      const res = await api.post<{ success: boolean; data: { user: UserProfile } }>('/user/profile', {
-        name: values.name,
-        mobile_number: values.mobile_number ?? '',
-      })
+      const formData = new FormData()
+      formData.append('name', values.name)
+      if (values.mobile_number) {
+        formData.append('mobile_number', values.mobile_number)
+      }
+      if (selectedFile) {
+        formData.append('profile_photo', selectedFile)
+      }
+
+      const res = await api.post<{ success: boolean; data: { user: UserProfile } }>(
+        '/user/profile',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      )
+
       return res.data.data.user
     },
     onSuccess: (updated) => {
       queryClient.setQueryData(['user_profile'], updated)
+      setSelectedFile(null)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
       toast.success('Profile updated.')
     },
   })
@@ -121,13 +155,42 @@ export function ProfileForm() {
 
   return (
     <div className='space-y-6'>
-      {/* Avatar — placeholder circle with initials (no upload yet) */}
+      {/* Avatar */}
       <div className='flex items-center gap-4'>
-        <Avatar className='h-16 w-16 text-lg'>
-          <AvatarFallback className='bg-primary/10 text-primary font-semibold'>
-            {profile ? getInitials(profile.name) : '?'}
-          </AvatarFallback>
-        </Avatar>
+        <div className='relative'>
+          <Avatar className='h-16 w-16 text-lg'>
+            {profile?.profile_photo_url || photoPreview ? (
+              <AvatarImage
+                src={photoPreview ?? profile?.profile_photo_url ?? undefined}
+                alt={profile?.name ?? 'Profile'}
+              />
+            ) : null}
+            <AvatarFallback className='bg-primary/10 text-primary font-semibold'>
+              {profile ? getInitials(profile.name) : '?'}
+            </AvatarFallback>
+          </Avatar>
+
+          <button
+            type='button'
+            aria-label='Upload profile photo'
+            onClick={() => fileInputRef.current?.click()}
+            className='absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-background bg-primary text-primary-foreground shadow-sm transition-opacity hover:opacity-90'
+          >
+            <Camera className='h-3.5 w-3.5' />
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type='file'
+            accept='image/*'
+            className='hidden'
+            onChange={(event) => {
+              const file = event.target.files?.[0] ?? null
+              setSelectedFile(file)
+            }}
+          />
+        </div>
+
         <div>
           <p className='text-sm font-medium'>{profile?.name}</p>
           <p className='text-xs text-muted-foreground'>{profile?.role}</p>
