@@ -1,17 +1,11 @@
-/**
- * Change Password form.
- *
- * NOTE: When the real API is ready, POST to /api/admin/change-password
- * with { currentPassword, newPassword }. The backend validates the current
- * password before accepting the change.
- */
-
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { useState } from 'react'
+import { AxiosError } from 'axios'
+import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -55,13 +49,28 @@ export function ChangePasswordForm() {
     },
   })
 
-  async function onSubmit(_values: PasswordValues) {
+  async function onSubmit(values: PasswordValues) {
     setIsPending(true)
-    // Simulate network delay
-    await new Promise((r) => setTimeout(r, 600))
-    setIsPending(false)
-    toast.success('Password updated successfully.')
-    form.reset()
+
+    try {
+      await api.post('/user/password', {
+        current_password: values.currentPassword,
+        password: values.newPassword,
+        password_confirmation: values.confirmPassword,
+      })
+
+      toast.success('Password updated successfully.')
+      form.reset()
+    } catch (error) {
+      const axiosError = error instanceof AxiosError ? error : null
+      const message =
+        axiosError?.response?.data?.message ??
+        'Unable to update password. Please try again.'
+
+      toast.error(message)
+    } finally {
+      setIsPending(false)
+    }
   }
 
   return (
