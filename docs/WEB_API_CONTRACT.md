@@ -375,7 +375,7 @@ Action values:
    Plan for this by using a helper in src/lib/api.ts
    that prepends /api/admin/ when the real API is active.
 
-3. The token from login (hanapbuhay_admin_token) must be
+3. The token from login (admin_token) must be
    sent as Bearer token on every real API call.
    json-server ignores this header — it works without it.
 

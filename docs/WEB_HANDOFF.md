@@ -195,7 +195,7 @@ The admin user logs in using:
   Returns a Sanctum Bearer token
 
 The React app must:
-  - Store the token in localStorage as hanapbuhay_admin_token
+  - Store the token in localStorage as admin_token
   - Attach it to every API request:
     Authorization: Bearer {token}
   - Check that the returned user.role === 'admin'
@@ -253,7 +253,7 @@ None yet.
 
 - Mock API: json-server on port 3001
 - Real API: swap VITE_API_URL env var when Laravel is ready
-- Auth token storage: localStorage key hanapbuhay_admin_token
+- Auth token storage: localStorage key admin_token
 - Role check: only allow role === 'admin' past login
 - Font: Plus Jakarta Sans from Google Fonts
 - Template: shadcn-admin (satnaing) — already cloned and running
