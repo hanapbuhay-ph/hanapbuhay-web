@@ -49,6 +49,7 @@ interface UserProfile {
 
 const profileSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
+  email: z.string().trim().email('Please enter a valid email address.'),
   mobile_number: z.string().optional(),
 })
 
@@ -73,6 +74,9 @@ export function ProfileForm() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
+  const [pendingEmailVerification, setPendingEmailVerification] = useState<string | null>(null)
+  const [verificationCode, setVerificationCode] = useState('')
+  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false)
 
   // ── Fetch profile ──────────────────────────────────────────────────────────
   const { data: profile, isLoading } = useQuery<UserProfile>({
@@ -86,13 +90,17 @@ export function ProfileForm() {
   // ── Form ───────────────────────────────────────────────────────────────────
   const form = useForm<ProfileValues>({
     resolver: zodResolver(profileSchema),
-    defaultValues: { name: '', mobile_number: '' },
+    defaultValues: { name: '', email: '', mobile_number: '' },
   })
 
   // Populate form once data arrives
   useEffect(() => {
     if (profile) {
-      form.reset({ name: profile.name, mobile_number: profile.mobile_number ?? '' })
+      form.reset({
+        name: profile.name,
+        email: profile.email,
+        mobile_number: profile.mobile_number ?? '',
+      })
     }
   }, [profile, form])
 
@@ -113,6 +121,7 @@ export function ProfileForm() {
     mutationFn: async (values: ProfileValues) => {
       const formData = new FormData()
       formData.append('name', values.name)
+      formData.append('email', values.email)
       if (values.mobile_number) {
         formData.append('mobile_number', values.mobile_number)
       }
@@ -132,15 +141,72 @@ export function ProfileForm() {
 
       return res.data.data.user
     },
-    onSuccess: (updated) => {
+    onSuccess: async (updated, values) => {
       queryClient.setQueryData(['user_profile'], updated)
       setSelectedFile(null)
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
-      toast.success('Profile updated.')
+
+      const emailChanged =
+        values.email.trim().toLowerCase() !== (profile?.email ?? '').trim().toLowerCase()
+
+      if (emailChanged) {
+        try {
+          await api.post('/auth/email/resend-otp', { email: values.email.trim() })
+          setPendingEmailVerification(values.email.trim())
+          setVerificationCode('')
+          toast.info('Profile updated. A verification code has been sent to your new email address.')
+        } catch {
+          toast.error('Profile updated, but the verification code could not be sent.')
+        }
+      } else {
+        toast.success('Profile updated.')
+      }
     },
   })
+
+  async function handleVerifyEmail() {
+    if (!pendingEmailVerification) {
+      return
+    }
+
+    if (!verificationCode.trim()) {
+      toast.error('Please enter the verification code sent to your new email.')
+      return
+    }
+
+    setIsVerifyingEmail(true)
+
+    try {
+      const res = await api.post<{ success: boolean; data: { user: UserProfile } }>(
+        '/auth/email/verify',
+        {
+          email: pendingEmailVerification,
+          code: verificationCode.trim(),
+        }
+      )
+
+      queryClient.setQueryData(['user_profile'], res.data.data.user)
+      setPendingEmailVerification(null)
+      setVerificationCode('')
+      toast.success('Email verified successfully.')
+    } catch (error) {
+      const message =
+        error && typeof error === 'object' && 'response' in error
+          ? (error.response as { data?: { message?: string; error?: string } } | undefined)?.data
+              ?.message ??
+            (error.response as { data?: { message?: string; error?: string } } | undefined)?.data
+              ?.error ??
+            'Unable to verify the email change.'
+          : error instanceof Error
+            ? error.message
+            : 'Unable to verify the email change.'
+      toast.error(message)
+    } finally {
+      setIsVerifyingEmail(false)
+    }
+  }
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -197,6 +263,31 @@ export function ProfileForm() {
         </div>
       </div>
 
+      {pendingEmailVerification && (
+        <div className='rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900'>
+          <p className='font-medium'>Verify your new email address</p>
+          <p className='mt-1'>A verification code was sent to {pendingEmailVerification}.</p>
+          <div className='mt-3 flex gap-2'>
+            <Input
+              type='text'
+              inputMode='numeric'
+              value={verificationCode}
+              onChange={(event) => setVerificationCode(event.target.value)}
+              placeholder='Enter verification code'
+              className='max-w-xs'
+            />
+            <Button
+              type='button'
+              variant='outline'
+              onClick={handleVerifyEmail}
+              disabled={isVerifyingEmail}
+            >
+              {isVerifyingEmail ? 'Verifying...' : 'Verify'}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit((v) => saveProfile(v))}
@@ -217,22 +308,23 @@ export function ProfileForm() {
             )}
           />
 
-          {/* Email — read-only */}
-          <FormItem>
-            <FormLabel>Email</FormLabel>
-            <FormControl>
-              <Input
-                type='email'
-                value={profile?.email ?? ''}
-                disabled
-                readOnly
-                className='cursor-not-allowed opacity-60'
-              />
-            </FormControl>
-            <FormDescription>
-              Contact support to change your email address.
-            </FormDescription>
-          </FormItem>
+          {/* Email */}
+          <FormField
+            control={form.control}
+            name='email'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type='email' placeholder='admin@hanapbuhay.com' {...field} />
+                </FormControl>
+                <FormDescription>
+                  Changing your email will send a verification code to the new address.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           {/* Mobile Number */}
           <FormField
