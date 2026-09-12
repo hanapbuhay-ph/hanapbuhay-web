@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { type Review, type ScoreFilter, type DirectionFilter } from '../types'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { type Review, type ReviewPagination, type ScoreFilter, type DirectionFilter } from '../types'
 
 interface UseReviewsResult {
   data: Review[]
+  pagination: ReviewPagination | null
   isLoading: boolean
   error: string | null
   refetch: () => void
@@ -11,27 +13,44 @@ interface UseReviewsResult {
 
 export function useReviews(
   scoreFilter: ScoreFilter = 'all',
-  directionFilter: DirectionFilter = 'all'
+  directionFilter: DirectionFilter = 'all',
+  workerId: number | null = null,
+  clientId: number | null = null,
+  search = '',
+  page = 1,
 ): UseReviewsResult {
+  const debouncedSearch = useDebouncedValue(search)
   const [data, setData] = useState<Review[]>([])
+  const [pagination, setPagination] = useState<ReviewPagination | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    startTransition(() => {
+      setIsLoading(true)
+      setError(null)
+    })
 
     const params: Record<string, string | number> = {}
     if (scoreFilter !== 'all') params.score = scoreFilter
     if (directionFilter !== 'all') params.direction = directionFilter
+    if (workerId !== null) params.worker_id = workerId
+    if (clientId !== null) params.client_id = clientId
+    if (debouncedSearch.trim()) params.search = debouncedSearch.trim()
+    params.page = page
 
     api
-      .get<{ success: boolean; data: { ratings: Review[] } }>('/admin/ratings', {
+      .get<{ success: boolean; data: { ratings: Review[]; pagination: ReviewPagination } }>('/admin/ratings', {
         params: Object.keys(params).length ? params : undefined,
       })
-      .then((res) => { if (!cancelled) setData(res.data.data.ratings) })
+      .then((res) => {
+        if (!cancelled) {
+          setData(res.data.data.ratings)
+          setPagination(res.data.data.pagination)
+        }
+      })
       .catch((err) => {
         if (!cancelled)
           setError(err instanceof Error ? err.message : 'Failed to load ratings.')
@@ -39,7 +58,7 @@ export function useReviews(
       .finally(() => { if (!cancelled) setIsLoading(false) })
 
     return () => { cancelled = true }
-  }, [scoreFilter, directionFilter, tick])
+  }, [scoreFilter, directionFilter, workerId, clientId, debouncedSearch, page, tick])
 
-  return { data, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }

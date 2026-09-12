@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'

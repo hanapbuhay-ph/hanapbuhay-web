@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { AlertTriangle, InboxIcon, RefreshCw, Trash2 } from 'lucide-react'
+import { AlertTriangle, ChevronLeft, ChevronRight, InboxIcon, RefreshCw, Search, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -33,6 +33,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { StarRating } from './components/star-rating'
 import { useReviews } from './hooks/use-reviews'
 import { useReviewAction } from './hooks/use-review-action'
@@ -41,7 +42,9 @@ import { type Review, type ScoreFilter, type DirectionFilter } from './types'
 export function ReviewsListPage() {
   const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('all')
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('all')
-  const { data, isLoading, error, refetch } = useReviews(scoreFilter, directionFilter)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const { data, pagination, isLoading, error, refetch } = useReviews(scoreFilter, directionFilter, null, null, search, page)
   const { isSubmitting, removeRating } = useReviewAction()
 
   const [targetReview, setTargetReview] = useState<Review | null>(null)
@@ -79,9 +82,10 @@ export function ReviewsListPage() {
         <div className='mb-4 flex flex-wrap gap-3'>
           <Select
             value={String(scoreFilter)}
-            onValueChange={(v) =>
+            onValueChange={(v) => {
               setScoreFilter(v === 'all' ? 'all' : (Number(v) as ScoreFilter))
-            }
+              setPage(1)
+            }}
           >
             <SelectTrigger className='w-36'>
               <SelectValue placeholder='All scores' />
@@ -98,7 +102,7 @@ export function ReviewsListPage() {
 
           <Select
             value={directionFilter}
-            onValueChange={(v) => setDirectionFilter(v as DirectionFilter)}
+            onValueChange={(v) => { setDirectionFilter(v as DirectionFilter); setPage(1) }}
           >
             <SelectTrigger className='w-44'>
               <SelectValue placeholder='All directions' />
@@ -109,6 +113,10 @@ export function ReviewsListPage() {
               <SelectItem value='worker_to_client'>Worker → Client</SelectItem>
             </SelectContent>
           </Select>
+          <div className='relative w-full sm:max-w-xs'>
+            <Search className='absolute inset-y-0 left-3 my-auto h-4 w-4 text-muted-foreground' />
+            <Input value={search} placeholder='Search booking or user' onChange={(event) => { setSearch(event.target.value); setPage(1) }} className='border-border pl-9' />
+          </div>
         </div>
 
         {/* Table */}
@@ -215,13 +223,13 @@ export function ReviewsListPage() {
                 data.map((review) => (
                   <TableRow key={review.id} className='hover:bg-primary/5'>
                     <TableCell className='ps-4 font-mono text-sm font-medium text-foreground'>
-                      {review.booking_code}
+                      {review.booking.booking_code}
                     </TableCell>
                     <TableCell className='text-sm text-muted-foreground'>
-                      {review.rated_by_name}
+                      {review.rated_by.name}
                     </TableCell>
                     <TableCell className='text-sm text-muted-foreground'>
-                      {review.rated_user_name}
+                      {review.rated_user.name}
                     </TableCell>
                     <TableCell>
                       <StarRating rating={review.score} size='sm' showNumeric />
@@ -255,6 +263,15 @@ export function ReviewsListPage() {
             </TableBody>
           </Table>
         </div>
+        {pagination && pagination.last_page > 1 && (
+          <div className='mt-4 flex items-center justify-between text-sm text-muted-foreground'>
+            <span>Page {pagination.current_page} of {pagination.last_page} ({pagination.total} reviews)</span>
+            <div className='flex gap-1'>
+              <Button variant='outline' size='icon' title='Previous page' aria-label='Previous page' disabled={pagination.current_page <= 1} onClick={() => setPage(pagination.current_page - 1)}><ChevronLeft className='h-4 w-4' /></Button>
+              <Button variant='outline' size='icon' title='Next page' aria-label='Next page' disabled={pagination.current_page >= pagination.last_page} onClick={() => setPage(pagination.current_page + 1)}><ChevronRight className='h-4 w-4' /></Button>
+            </div>
+          </div>
+        )}
       </Main>
 
       {/* Remove confirm dialog */}
@@ -268,7 +285,7 @@ export function ReviewsListPage() {
             <AlertDialogDescription>
               This will permanently delete the review by{' '}
               <span className='font-medium text-foreground'>
-                {targetReview?.rated_by_name}
+                {targetReview?.rated_by.name}
               </span>{' '}
               and recalculate the worker's average rating. This action cannot be
               undone.

@@ -6,34 +6,97 @@ export interface ServiceCategory {
   id: number
   name: string
   icon: string
+  is_active?: boolean
+  description?: string
+}
+
+export interface ServiceCategoryPayload {
+  name: string
+  description?: string
+  is_active: boolean
+  icon?: string
 }
 
 // ── Report Reasons ────────────────────────────────────────────────────────────
 // Read-only from GET /api/admin/settings → report_reasons[]
-// No mutation actions exist in the real API (K17).
+// The real API currently returns a string[] of reason codes, which the hook
+// normalises into these display objects.
 
 export interface ReportReason {
+  id?: number
   code: string
   label: string
+  description?: string
+  is_active?: boolean
+}
+
+export interface ReportReasonPayload {
+  label: string
+  description?: string
+  is_active: boolean
 }
 
 // ── Notification Templates ────────────────────────────────────────────────────
-// Read-only from GET /api/admin/settings → notification_templates[]
-// No mutation actions exist in the real API (K17).
+// The real API currently returns a record of template keys to bodies.
+// The hook normalises that into this display shape.
+
+export type NotificationChannel = 'push' | 'email' | 'sms'
 
 export interface NotificationTemplate {
+  id?: number
   key: string
   body: string
+  title?: string
+  channel?: NotificationChannel
+  subject?: string | null
+  is_active?: boolean
+  variables?: string[]
+  last_updated_at?: string
 }
 
-// ── Announcement ──────────────────────────────────────────────────────────────
-// active_announcement from GET /api/admin/settings is a single object (or null).
-// POST /api/admin/settings { action: 'post_announcement' } creates a new one.
+export interface NotificationTemplatePayload {
+  title: string
+  channel: NotificationChannel
+  subject: string | null
+  body: string
+  is_active: boolean
+  last_updated_at?: string
+}
+
+// ── Announcements ──────────────────────────────────────────────────────────────
+// Current API contract includes a single active announcement object and
+// announcement payloads for create/edit flows.
+
+export type AnnouncementStatus = 'draft' | 'published' | 'archived'
+export type AnnouncementTargetAudience = 'all' | 'clients' | 'workers'
+
+export interface Announcement {
+  id: number
+  title: string
+  body: string
+  target_audience: AnnouncementTargetAudience
+  status: AnnouncementStatus
+  published_at: string | null
+  expires_at: string | null
+  created_at: string
+}
+
+export interface AnnouncementPayload {
+  title: string
+  body: string
+  target_audience: AnnouncementTargetAudience
+  status: AnnouncementStatus
+  published_at: string | null
+  expires_at: string | null
+  created_at: string
+}
 
 export interface ActiveAnnouncement {
+  id: number
   title: string
   body: string
   expires_at: string | null
+  posted_at?: string
 }
 
 // ── Settings response ─────────────────────────────────────────────────────────

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import {
@@ -9,8 +10,8 @@ import {
 // Raw shapes returned by the real API (differ from our display types)
 interface RawSettings {
   service_categories: PlatformSettings['service_categories']
-  report_reasons: string[]                        // ['no_show', 'misconduct', ...]
-  notification_templates: Record<string, string>  // { booking_accepted: 'body...', ... }
+  report_reasons: string[]
+  notification_templates: Record<string, string>
   active_announcement: PlatformSettings['active_announcement']
 }
 
@@ -33,7 +34,16 @@ function normalise(raw: RawSettings): PlatformSettings {
 
   const notification_templates: NotificationTemplate[] = Object.entries(
     raw.notification_templates
-  ).map(([key, body]) => ({ key, body }))
+  ).map(([key, body]) => ({
+    key,
+    body,
+    title: key,
+    channel: 'push',
+    subject: null,
+    is_active: true,
+    variables: [],
+    last_updated_at: new Date().toISOString(),
+  }))
 
   return {
     service_categories:     raw.service_categories,
