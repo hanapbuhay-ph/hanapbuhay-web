@@ -156,7 +156,7 @@ export function BookingsTable({
                   {b.service_category.name}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
-                  {format(new Date(b.scheduled_at), 'MMM d, yyyy')}
+                  {format(new Date(b.scheduled_at), 'MMM d, yyyy · h:mm a')}
                 </TableCell>
                 <TableCell>
                   <BookingStatusBadge status={b.status} />

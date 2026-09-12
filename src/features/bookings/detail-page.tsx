@@ -146,6 +146,28 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
                 {data.notes && (
                   <InfoRow icon={FileText} label={`Notes: ${data.notes}`} />
                 )}
+                {data.client.email && (
+                  <InfoRow icon={User} label={`Client email: ${data.client.email}`} />
+                )}
+                {data.client.mobile_number && (
+                  <InfoRow icon={User} label={`Client mobile: ${data.client.mobile_number}`} />
+                )}
+                {data.client.barangay && (
+                  <InfoRow icon={User} label={`Client barangay: ${data.client.barangay}`} />
+                )}
+                {data.worker.email && (
+                  <InfoRow icon={HardHat} label={`Worker email: ${data.worker.email}`} />
+                )}
+                {data.worker.mobile_number && (
+                  <InfoRow icon={HardHat} label={`Worker mobile: ${data.worker.mobile_number}`} />
+                )}
+                {data.worker.barangay && (
+                  <InfoRow icon={HardHat} label={`Worker barangay: ${data.worker.barangay}`} />
+                )}
+                {data.job_post && (
+                  <InfoRow icon={Wrench} label={`Job post: ${data.job_post.title}`} />
+                )}
+                <InfoRow icon={FileText} label={`Messages: ${data.messages_count ?? 0} · Reports: ${data.reports_count ?? 0} · Tracking points: ${data.tracking_points_count ?? 0}`} />
               </CardContent>
             </Card>
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { type Booking } from '../types'
 
@@ -18,8 +18,10 @@ export function useBooking(id: string): UseBookingResult {
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    startTransition(() => {
+      setIsLoading(true)
+      setError(null)
+    })
 
     api
       .get(`/admin/bookings/${id}`)
