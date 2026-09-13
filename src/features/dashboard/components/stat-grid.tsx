@@ -1,15 +1,7 @@
-﻿import {
-  Users,
-  HardHat,
-  CalendarCheck,
-  AlertTriangle,
-  CheckCircle2,
-  RefreshCw,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+﻿import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { type DashboardStats } from '../hooks/use-dashboard'
-import { StatCard, StatCardSkeleton, type StatVariant } from './stat-card'
+import { StatCard, StatCardSkeleton } from './stat-card'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -25,46 +17,31 @@ interface StatGridProps {
 type CardDef = {
   label: string
   key: keyof DashboardStats
-  icon: LucideIcon
-  variant: (val: number) => StatVariant
   featured?: boolean
-  trendLabel?: string
-  trendTone?: 'positive' | 'warning' | 'danger' | 'neutral'
+  contextLabel: string
 }
 
 const CARD_DEFS: CardDef[] = [
   {
     label: 'Active Bookings',
     key: 'active_bookings',
-    icon: CalendarCheck,
-    variant: () => 'blue',
     featured: true,
-    trendLabel: '2 in progress',
-    trendTone: 'positive',
+    contextLabel: 'Current active bookings',
   },
   {
     label: 'Total Users',
     key: 'total_users',
-    icon: Users,
-    variant: () => 'blue',
-    trendLabel: '+12 this week',
-    trendTone: 'neutral',
+    contextLabel: 'All registered users',
   },
   {
     label: 'Total Workers',
     key: 'total_workers',
-    icon: HardHat,
-    variant: () => 'violet',
-    trendLabel: '+3 this week',
-    trendTone: 'positive',
+    contextLabel: 'All registered workers',
   },
   {
     label: 'Total Job Posts',
     key: 'total_active_job_posts',
-    icon: CheckCircle2,
-    variant: () => 'orange',
-    trendLabel: '+5 this week',
-    trendTone: 'positive',
+    contextLabel: 'Currently active posts',
   },
 ]
 
@@ -75,7 +52,7 @@ export function StatGrid({ data, isLoading, error, onRetry }: StatGridProps) {
   if (isLoading) {
     return (
       <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 4 }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
       </div>
@@ -108,20 +85,24 @@ export function StatGrid({ data, isLoading, error, onRetry }: StatGridProps) {
 
   // Loaded state
   return (
-    <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+    <div className='grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1.45fr_repeat(3,minmax(0,1fr))]'>
       {CARD_DEFS.map((def) => {
         const value = data[def.key] as number
+        const sparklineData =
+          def.key === 'active_bookings'
+            ? (data.activity_trend ?? []).map((point) => point.bookings)
+            : def.key === 'total_active_job_posts'
+              ? (data.activity_trend ?? []).map((point) => point.active_jobs)
+              : []
         return (
           <StatCard
             key={def.key}
             label={def.label}
             value={value}
-            icon={def.icon}
-            variant={def.variant(value)}
             featured={def.featured}
             className='h-full'
-            trendLabel={def.trendLabel}
-            trendTone={def.trendTone}
+            contextLabel={def.contextLabel}
+            sparklineData={sparklineData}
           />
         )
       })}

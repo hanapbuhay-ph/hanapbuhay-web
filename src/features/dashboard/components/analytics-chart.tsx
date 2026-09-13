@@ -48,10 +48,9 @@ export function AnalyticsChart({
         <Tooltip
           cursor={{ stroke: '#22c55e', strokeOpacity: 0.25, strokeWidth: 1 }}
           contentStyle={{
-            borderRadius: '12px',
+            borderRadius: '6px',
             border: '1px solid #e5e7eb',
             backgroundColor: 'rgba(255,255,255,0.96)',
-            boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
           }}
           formatter={(value, name) => [value ?? 0, name]}
           labelFormatter={(label) => `Date: ${label}`}
@@ -63,7 +62,7 @@ export function AnalyticsChart({
             stroke='currentColor'
             className='text-primary'
             fill='currentColor'
-            fillOpacity={0.18}
+            fillOpacity={0.1}
             strokeWidth={2.5}
           />
         )}
@@ -74,7 +73,7 @@ export function AnalyticsChart({
             stroke='currentColor'
             className='text-amber-500'
             fill='currentColor'
-            fillOpacity={0.12}
+            fillOpacity={0.08}
             strokeWidth={2}
           />
         )}
@@ -85,7 +84,7 @@ export function AnalyticsChart({
             stroke='currentColor'
             className='text-slate-500'
             fill='currentColor'
-            fillOpacity={0.08}
+            fillOpacity={0.06}
             strokeWidth={2}
           />
         )}

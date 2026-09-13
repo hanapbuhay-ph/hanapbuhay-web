@@ -142,10 +142,10 @@ export function Dashboard() {
         <div className='mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between'>
           <div>
             <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-              Good morning, Admin 👋
+              Admin Dashboard
             </h1>
             <p className='mt-1 text-sm text-muted-foreground'>
-              Here&apos;s what&apos;s happening on HanapBuhay today.
+              Platform overview for {todayLabel}.
             </p>
             <div className='mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground'>
               <span>{todayLabel}</span>
@@ -172,16 +172,13 @@ export function Dashboard() {
         {!isLoading && data && (
           <>
             <div className='mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,1fr)]'>
-              <Card className='rounded-2xl border border-border bg-card shadow-[0_2px_12px_rgba(52,168,53,0.08)]'>
+              <Card className='rounded-xl border border-border bg-card'>
                 <CardHeader className='pb-3'>
                   <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
                     <CardTitle className='text-base font-semibold text-foreground'>
                       Platform Activity
                     </CardTitle>
                     <div className='flex flex-wrap items-center gap-2'>
-                      <span className='text-xs text-muted-foreground'>
-                        Last 7 days
-                      </span>
                       <div
                         aria-label='Filter platform activity'
                         className='flex flex-wrap gap-1 rounded-lg border border-border bg-muted/30 p-1'
@@ -228,25 +225,30 @@ export function Dashboard() {
                       </p>
                     </div>
                   )}
-                  <div className='mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground'>
-                    {[
-                      ['bg-primary', 'Bookings'],
-                      ['bg-amber-500', 'Verifications'],
-                      ['bg-slate-500', 'Active jobs'],
-                    ].map(([color, label]) => (
-                      <span
-                        key={label}
-                        className='inline-flex items-center gap-2'
-                      >
-                        <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-                        {label}
-                      </span>
-                    ))}
+                  <div className='mt-4 flex flex-wrap items-center justify-between gap-x-5 gap-y-2 text-xs text-muted-foreground'>
+                    <div className='flex flex-wrap gap-x-5 gap-y-2'>
+                      {[
+                        ['bg-primary', 'Bookings'],
+                        ['bg-amber-500', 'Verifications'],
+                        ['bg-slate-500', 'Active jobs'],
+                      ].map(([color, label]) => (
+                        <span
+                          key={label}
+                          className='inline-flex items-center gap-2'
+                        >
+                          <span
+                            className={`h-2.5 w-2.5 rounded-full ${color}`}
+                          />
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                    <span className='ml-auto'>Last 7 days</span>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className='rounded-2xl border border-border bg-card shadow-[0_2px_12px_rgba(52,168,53,0.08)]'>
+              <Card className='rounded-xl border border-border bg-card'>
                 <CardHeader className='pb-3'>
                   <CardTitle className='text-base font-semibold text-foreground'>
                     Operational Snapshot
@@ -289,7 +291,7 @@ export function Dashboard() {
                 />
 
                 <div className='space-y-6'>
-                  <Card className='rounded-2xl border border-border bg-card shadow-[0_2px_12px_rgba(52,168,53,0.08)]'>
+                  <Card className='rounded-xl border border-border bg-card'>
                     <CardHeader className='pb-3'>
                       <div className='flex items-center justify-between gap-4'>
                         <CardTitle className='text-base font-semibold text-foreground'>
@@ -354,7 +356,7 @@ export function Dashboard() {
                     </CardContent>
                   </Card>
 
-                  <Card className='rounded-2xl border border-border bg-card shadow-[0_2px_12px_rgba(52,168,53,0.08)]'>
+                  <Card className='rounded-xl border border-border bg-card'>
                     <CardHeader className='pb-3'>
                       <CardTitle className='text-base font-semibold text-foreground'>
                         Quick Actions
@@ -402,7 +404,7 @@ export function Dashboard() {
                 </div>
 
                 <div className='xl:col-span-2'>
-                  <Card className='rounded-2xl border border-border bg-card shadow-[0_2px_12px_rgba(52,168,53,0.08)]'>
+                  <Card className='rounded-xl border border-border bg-card'>
                     <CardHeader className='pb-3'>
                       <div className='flex items-center justify-between gap-4'>
                         <CardTitle className='text-base font-semibold text-foreground'>
@@ -454,7 +456,7 @@ export function Dashboard() {
               </div>
 
               <div className='space-y-6 xl:col-span-1'>
-                <Card className='rounded-2xl border border-border bg-card shadow-[0_2px_12px_rgba(52,168,53,0.08)]'>
+                <Card className='rounded-xl border border-border bg-card'>
                   <CardHeader className='pb-3'>
                     <div className='flex items-center justify-between gap-4'>
                       <CardTitle className='text-base font-semibold text-foreground'>
@@ -520,7 +522,7 @@ export function Dashboard() {
                   </CardContent>
                 </Card>
 
-                <Card className='rounded-2xl border border-border bg-card shadow-[0_2px_12px_rgba(52,168,53,0.08)]'>
+                <Card className='rounded-xl border border-border bg-card'>
                   <CardHeader className='pb-3'>
                     <CardTitle className='text-base font-semibold text-foreground'>
                       Top Service Categories
