@@ -7,6 +7,19 @@ export interface RecentActivityItem {
   created_at: string
 }
 
+export interface ActivityTrendPoint {
+  date: string
+  label: string
+  bookings: number
+  verifications: number
+  active_jobs: number
+}
+
+export interface ServiceCategoryStat {
+  name: string
+  count: number
+}
+
 export interface DashboardStats {
   total_users: number
   total_clients: number
@@ -16,6 +29,8 @@ export interface DashboardStats {
   open_disputes: number
   completed_bookings_today: number
   total_active_job_posts: number
+  activity_trend?: ActivityTrendPoint[]
+  top_service_categories?: ServiceCategoryStat[]
 }
 
 // Real API response shape from GET /admin/dashboard
@@ -57,7 +72,9 @@ export function useDashboard(): UseDashboardResult {
       } catch (err) {
         if (!cancelled) {
           const msg =
-            err instanceof Error ? err.message : 'Failed to load dashboard data.'
+            err instanceof Error
+              ? err.message
+              : 'Failed to load dashboard data.'
           setError(msg)
         }
       } finally {

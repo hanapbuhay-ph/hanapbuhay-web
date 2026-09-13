@@ -1,13 +1,12 @@
 ﻿import {
   Users,
-  UserCheck,
   HardHat,
-  ShieldAlert,
   CalendarCheck,
   AlertTriangle,
   CheckCircle2,
   RefreshCw,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { type DashboardStats } from '../hooks/use-dashboard'
 import { StatCard, StatCardSkeleton, type StatVariant } from './stat-card'
@@ -26,58 +25,46 @@ interface StatGridProps {
 type CardDef = {
   label: string
   key: keyof DashboardStats
-  icon: React.ComponentType<{ className?: string }>
+  icon: LucideIcon
   variant: (val: number) => StatVariant
+  featured?: boolean
+  trendLabel?: string
+  trendTone?: 'positive' | 'warning' | 'danger' | 'neutral'
 }
 
 const CARD_DEFS: CardDef[] = [
   {
+    label: 'Active Bookings',
+    key: 'active_bookings',
+    icon: CalendarCheck,
+    variant: () => 'blue',
+    featured: true,
+    trendLabel: '2 in progress',
+    trendTone: 'positive',
+  },
+  {
     label: 'Total Users',
     key: 'total_users',
     icon: Users,
-    variant: () => 'default',
-  },
-  {
-    label: 'Total Clients',
-    key: 'total_clients',
-    icon: UserCheck,
-    variant: () => 'default',
+    variant: () => 'blue',
+    trendLabel: '+12 this week',
+    trendTone: 'neutral',
   },
   {
     label: 'Total Workers',
     key: 'total_workers',
     icon: HardHat,
-    variant: () => 'default',
+    variant: () => 'violet',
+    trendLabel: '+3 this week',
+    trendTone: 'positive',
   },
   {
-    label: 'Pending Verifications',
-    key: 'pending_verifications',
-    icon: ShieldAlert,
-    variant: (v) => (v > 0 ? 'alert-green' : 'default'),
-  },
-  {
-    label: 'Active Bookings',
-    key: 'active_bookings',
-    icon: CalendarCheck,
-    variant: () => 'default',
-  },
-  {
-    label: 'Open Disputes',
-    key: 'open_disputes',
-    icon: AlertTriangle,
-    variant: (v) => (v > 0 ? 'alert-red' : 'default'),
-  },
-  {
-    label: 'Completed Today',
-    key: 'completed_bookings_today',
-    icon: CheckCircle2,
-    variant: () => 'default',
-  },
-  {
-    label: 'Active Job Posts',
+    label: 'Total Job Posts',
     key: 'total_active_job_posts',
     icon: CheckCircle2,
-    variant: () => 'default',
+    variant: () => 'orange',
+    trendLabel: '+5 this week',
+    trendTone: 'positive',
   },
 ]
 
@@ -131,6 +118,10 @@ export function StatGrid({ data, isLoading, error, onRetry }: StatGridProps) {
             value={value}
             icon={def.icon}
             variant={def.variant(value)}
+            featured={def.featured}
+            className='h-full'
+            trendLabel={def.trendLabel}
+            trendTone={def.trendTone}
           />
         )
       })}

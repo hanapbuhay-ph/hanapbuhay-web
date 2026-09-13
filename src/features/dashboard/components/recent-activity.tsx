@@ -2,10 +2,10 @@
 // target_id, details, created_at }. Real API returns recent_activity items as
 // { type: string, description: string, created_at: string } — no id field.
 // The component now renders description directly instead of mapping action labels.
-
 import { formatDistanceToNow } from 'date-fns'
 import { Link } from '@tanstack/react-router'
 import { Activity, ArrowRight, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -14,7 +14,6 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Button } from '@/components/ui/button'
 import { type RecentActivityItem } from '../hooks/use-dashboard'
 
 // ── Props ─────────────────────────────────────────────────────────────────────
@@ -48,7 +47,7 @@ function RecentActivitySkeleton() {
         <Skeleton className='h-5 w-36' />
       </CardHeader>
       <CardContent className='space-y-4 pb-2'>
-        {Array.from({ length: 8 }).map((_, i) => (
+        {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className='flex items-start gap-3'>
             <Skeleton className='mt-0.5 h-7 w-7 shrink-0 rounded-full' />
             <div className='flex-1 space-y-1.5'>
@@ -85,7 +84,6 @@ export function RecentActivity({
           Recent Activity
         </CardTitle>
       </CardHeader>
-
       <CardContent className='pb-2'>
         {/* Error state */}
         {error && (
@@ -115,7 +113,10 @@ export function RecentActivity({
         {!error && data.length > 0 && (
           <ul className='space-y-0 divide-y divide-border'>
             {data.map((entry, index) => (
-              <li key={index} className='flex items-start gap-3 py-3 first:pt-0 last:pb-0'>
+              <li
+                key={index}
+                className='flex items-start gap-3 py-3 first:pt-0 last:pb-0'
+              >
                 {/* Dot avatar */}
                 <div className='mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10'>
                   <Activity className='h-3.5 w-3.5 text-primary' aria-hidden />
