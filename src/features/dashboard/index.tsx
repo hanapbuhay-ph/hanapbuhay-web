@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { format, formatDistanceToNow } from 'date-fns'
 import { Link } from '@tanstack/react-router'
 import {
@@ -18,12 +19,13 @@ import { BookingStatusBadge } from '../bookings/components/booking-status-badge'
 import { useBookings } from '../bookings/hooks/use-bookings'
 import { useJobPosts } from '../job-posts/hooks/use-job-posts'
 import { useVerifications } from '../verifications/hooks/use-verifications'
-import { AnalyticsChart } from './components/analytics-chart'
+import { AnalyticsChart, type ChartSeries } from './components/analytics-chart'
 import { RecentActivity } from './components/recent-activity'
 import { StatGrid } from './components/stat-grid'
 import { useDashboard } from './hooks/use-dashboard'
 
 export function Dashboard() {
+  const [activityFilter, setActivityFilter] = useState<ChartSeries>('all')
   const { data, recentActivity, isLoading, error, refetch } = useDashboard()
   const {
     data: recentBookings = [],
@@ -172,19 +174,52 @@ export function Dashboard() {
             <div className='mt-8 grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.75fr)_minmax(320px,1fr)]'>
               <Card className='rounded-2xl border border-border bg-card shadow-[0_2px_12px_rgba(52,168,53,0.08)]'>
                 <CardHeader className='pb-3'>
-                  <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+                  <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
                     <CardTitle className='text-base font-semibold text-foreground'>
                       Platform Activity
                     </CardTitle>
-                    <span className='text-xs text-muted-foreground'>
-                      Last 7 days
-                    </span>
+                    <div className='flex flex-wrap items-center gap-2'>
+                      <span className='text-xs text-muted-foreground'>
+                        Last 7 days
+                      </span>
+                      <div
+                        aria-label='Filter platform activity'
+                        className='flex flex-wrap gap-1 rounded-lg border border-border bg-muted/30 p-1'
+                        role='group'
+                      >
+                        {(
+                          [
+                            ['all', 'All'],
+                            ['bookings', 'Bookings'],
+                            ['verifications', 'Verifications'],
+                            ['active_jobs', 'Active jobs'],
+                          ] as const
+                        ).map(([value, label]) => (
+                          <button
+                            key={value}
+                            type='button'
+                            aria-pressed={activityFilter === value}
+                            onClick={() => setActivityFilter(value)}
+                            className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                              activityFilter === value
+                                ? 'bg-primary text-primary-foreground shadow-sm'
+                                : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className='px-4 pb-4 sm:px-6 sm:pb-6'>
                   {data.activity_trend && data.activity_trend.length > 0 ? (
                     <div className='h-64 w-full'>
-                      <AnalyticsChart data={data.activity_trend} />
+                      <AnalyticsChart
+                        data={data.activity_trend}
+                        series={activityFilter}
+                      />
                     </div>
                   ) : (
                     <div className='flex h-64 items-center justify-center rounded-xl border border-dashed border-border bg-muted/20 text-center'>
@@ -193,6 +228,21 @@ export function Dashboard() {
                       </p>
                     </div>
                   )}
+                  <div className='mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground'>
+                    {[
+                      ['bg-primary', 'Bookings'],
+                      ['bg-amber-500', 'Verifications'],
+                      ['bg-slate-500', 'Active jobs'],
+                    ].map(([color, label]) => (
+                      <span
+                        key={label}
+                        className='inline-flex items-center gap-2'
+                      >
+                        <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
+                        {label}
+                      </span>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
