@@ -25,6 +25,7 @@ export interface VerificationUser {
   email: string
   mobile_number?: string // present in real API (K2), absent in mock
   barangay: string
+  profile_photo_url?: string | null
 }
 
 export interface VerificationHistoryEntry {

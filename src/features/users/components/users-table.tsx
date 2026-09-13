@@ -1,5 +1,6 @@
 ﻿import { useNavigate } from '@tanstack/react-router'
 import { AlertTriangle, RefreshCw, InboxIcon } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -19,6 +20,15 @@ interface UsersTableProps {
   isLoading: boolean
   error: string | null
   onRetry: () => void
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 }
 
 function TableSkeleton() {
@@ -72,7 +82,9 @@ export function UsersTable({
             <TableHead className='font-semibold text-foreground'>
               Email
             </TableHead>
-            <TableHead className='font-semibold text-foreground'>Role</TableHead>
+            <TableHead className='font-semibold text-foreground'>
+              Role
+            </TableHead>
             <TableHead className='font-semibold text-foreground'>
               Barangay
             </TableHead>
@@ -142,7 +154,18 @@ export function UsersTable({
                 }
               >
                 <TableCell className='ps-4 font-medium text-foreground'>
-                  {user.name}
+                  <div className='flex items-center gap-3'>
+                    <Avatar className='h-8 w-8'>
+                      <AvatarImage
+                        src={user.profile_photo_url ?? undefined}
+                        alt={`${user.name} profile`}
+                      />
+                      <AvatarFallback className='bg-primary/10 text-xs text-primary'>
+                        {getInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{user.name}</span>
+                  </div>
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
                   {user.email}

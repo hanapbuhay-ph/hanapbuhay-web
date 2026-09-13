@@ -1,8 +1,8 @@
 export interface Review {
   id: number
   booking: { id: number; booking_code: string }
-  rated_by: { id: number; name: string }
-  rated_user: { id: number; name: string }
+  rated_by: { id: number; name: string; profile_photo_url?: string | null }
+  rated_user: { id: number; name: string; profile_photo_url?: string | null }
   score: number // 1–5
   comment: string | null
   created_at: string

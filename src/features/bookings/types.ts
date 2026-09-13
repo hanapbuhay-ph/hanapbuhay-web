@@ -23,6 +23,7 @@ export interface Booking {
     email?: string | null
     mobile_number?: string | null
     barangay?: string | null
+    profile_photo_url?: string | null
   }
   worker: {
     id: number
@@ -30,6 +31,7 @@ export interface Booking {
     email?: string | null
     mobile_number?: string | null
     barangay?: string | null
+    profile_photo_url?: string | null
   }
   service_category: { name: string }
   scheduled_at: string

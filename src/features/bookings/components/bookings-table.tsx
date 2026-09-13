@@ -1,6 +1,7 @@
 ﻿import { format } from 'date-fns'
 import { useNavigate } from '@tanstack/react-router'
 import { AlertTriangle, RefreshCw, InboxIcon } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -19,6 +20,15 @@ interface BookingsTableProps {
   isLoading: boolean
   error: string | null
   onRetry: () => void
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 }
 
 function TableSkeleton() {
@@ -140,17 +150,42 @@ export function BookingsTable({
                 key={b.id}
                 className='cursor-pointer hover:bg-primary/5'
                 onClick={() =>
-                  navigate({ to: '/bookings/$id', params: { id: String(b.id) } })
+                  navigate({
+                    to: '/bookings/$id',
+                    params: { id: String(b.id) },
+                  })
                 }
               >
                 <TableCell className='ps-4 font-mono text-sm font-medium text-foreground'>
                   {b.booking_code}
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
-                  {b.client.name}
+                  <div className='flex items-center gap-3'>
+                    <Avatar className='h-8 w-8'>
+                      <AvatarImage
+                        src={b.client.profile_photo_url ?? undefined}
+                        alt={`${b.client.name} profile`}
+                      />
+                      <AvatarFallback className='bg-primary/10 text-xs text-primary'>
+                        {getInitials(b.client.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{b.client.name}</span>
+                  </div>
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
-                  {b.worker.name}
+                  <div className='flex items-center gap-3'>
+                    <Avatar className='h-8 w-8'>
+                      <AvatarImage
+                        src={b.worker.profile_photo_url ?? undefined}
+                        alt={`${b.worker.name} profile`}
+                      />
+                      <AvatarFallback className='bg-primary/10 text-xs text-primary'>
+                        {getInitials(b.worker.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{b.worker.name}</span>
+                  </div>
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
                   {b.service_category.name}

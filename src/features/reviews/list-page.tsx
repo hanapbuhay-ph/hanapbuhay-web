@@ -1,27 +1,14 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { AlertTriangle, ChevronLeft, ChevronRight, InboxIcon, RefreshCw, Search, Trash2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Header } from '@/components/layout/header'
-import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { ThemeSwitch } from '@/components/theme-switch'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  InboxIcon,
+  RefreshCw,
+  Search,
+  Trash2,
+} from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,19 +19,57 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Textarea } from '@/components/ui/textarea'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { Textarea } from '@/components/ui/textarea'
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/theme-switch'
 import { StarRating } from './components/star-rating'
-import { useReviews } from './hooks/use-reviews'
 import { useReviewAction } from './hooks/use-review-action'
+import { useReviews } from './hooks/use-reviews'
 import { type Review, type ScoreFilter, type DirectionFilter } from './types'
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
 
 export function ReviewsListPage() {
   const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('all')
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('all')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const { data, pagination, isLoading, error, refetch } = useReviews(scoreFilter, directionFilter, null, null, search, page)
+  const { data, pagination, isLoading, error, refetch } = useReviews(
+    scoreFilter,
+    directionFilter,
+    null,
+    null,
+    search,
+    page
+  )
   const { isSubmitting, removeRating } = useReviewAction()
 
   const [targetReview, setTargetReview] = useState<Review | null>(null)
@@ -102,7 +127,10 @@ export function ReviewsListPage() {
 
           <Select
             value={directionFilter}
-            onValueChange={(v) => { setDirectionFilter(v as DirectionFilter); setPage(1) }}
+            onValueChange={(v) => {
+              setDirectionFilter(v as DirectionFilter)
+              setPage(1)
+            }}
           >
             <SelectTrigger className='w-44'>
               <SelectValue placeholder='All directions' />
@@ -115,7 +143,15 @@ export function ReviewsListPage() {
           </Select>
           <div className='relative w-full sm:max-w-xs'>
             <Search className='absolute inset-y-0 left-3 my-auto h-4 w-4 text-muted-foreground' />
-            <Input value={search} placeholder='Search booking or user' onChange={(event) => { setSearch(event.target.value); setPage(1) }} className='border-border pl-9' />
+            <Input
+              value={search}
+              placeholder='Search booking or user'
+              onChange={(event) => {
+                setSearch(event.target.value)
+                setPage(1)
+              }}
+              className='border-border pl-9'
+            />
           </div>
         </div>
 
@@ -226,20 +262,48 @@ export function ReviewsListPage() {
                       {review.booking.booking_code}
                     </TableCell>
                     <TableCell className='text-sm text-muted-foreground'>
-                      {review.rated_by.name}
+                      <div className='flex items-center gap-3'>
+                        <Avatar className='h-8 w-8'>
+                          <AvatarImage
+                            src={review.rated_by.profile_photo_url ?? undefined}
+                            alt={`${review.rated_by.name} profile`}
+                          />
+                          <AvatarFallback className='bg-primary/10 text-xs text-primary'>
+                            {getInitials(review.rated_by.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{review.rated_by.name}</span>
+                      </div>
                     </TableCell>
                     <TableCell className='text-sm text-muted-foreground'>
-                      {review.rated_user.name}
+                      <div className='flex items-center gap-3'>
+                        <Avatar className='h-8 w-8'>
+                          <AvatarImage
+                            src={
+                              review.rated_user.profile_photo_url ?? undefined
+                            }
+                            alt={`${review.rated_user.name} profile`}
+                          />
+                          <AvatarFallback className='bg-primary/10 text-xs text-primary'>
+                            {getInitials(review.rated_user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{review.rated_user.name}</span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <StarRating rating={review.score} size='sm' showNumeric />
                     </TableCell>
                     <TableCell className='max-w-xs truncate text-sm text-muted-foreground'>
-                      {review.comment
-                        ? review.comment.length > 60
-                          ? `${review.comment.substring(0, 60)}…`
-                          : review.comment
-                        : <span className='italic'>No comment</span>}
+                      {review.comment ? (
+                        review.comment.length > 60 ? (
+                          `${review.comment.substring(0, 60)}…`
+                        ) : (
+                          review.comment
+                        )
+                      ) : (
+                        <span className='italic'>No comment</span>
+                      )}
                     </TableCell>
                     <TableCell className='text-sm text-muted-foreground'>
                       {format(new Date(review.created_at), 'MMM d, yyyy')}
@@ -265,10 +329,31 @@ export function ReviewsListPage() {
         </div>
         {pagination && pagination.last_page > 1 && (
           <div className='mt-4 flex items-center justify-between text-sm text-muted-foreground'>
-            <span>Page {pagination.current_page} of {pagination.last_page} ({pagination.total} reviews)</span>
+            <span>
+              Page {pagination.current_page} of {pagination.last_page} (
+              {pagination.total} reviews)
+            </span>
             <div className='flex gap-1'>
-              <Button variant='outline' size='icon' title='Previous page' aria-label='Previous page' disabled={pagination.current_page <= 1} onClick={() => setPage(pagination.current_page - 1)}><ChevronLeft className='h-4 w-4' /></Button>
-              <Button variant='outline' size='icon' title='Next page' aria-label='Next page' disabled={pagination.current_page >= pagination.last_page} onClick={() => setPage(pagination.current_page + 1)}><ChevronRight className='h-4 w-4' /></Button>
+              <Button
+                variant='outline'
+                size='icon'
+                title='Previous page'
+                aria-label='Previous page'
+                disabled={pagination.current_page <= 1}
+                onClick={() => setPage(pagination.current_page - 1)}
+              >
+                <ChevronLeft className='h-4 w-4' />
+              </Button>
+              <Button
+                variant='outline'
+                size='icon'
+                title='Next page'
+                aria-label='Next page'
+                disabled={pagination.current_page >= pagination.last_page}
+                onClick={() => setPage(pagination.current_page + 1)}
+              >
+                <ChevronRight className='h-4 w-4' />
+              </Button>
             </div>
           </div>
         )}
@@ -277,7 +362,9 @@ export function ReviewsListPage() {
       {/* Remove confirm dialog */}
       <AlertDialog
         open={!!targetReview}
-        onOpenChange={(open) => { if (!open) setTargetReview(null) }}
+        onOpenChange={(open) => {
+          if (!open) setTargetReview(null)
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -298,7 +385,9 @@ export function ReviewsListPage() {
             className='mt-2 min-h-[80px]'
           />
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isSubmitting}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               disabled={isSubmitting || !removeReason.trim()}
               onClick={handleRemoveConfirm}

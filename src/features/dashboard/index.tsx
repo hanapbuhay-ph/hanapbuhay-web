@@ -54,6 +54,21 @@ export function Dashboard() {
     minute: '2-digit',
   }).format(new Date())
 
+  const completedBookingsToday = data?.completed_bookings_today
+  const completedBookingsYesterday = data?.completed_bookings_yesterday
+  const hasCompletedBookingsComparison =
+    Number.isFinite(completedBookingsToday) &&
+    Number.isFinite(completedBookingsYesterday)
+  const completedBookingsDelta = hasCompletedBookingsComparison
+    ? completedBookingsToday! - completedBookingsYesterday!
+    : null
+  const completedBookingsBadge =
+    completedBookingsDelta === null
+      ? 'Comparison unavailable'
+      : completedBookingsDelta === 0
+        ? 'Same as yesterday'
+        : `${completedBookingsDelta > 0 ? '+' : ''}${completedBookingsDelta} vs yesterday`
+
   const operationItems = data
     ? [
         {
@@ -77,8 +92,13 @@ export function Dashboard() {
         {
           label: 'Completed Today',
           value: data.completed_bookings_today,
-          badge: '+2 vs yesterday',
-          tone: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400',
+          badge: completedBookingsBadge,
+          tone:
+            completedBookingsDelta === null
+              ? 'bg-muted text-muted-foreground'
+              : completedBookingsDelta >= 0
+                ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+                : 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400',
         },
         {
           label: 'Total Clients',
@@ -320,9 +340,19 @@ export function Dashboard() {
                             className='flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3'
                           >
                             <div className='flex min-w-0 items-center gap-3'>
-                              <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary'>
+                              <div className='relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold text-primary'>
                                 {getInitials(
                                   verification.user?.name ?? 'Worker'
+                                )}
+                                {verification.user?.profile_photo_url && (
+                                  <img
+                                    src={verification.user.profile_photo_url}
+                                    alt={`${verification.user.name} profile`}
+                                    className='absolute inset-0 h-full w-full object-cover'
+                                    onError={(event) => {
+                                      event.currentTarget.style.display = 'none'
+                                    }}
+                                  />
                                 )}
                               </div>
                               <div className='min-w-0'>
@@ -500,8 +530,18 @@ export function Dashboard() {
                           className='flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3'
                         >
                           <div className='flex min-w-0 items-center gap-3'>
-                            <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary'>
+                            <div className='relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary/10 text-xs font-semibold text-primary'>
                               {getInitials(booking.client?.name ?? 'Client')}
+                              {booking.client?.profile_photo_url && (
+                                <img
+                                  src={booking.client.profile_photo_url}
+                                  alt={`${booking.client.name} profile`}
+                                  className='absolute inset-0 h-full w-full object-cover'
+                                  onError={(event) => {
+                                    event.currentTarget.style.display = 'none'
+                                  }}
+                                />
+                              )}
                             </div>
                             <div className='min-w-0'>
                               <p className='truncate text-sm font-medium text-foreground'>

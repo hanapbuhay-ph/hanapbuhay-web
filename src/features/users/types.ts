@@ -9,6 +9,7 @@ export interface User {
   barangay_id?: number
   is_active: boolean
   created_at: string
+  profile_photo_url?: string | null
   // Present on detail (GET /admin/users/:id), not in list
   mobile_number?: string
   profile_photo_path?: string | null

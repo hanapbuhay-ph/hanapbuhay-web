@@ -28,6 +28,7 @@ export interface DashboardStats {
   active_bookings: number
   open_disputes: number
   completed_bookings_today: number
+  completed_bookings_yesterday: number
   total_active_job_posts: number
   activity_trend?: ActivityTrendPoint[]
   top_service_categories?: ServiceCategoryStat[]
