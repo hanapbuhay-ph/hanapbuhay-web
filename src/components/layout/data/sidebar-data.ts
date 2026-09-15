@@ -28,18 +28,18 @@ export const sidebarData: SidebarData = {
   ],
   navGroups: [
     {
-      title: 'HanapBuhay',
+      title: 'OVERVIEW',
       items: [
         {
           title: 'Dashboard',
           url: '/',
           icon: LayoutDashboard,
         },
-        {
-          title: 'Verifications',
-          url: '/verifications',
-          icon: ShieldAlert,
-        },
+      ],
+    },
+    {
+      title: 'MANAGEMENT',
+      items: [
         {
           title: 'Users',
           url: '/users',
@@ -55,21 +55,41 @@ export const sidebarData: SidebarData = {
           url: '/bookings',
           icon: CalendarDays,
         },
+      ],
+    },
+    {
+      title: 'TRUST & SAFETY',
+      items: [
+        {
+          title: 'Verifications',
+          url: '/verifications',
+          icon: ShieldAlert,
+        },
         {
           title: 'Reports',
           url: '/reports',
           icon: Flag,
         },
         {
-          title: 'Chat Logs',
-          url: '/chat-logs',
-          icon: MessageSquareText,
-        },
-        {
           title: 'Reviews',
           url: '/reviews',
           icon: Star,
         },
+      ],
+    },
+    {
+      title: 'COMMUNICATION',
+      items: [
+        {
+          title: 'Chat Logs',
+          url: '/chat-logs',
+          icon: MessageSquareText,
+        },
+      ],
+    },
+    {
+      title: 'SYSTEM',
+      items: [
         {
           title: 'Audit Log',
           url: '/audit-logs',
