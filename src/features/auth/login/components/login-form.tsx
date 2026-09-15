@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
+import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useSearch } from '@tanstack/react-router'
-import { Loader2, LogIn, Zap } from 'lucide-react'
+import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
-import { AxiosError } from 'axios'
 import { api } from '@/lib/api'
-import { setToken, setUser, isDevMode } from '@/lib/auth'
+import { setToken, setUser } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -46,7 +46,7 @@ interface LoginApiResponse {
       id: number
       name: string
       email: string
-      role: string
+      role: string | null
     }
     requiresOtp?: boolean
   }
@@ -55,7 +55,10 @@ interface LoginApiResponse {
 // ── Validation schema ─────────────────────────────────────────────────────────
 
 const formSchema = z.object({
-  email: z.string().min(1, 'Please enter your email.').email('Invalid email address.'),
+  email: z
+    .string()
+    .min(1, 'Please enter your email.')
+    .email('Invalid email address.'),
   password: z.string().min(1, 'Please enter your password.'),
 })
 
@@ -65,7 +68,7 @@ type FormValues = z.infer<typeof formSchema>
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
-  const [isDevLoading, setIsDevLoading] = useState(false)
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [otpDialogOpen, setOtpDialogOpen] = useState(false)
   const [otpEmail, setOtpEmail] = useState('')
   const [otpCode, setOtpCode] = useState('')
@@ -74,6 +77,7 @@ export function LoginForm() {
   const [otpExpired, setOtpExpired] = useState(false)
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false)
   const [isResendingOtp, setIsResendingOtp] = useState(false)
+  const googleButtonRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const { redirect } = useSearch({ from: '/(auth)/login' })
 
@@ -92,7 +96,9 @@ export function LoginForm() {
     const ua = navigator.userAgent
     const platform =
       (navigator as Navigator & { userAgentData?: { platform?: string } })
-        .userAgentData?.platform ?? navigator.platform ?? 'Web'
+        .userAgentData?.platform ??
+      navigator.platform ??
+      'Web'
 
     if (ua.includes('Edg/')) return `${platform} • Edge`
     if (ua.includes('Chrome/')) return `${platform} • Chrome`
@@ -136,6 +142,51 @@ export function LoginForm() {
 
     return () => window.clearInterval(intervalId)
   }, [otpDialogOpen, otpExpiresAt])
+
+  useEffect(() => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
+    if (!clientId || !googleButtonRef.current) {
+      return
+    }
+
+    let intervalId: number | undefined
+    const renderGoogleButton = () => {
+      if (!window.google || !googleButtonRef.current) {
+        return false
+      }
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleCredential,
+      })
+      googleButtonRef.current.replaceChildren()
+      window.google.accounts.id.renderButton(googleButtonRef.current, {
+        theme: 'filled_blue',
+        size: 'large',
+        width: 320,
+        text: 'continue_with',
+        shape: 'rectangular',
+        logo_alignment: 'left',
+        locale: 'en',
+      })
+      return true
+    }
+
+    if (!renderGoogleButton()) {
+      intervalId = window.setInterval(() => {
+        if (renderGoogleButton() && intervalId !== undefined) {
+          window.clearInterval(intervalId)
+        }
+      }, 100)
+    }
+
+    return () => {
+      if (intervalId !== undefined) {
+        window.clearInterval(intervalId)
+      }
+      window.google?.accounts.id.cancel()
+    }
+  }, [])
 
   // ── Real login ─────────────────────────────────────────────────────────────
 
@@ -191,6 +242,53 @@ export function LoginForm() {
       }
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  async function handleGoogleCredential(response: GoogleCredentialResponse) {
+    setIsGoogleLoading(true)
+
+    try {
+      const res = await api.post<LoginApiResponse>('/auth/google', {
+        google_token: response.credential,
+        device_name: getDeviceName(),
+        admin_only: true,
+      })
+
+      if (res.data.data.requiresOtp) {
+        const email = res.data.data.user?.email
+        if (!email) {
+          throw new Error('Google login did not return an email address.')
+        }
+
+        setOtpEmail(email)
+        setOtpCode('')
+        startOtpExpiryWindow()
+        setOtpDialogOpen(true)
+        toast.info('A verification code has been sent to your admin email.')
+        return
+      }
+
+      const token = res.data.data.token
+      const user = res.data.data.user
+
+      if (!token || !user || user.role !== 'admin') {
+        throw new Error('This Google account is not configured as an admin.')
+      }
+
+      setToken(token)
+      setUser(user)
+      toast.success(`Welcome back, ${user.name}!`)
+      navigate({ to: getRedirectTarget(), replace: true })
+    } catch (err) {
+      const axiosErr = err instanceof AxiosError ? err : null
+      const message =
+        axiosErr?.response?.data?.message ??
+        axiosErr?.message ??
+        'Google sign-in failed. Please try again.'
+      toast.error(message)
+    } finally {
+      setIsGoogleLoading(false)
     }
   }
 
@@ -263,15 +361,6 @@ export function LoginForm() {
     } finally {
       setIsResendingOtp(false)
     }
-  }
-
-  // ── Dev bypass ────────────────────────────────────────────────────────────
-
-  function handleDevLogin() {
-    setIsDevLoading(true)
-    setToken('dev-mock-token-hanapbuhay-admin')
-    toast.success('Dev login — skipped authentication.')
-    navigate({ to: getRedirectTarget(), replace: true })
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -404,34 +493,24 @@ export function LoginForm() {
         </DialogContent>
       </Dialog>
 
-      {/* Dev login — only visible when pointing at localhost */}
-      {isDevMode() && (
+      {import.meta.env.VITE_GOOGLE_CLIENT_ID && (
         <div className='flex flex-col gap-2'>
           <div className='relative'>
             <div className='absolute inset-0 flex items-center'>
-              <span className='w-full border-t border-dashed border-border' />
+              <span className='w-full border-t border-border' />
             </div>
             <div className='relative flex justify-center text-xs'>
               <span className='bg-card px-2 text-muted-foreground'>
-                dev only
+                or continue with
               </span>
             </div>
           </div>
-
-          <Button
-            type='button'
-            variant='outline'
-            disabled={isDevLoading}
-            onClick={handleDevLogin}
-            className='border-border text-primary hover:bg-primary/5'
-          >
-            {isDevLoading ? (
-              <Loader2 className='h-4 w-4 animate-spin' />
-            ) : (
-              <Zap className='h-4 w-4' />
-            )}
-            Dev Login (skip auth)
-          </Button>
+          <div
+            ref={googleButtonRef}
+            className={`flex min-h-10 justify-center transition-opacity ${
+              isGoogleLoading ? 'pointer-events-none opacity-60' : ''
+            }`}
+          />
         </div>
       )}
     </div>
