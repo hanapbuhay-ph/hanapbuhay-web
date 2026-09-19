@@ -8,9 +8,17 @@ import {
 } from '../types'
 
 // Raw shapes returned by the real API (differ from our display types)
+interface RawReportReason {
+  id?: number
+  code: string
+  label: string
+  description?: string | null
+  is_active?: boolean
+}
+
 interface RawSettings {
   service_categories: PlatformSettings['service_categories']
-  report_reasons: string[]
+  report_reasons: Array<string | RawReportReason>
   notification_templates: Record<string, string>
   active_announcement: PlatformSettings['active_announcement']
 }
@@ -27,10 +35,23 @@ const REASON_LABELS: Record<string, string> = {
 }
 
 function normalise(raw: RawSettings): PlatformSettings {
-  const report_reasons: ReportReason[] = raw.report_reasons.map((code) => ({
-    code,
-    label: REASON_LABELS[code] ?? code,
-  }))
+  const report_reasons: ReportReason[] = raw.report_reasons.map((value) => {
+    if (typeof value === 'string') {
+      return {
+        code: value,
+        label: REASON_LABELS[value] ?? value,
+        is_active: true,
+      }
+    }
+
+    return {
+      id: value.id,
+      code: value.code,
+      label: value.label || REASON_LABELS[value.code] || value.code,
+      description: value.description ?? '',
+      is_active: value.is_active ?? true,
+    }
+  })
 
   const notification_templates: NotificationTemplate[] = Object.entries(
     raw.notification_templates

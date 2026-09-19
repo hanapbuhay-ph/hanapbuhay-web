@@ -1,4 +1,4 @@
-import { Pencil } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -19,6 +19,7 @@ interface ReportReasonsTableProps {
   togglingId: number | null
   onEdit: (reason: ReportReason) => void
   onToggle: (reason: ReportReason) => void
+  onDelete: (reason: ReportReason) => void
   onRetry: () => void
 }
 
@@ -29,6 +30,7 @@ export function ReportReasonsTable({
   togglingId,
   onEdit,
   onToggle,
+  onDelete,
   onRetry,
 }: ReportReasonsTableProps) {
   if (isLoading) {
@@ -116,8 +118,8 @@ export function ReportReasonsTable({
                 />
               </TableCell>
 
-              {/* Edit */}
-              <TableCell className='text-right'>
+              {/* Actions */}
+              <TableCell className='space-x-2 text-right'>
                 <Button
                   size='sm'
                   variant='ghost'
@@ -126,6 +128,16 @@ export function ReportReasonsTable({
                 >
                   <Pencil size={14} className='mr-1' />
                   Edit
+                </Button>
+                <Button
+                  size='sm'
+                  variant='ghost'
+                  className='text-destructive hover:text-destructive'
+                  onClick={() => onDelete(reason)}
+                  aria-label={`Delete ${reason.label}`}
+                >
+                  <Trash2 size={14} className='mr-1' />
+                  Delete
                 </Button>
               </TableCell>
             </TableRow>

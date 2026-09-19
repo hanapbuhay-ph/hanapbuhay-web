@@ -18,9 +18,7 @@ export interface ServiceCategoryPayload {
 }
 
 // ── Report Reasons ────────────────────────────────────────────────────────────
-// Read-only from GET /api/admin/settings → report_reasons[]
-// The real API currently returns a string[] of reason codes, which the hook
-// normalises into these display objects.
+// Admin-maintained master list of report reasons users can select when filing a report.
 
 export interface ReportReason {
   id?: number
@@ -31,6 +29,7 @@ export interface ReportReason {
 }
 
 export interface ReportReasonPayload {
+  code?: string
   label: string
   description?: string
   is_active: boolean

@@ -38,6 +38,12 @@ export function ReportReasonDialog({
     Partial<Record<keyof ReportReasonPayload, string>>
   >({})
 
+  const generatedCode = form.label
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'other'
+
   // Pre-fill whenever the dialog opens
   useEffect(() => {
     if (open) {
@@ -61,6 +67,7 @@ export function ReportReasonDialog({
   function handleSubmit() {
     if (!validate()) return
     onConfirm({
+      code: generatedCode,
       label: form.label.trim(),
       description: form.description.trim(),
       is_active: form.is_active,
@@ -75,18 +82,18 @@ export function ReportReasonDialog({
         </DialogHeader>
 
         <div className='space-y-4 py-2'>
-          {/* Code — read-only display */}
+          {/* Code — auto-generated */}
           <div className='space-y-1.5'>
             <Label htmlFor='rr-code'>Code</Label>
             <Input
               id='rr-code'
-              value={reason.code}
+              value={generatedCode}
               disabled
               className='bg-muted text-muted-foreground'
-              aria-label='Code (read-only)'
+              aria-label='Generated code'
             />
             <p className='text-xs text-muted-foreground'>
-              The code is set by the API and cannot be changed here.
+              Auto-generated from the label. Admins do not need to type it.
             </p>
           </div>
 
