@@ -33,6 +33,7 @@ export function ReportReasonDialog({
     label: '',
     description: '',
     is_active: true,
+    audience: 'client',
   })
   const [errors, setErrors] = useState<
     Partial<Record<keyof ReportReasonPayload, string>>
@@ -51,6 +52,7 @@ export function ReportReasonDialog({
         label: reason.label,
         description: reason.description,
         is_active: reason.is_active,
+        audience: reason.audience,
       })
       setErrors({})
     }
@@ -95,6 +97,18 @@ export function ReportReasonDialog({
             <p className='text-xs text-muted-foreground'>
               Auto-generated from the label. Admins do not need to type it.
             </p>
+          </div>
+
+          {/* Label */}
+          <div className='space-y-1.5'>
+            <Label>Applies to</Label>
+            <div className='flex gap-2'>
+              {(['client', 'worker'] as const).map((value) => (
+                <Button key={value} type='button' variant={form.audience === value ? 'default' : 'outline'} onClick={() => setForm((f) => ({ ...f, audience: value }))}>
+                  {value === 'client' ? 'Client reports' : 'Worker reports'}
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* Label */}

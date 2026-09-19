@@ -21,12 +21,14 @@ export function ReportReasonsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  const [audience, setAudience] = useState<'client' | 'worker'>('client')
+
   function loadReasons() {
     setIsLoading(true)
     setError(null)
 
     api
-      .get<{ success: boolean; data: ReportReason[] }>('/admin/settings/report-reasons')
+      .get<{ success: boolean; data: ReportReason[] }>(`/admin/settings/report-reasons?audience=${audience}`)
       .then((res) => {
         setReasons(res.data.data ?? [])
       })
@@ -40,7 +42,7 @@ export function ReportReasonsPage() {
 
   useEffect(() => {
     loadReasons()
-  }, [])
+  }, [audience])
 
   function resetDialog() {
     setDialogOpen(false)
@@ -114,6 +116,10 @@ export function ReportReasonsPage() {
             <p className='mt-1 text-sm text-muted-foreground'>
               Manage the predefined reasons users can select when filing a report.
             </p>
+            <div className='mt-4 flex gap-2'>
+              <Button variant={audience === 'client' ? 'default' : 'outline'} onClick={() => setAudience('client')}>Client Reports</Button>
+              <Button variant={audience === 'worker' ? 'default' : 'outline'} onClick={() => setAudience('worker')}>Worker Reports</Button>
+            </div>
           </div>
 
           <Button
@@ -160,6 +166,7 @@ export function ReportReasonsPage() {
             label: '',
             description: '',
             is_active: true,
+            audience,
           }}
           isSubmitting={isSubmitting}
           onConfirm={handleSave}

@@ -39,7 +39,7 @@ export function useReportReasonAction(): UseReportReasonActionResult {
   return {
     isSubmitting,
 
-    add: async ({ code, label, description, is_active = true }, onSuccess) => {
+    add: async ({ code, label, description, is_active = true, audience }, onSuccess) => {
       setIsSubmitting(true)
       try {
         await api.post('/admin/settings/report-reasons', {
@@ -47,6 +47,7 @@ export function useReportReasonAction(): UseReportReasonActionResult {
           label: label.trim(),
           description: description?.trim() || null,
           is_active,
+          audience,
         })
         toast.success('Report reason added.')
         onSuccess()
@@ -57,7 +58,7 @@ export function useReportReasonAction(): UseReportReasonActionResult {
       }
     },
 
-    update: async (id, { code, label, description, is_active }, onSuccess) => {
+    update: async (id, { code, label, description, is_active, audience }, onSuccess) => {
       setIsSubmitting(true)
       try {
         await api.patch(`/admin/settings/report-reasons/${id}`, {
@@ -65,6 +66,7 @@ export function useReportReasonAction(): UseReportReasonActionResult {
           label: label.trim(),
           description: description?.trim() || null,
           is_active,
+          audience,
         })
         toast.success('Report reason updated.')
         onSuccess()

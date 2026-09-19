@@ -26,6 +26,7 @@ export interface ReportReason {
   label: string
   description?: string
   is_active?: boolean
+  audience: 'client' | 'worker'
 }
 
 export interface ReportReasonPayload {
@@ -33,6 +34,7 @@ export interface ReportReasonPayload {
   label: string
   description?: string
   is_active: boolean
+  audience: 'client' | 'worker'
 }
 
 // ── Notification Templates ────────────────────────────────────────────────────

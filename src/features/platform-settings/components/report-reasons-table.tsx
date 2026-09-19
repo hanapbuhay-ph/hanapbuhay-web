@@ -66,6 +66,7 @@ export function ReportReasonsTable({
           <TableRow>
             <TableHead className='w-40'>Code</TableHead>
             <TableHead className='w-44'>Label</TableHead>
+            <TableHead className='w-36'>Audience</TableHead>
             <TableHead>Description</TableHead>
             <TableHead className='w-28 text-center'>Status</TableHead>
             <TableHead className='w-32 text-center'>Active</TableHead>
@@ -88,6 +89,7 @@ export function ReportReasonsTable({
 
               {/* Label */}
               <TableCell className='font-medium'>{reason.label}</TableCell>
+              <TableCell><Badge variant='outline'>{reason.audience === 'worker' ? 'Worker reports' : 'Client reports'}</Badge></TableCell>
 
               {/* Description */}
               <TableCell className='text-sm text-muted-foreground'>
