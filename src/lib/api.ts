@@ -22,14 +22,32 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+const isPublicAuthRequest = (url?: string) => {
+  if (!url) {
+    return false
+  }
+
+  return [
+    '/auth/login',
+    '/auth/google',
+    '/auth/register',
+    '/auth/email',
+    '/auth/password',
+  ].some((prefix) => url.includes(prefix))
+}
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const status = error.response?.status
+    const requestUrl = error.config?.url
+
+    if (status === 401 && !isPublicAuthRequest(requestUrl)) {
       clearToken()
       localStorage.removeItem('admin_user')
       window.location.href = '/login'
     }
+
     return Promise.reject(error)
   }
 )
