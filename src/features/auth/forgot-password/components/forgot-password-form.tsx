@@ -22,7 +22,6 @@ import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-  InputOTPSeparator,
 } from '@/components/ui/input-otp'
 import { PasswordInput } from '@/components/password-input'
 
@@ -205,19 +204,13 @@ export function ForgotPasswordForm({
                       maxLength={6}
                       value={field.value}
                       onChange={field.onChange}
-                      containerClassName='justify-between sm:[&>[data-slot="input-otp-group"]>div]:w-12'
+                      containerClassName='justify-center gap-2 [&_[data-slot="input-otp-group"]]:gap-2 [&_[data-slot="input-otp-group"]>div]:h-11 [&_[data-slot="input-otp-group"]>div]:w-10 sm:[&_[data-slot="input-otp-group"]>div]:w-11'
                     >
                       <InputOTPGroup>
                         <InputOTPSlot index={0} />
                         <InputOTPSlot index={1} />
-                      </InputOTPGroup>
-                      <InputOTPSeparator />
-                      <InputOTPGroup>
                         <InputOTPSlot index={2} />
                         <InputOTPSlot index={3} />
-                      </InputOTPGroup>
-                      <InputOTPSeparator />
-                      <InputOTPGroup>
                         <InputOTPSlot index={4} />
                         <InputOTPSlot index={5} />
                       </InputOTPGroup>
