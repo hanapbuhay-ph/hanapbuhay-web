@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useNavigate, useSearch } from '@tanstack/react-router'
+import { Link, useNavigate, useSearch } from '@tanstack/react-router'
 import { Loader2, LogIn } from 'lucide-react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
@@ -397,7 +397,15 @@ export function LoginForm() {
             name='password'
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Password</FormLabel>
+                <div className='flex items-center justify-between gap-2'>
+                  <FormLabel>Password</FormLabel>
+                  <Link
+                    to='/forgot-password'
+                    className='text-xs font-medium text-muted-foreground transition-colors hover:text-primary'
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
                 <FormControl>
                   <PasswordInput
                     placeholder='••••••••'
