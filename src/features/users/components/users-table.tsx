@@ -1,5 +1,5 @@
 ﻿import { useNavigate } from '@tanstack/react-router'
-import { AlertTriangle, RefreshCw, InboxIcon } from 'lucide-react'
+import { AlertTriangle, RefreshCw, InboxIcon, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -14,12 +14,15 @@ import {
 import { type User } from '../types'
 import { UserRoleBadge } from './user-role-badge'
 import { UserStatusBadge } from './user-status-badge'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 interface UsersTableProps {
   data: User[]
   isLoading: boolean
   error: string | null
   onRetry: () => void
+  onEdit: (user: User) => void
+  onDelete: (user: User) => void
 }
 
 function getInitials(name: string): string {
@@ -65,6 +68,8 @@ export function UsersTable({
   isLoading,
   error,
   onRetry,
+  onEdit,
+  onDelete,
 }: UsersTableProps) {
   const navigate = useNavigate()
 
@@ -180,16 +185,24 @@ export function UsersTable({
                   <UserStatusBadge isActive={user.is_active} />
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    size='sm'
-                    variant='ghost'
-                    className='h-7 text-xs text-primary hover:bg-primary/10'
-                    onClick={() =>
-                      navigate({ to: '/users/$id', params: { id: user.id } })
-                    }
-                  >
-                    View
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button size='icon' variant='ghost' aria-label={`Actions for ${user.name}`}>
+                        <MoreHorizontal className='h-4 w-4' />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end'>
+                      <DropdownMenuItem onClick={() => onEdit(user)}>
+                        <Pencil className='h-4 w-4' /> Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className='text-destructive' onClick={() => onDelete(user)}>
+                        <Trash2 className='h-4 w-4' /> Delete
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => navigate({ to: '/users/$id', params: { id: user.id } })}>
+                        View details
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

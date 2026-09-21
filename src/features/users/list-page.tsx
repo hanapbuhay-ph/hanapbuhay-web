@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react'
-import { ChevronLeft, ChevronRight, SearchIcon } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, SearchIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -9,9 +9,12 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { DeletionRequestsTable } from './components/deletion-requests-table'
 import { UsersTable } from './components/users-table'
+import { UserCrudDialog } from './components/user-crud-dialog'
 import { useDeletionRequests } from './hooks/use-deletion-requests'
 import { useUsers } from './hooks/use-users'
+import { useUserCrud } from './hooks/use-user-crud'
 import {
+  type User,
   type RoleFilter,
   type StatusFilter,
   type UserPagination,
@@ -61,6 +64,24 @@ export function UsersListPage() {
 
   const [processedIds, setProcessedIds] = useState<number[]>([])
   const visibleDr = deletionRequests.filter((r) => !processedIds.includes(r.id))
+  const [crudOpen, setCrudOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const { isSubmitting, createUser, updateUser, deleteUser } = useUserCrud(refetchUsers)
+
+  function openCreate() {
+    setEditingUser(null)
+    setCrudOpen(true)
+  }
+
+  function openEdit(user: User) {
+    setEditingUser(user)
+    setCrudOpen(true)
+  }
+
+  async function handleDelete(user: User) {
+    if (!window.confirm(`Delete ${user.name}? This can be restored only by a database administrator.`)) return
+    await deleteUser(user.id)
+  }
 
   return (
     <>
@@ -103,7 +124,8 @@ export function UsersListPage() {
           {/* ── All Users tab ──────────────────────────────────────── */}
           <TabsContent value='users' className='mt-4'>
             <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-              <div className='relative w-full sm:max-w-xs'>
+              <div className='flex w-full gap-2 sm:max-w-md'>
+              <div className='relative w-full'>
                 <SearchIcon className='absolute inset-y-0 left-3 my-auto h-4 w-4 text-muted-foreground' />
                 <Input
                   placeholder='Search by name or email…'
@@ -114,6 +136,11 @@ export function UsersListPage() {
                   }}
                   className='rounded-lg border-border pl-9 focus-visible:ring-ring'
                 />
+              </div>
+              <Button onClick={openCreate} className='shrink-0'>
+                <Plus className='h-4 w-4' />
+                Add user
+              </Button>
               </div>
               <div className='overflow-x-auto pb-1'>
                 <Tabs
@@ -157,6 +184,8 @@ export function UsersListPage() {
               isLoading={usersLoading}
               error={usersError}
               onRetry={refetchUsers}
+              onEdit={openEdit}
+              onDelete={handleDelete}
             />
             <UserPaginationControls
               pagination={pagination}
@@ -176,6 +205,13 @@ export function UsersListPage() {
           </TabsContent>
         </Tabs>
       </Main>
+      <UserCrudDialog
+        open={crudOpen}
+        user={editingUser}
+        isSubmitting={isSubmitting}
+        onOpenChange={setCrudOpen}
+        onSubmit={(input) => editingUser ? updateUser(editingUser.id, input) : createUser(input)}
+      />
     </>
   )
 }
