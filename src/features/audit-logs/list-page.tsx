@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Header } from '@/components/layout/header'
@@ -20,6 +20,9 @@ import {
 } from './types'
 import { useAuditLogs } from './hooks/use-audit-logs'
 import { AuditLogsTable } from './components/audit-logs-table'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { useAuditLogAction } from './hooks/use-audit-log-action'
+import type { AuditLog } from './types'
 
 export function AuditLogsListPage() {
   const [actionFilter, setActionFilter] = useState<AuditActionFilter>('all')
@@ -29,6 +32,13 @@ export function AuditLogsListPage() {
   const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
   const { data, pagination, isLoading, error, refetch } = useAuditLogs(actionFilter, targetType, adminName, dateFrom, dateTo, page)
+  const [logToDelete, setLogToDelete] = useState<AuditLog | null>(null)
+  const [deleteAllOpen, setDeleteAllOpen] = useState(false)
+  const { deleteLog, deleteAllLogs, isSubmitting: isDeleting } = useAuditLogAction(() => {
+    setLogToDelete(null)
+    setDeleteAllOpen(false)
+    refetch()
+  })
 
   return (
     <>
@@ -46,7 +56,7 @@ export function AuditLogsListPage() {
             Audit Log
           </h1>
           <p className='mt-1 text-sm text-muted-foreground'>
-            Read-only record of all admin actions on the platform.
+            Review and remove admin activity records from the platform.
           </p>
         </div>
 
@@ -56,20 +66,30 @@ export function AuditLogsListPage() {
               <p className='text-sm font-medium text-foreground'>Filters</p>
               <p className='text-xs text-muted-foreground'>Refine audit logs by action, target type, admin, or date.</p>
             </div>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={() => {
-                setActionFilter('all')
-                setTargetType('all')
-                setAdminName('')
-                setDateFrom('')
-                setDateTo('')
-                setPage(1)
-              }}
-            >
-              Clear filters
-            </Button>
+            <div className='flex items-center gap-2'>
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => {
+                  setActionFilter('all')
+                  setTargetType('all')
+                  setAdminName('')
+                  setDateFrom('')
+                  setDateTo('')
+                  setPage(1)
+                }}
+              >
+                Clear filters
+              </Button>
+              <Button
+                variant='destructive'
+                size='sm'
+                onClick={() => setDeleteAllOpen(true)}
+                disabled={isLoading || !data.length || isDeleting}
+              >
+                Delete all logs
+              </Button>
+            </div>
           </div>
 
           <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-4'>
@@ -132,6 +152,8 @@ export function AuditLogsListPage() {
           isLoading={isLoading}
           error={error}
           onRetry={refetch}
+          onDelete={setLogToDelete}
+          isDeleting={isDeleting}
         />
         {pagination && pagination.last_page > 1 && (
           <div className='mt-4 flex items-center justify-between text-sm text-muted-foreground'>
@@ -143,6 +165,31 @@ export function AuditLogsListPage() {
           </div>
         )}
       </Main>
+      <ConfirmDialog
+        open={logToDelete !== null}
+        onOpenChange={(open) => { if (!open) setLogToDelete(null) }}
+        handleConfirm={() => { if (logToDelete) void deleteLog(logToDelete.id) }}
+        title={<span className='text-destructive'><Trash2 className='me-1 inline-block h-4 w-4' /> Delete audit log?</span>}
+        desc={logToDelete ? `This permanently removes the ${logToDelete.action} entry from the audit history.` : ''}
+        confirmText='Delete log'
+        destructive
+        isLoading={isDeleting}
+      />
+
+      <ConfirmDialog
+        open={deleteAllOpen}
+        onOpenChange={(open) => { if (!open) setDeleteAllOpen(false) }}
+        handleConfirm={() => { void deleteAllLogs() }}
+        title={<span className='text-destructive'><Trash2 className='me-1 inline-block h-4 w-4' /> Delete all audit logs?</span>}
+        desc={
+          <span>
+            This permanently removes <strong>{data.length}</strong> audit trail record{data.length === 1 ? '' : 's'} from the platform.
+          </span>
+        }
+        confirmText='Delete all logs'
+        destructive
+        isLoading={isDeleting}
+      />
     </>
   )
 }

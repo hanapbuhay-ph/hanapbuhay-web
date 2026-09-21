@@ -1,5 +1,5 @@
 ﻿import { format } from 'date-fns'
-import { AlertTriangle, RefreshCw, InboxIcon } from 'lucide-react'
+import { AlertTriangle, RefreshCw, InboxIcon, MoreHorizontal, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -11,12 +11,20 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { type AuditLog, ACTION_LABELS } from '../types'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface AuditLogsTableProps {
   data: AuditLog[]
   isLoading: boolean
   error: string | null
   onRetry: () => void
+  onDelete: (log: AuditLog) => void
+  isDeleting: boolean
 }
 
 // ── Details renderer ──────────────────────────────────────────────────────────
@@ -66,6 +74,8 @@ export function AuditLogsTable({
   isLoading,
   error,
   onRetry,
+  onDelete,
+  isDeleting,
 }: AuditLogsTableProps) {
   return (
     <div
@@ -88,6 +98,7 @@ export function AuditLogsTable({
               Details
             </TableHead>
             <TableHead className='font-semibold text-foreground'>Date</TableHead>
+            <TableHead className='w-12' />
           </TableRow>
         </TableHeader>
 
@@ -98,7 +109,7 @@ export function AuditLogsTable({
           {/* Error */}
           {!isLoading && error && (
             <TableRow className='hover:bg-transparent'>
-              <TableCell colSpan={5}>
+              <TableCell colSpan={6}>
                 <div className='flex flex-col items-center gap-2 py-10 text-center'>
                   <AlertTriangle className='h-7 w-7 text-destructive' />
                   <p className='text-sm font-semibold text-foreground'>
@@ -122,7 +133,7 @@ export function AuditLogsTable({
           {/* Empty */}
           {!isLoading && !error && data.length === 0 && (
             <TableRow className='hover:bg-transparent'>
-              <TableCell colSpan={5}>
+              <TableCell colSpan={6}>
                 <div className='flex flex-col items-center gap-2 py-10 text-center'>
                   <InboxIcon className='h-7 w-7 text-muted-foreground' />
                   <p className='text-sm font-semibold text-foreground'>
@@ -136,7 +147,7 @@ export function AuditLogsTable({
             </TableRow>
           )}
 
-          {/* Rows — read-only, no cursor-pointer, no hover highlight */}
+          {/* Rows are informational; destructive actions are kept in the menu. */}
           {!isLoading &&
             !error &&
             data.map((log) => (
@@ -156,6 +167,25 @@ export function AuditLogsTable({
                 </TableCell>
                 <TableCell className='whitespace-nowrap text-muted-foreground'>
                   {format(new Date(log.created_at), 'MMM d, yyyy · h:mm a')}
+                </TableCell>
+                <TableCell onClick={(event) => event.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size='icon'
+                        variant='ghost'
+                        aria-label={`Actions for audit log ${log.id}`}
+                        disabled={isDeleting}
+                      >
+                        <MoreHorizontal className='h-4 w-4' />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end'>
+                      <DropdownMenuItem className='text-destructive' onClick={() => onDelete(log)}>
+                        <Trash2 className='h-4 w-4' /> Delete log
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
