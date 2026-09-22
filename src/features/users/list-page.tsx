@@ -10,6 +10,7 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { DeletionRequestsTable } from './components/deletion-requests-table'
 import { UsersTable } from './components/users-table'
 import { UserCrudDialog } from './components/user-crud-dialog'
+import { UsersDeleteDialog } from './components/users-delete-dialog'
 import { useDeletionRequests } from './hooks/use-deletion-requests'
 import { useUsers } from './hooks/use-users'
 import { useUserCrud } from './hooks/use-user-crud'
@@ -66,6 +67,8 @@ export function UsersListPage() {
   const visibleDr = deletionRequests.filter((r) => !processedIds.includes(r.id))
   const [crudOpen, setCrudOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [deleteUserId, setDeleteUserId] = useState<number | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const { isSubmitting, createUser, updateUser, deleteUser } = useUserCrud(refetchUsers)
 
   function openCreate() {
@@ -78,10 +81,19 @@ export function UsersListPage() {
     setCrudOpen(true)
   }
 
-  async function handleDelete(user: User) {
-    if (!window.confirm(`Delete ${user.name}? This can be restored only by a database administrator.`)) return
-    await deleteUser(user.id)
+  function openDelete(user: User) {
+    setDeleteUserId(user.id)
+    setDeleteDialogOpen(true)
   }
+
+  async function handleDeleteConfirm() {
+    if (deleteUserId === null) return
+    await deleteUser(deleteUserId)
+    setDeleteDialogOpen(false)
+    setDeleteUserId(null)
+  }
+
+  const deleteTarget = users.find((user) => user.id === deleteUserId) ?? null
 
   return (
     <>
@@ -185,7 +197,7 @@ export function UsersListPage() {
               error={usersError}
               onRetry={refetchUsers}
               onEdit={openEdit}
-              onDelete={handleDelete}
+              onDelete={openDelete}
             />
             <UserPaginationControls
               pagination={pagination}
@@ -211,6 +223,16 @@ export function UsersListPage() {
         isSubmitting={isSubmitting}
         onOpenChange={setCrudOpen}
         onSubmit={(input) => editingUser ? updateUser(editingUser.id, input) : createUser(input)}
+      />
+      <UsersDeleteDialog
+        open={deleteDialogOpen}
+        user={deleteTarget}
+        isSubmitting={isSubmitting}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open)
+          if (!open) setDeleteUserId(null)
+        }}
+        onConfirm={handleDeleteConfirm}
       />
     </>
   )
