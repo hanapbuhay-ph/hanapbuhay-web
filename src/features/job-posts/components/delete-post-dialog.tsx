@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea'
 interface DeletePostDialogProps {
   open: boolean
   postTitle: string
+  postCount?: number
   isSubmitting: boolean
   onConfirm: (reason: string) => void
   onCancel: () => void
@@ -24,6 +25,7 @@ interface DeletePostDialogProps {
 export function DeletePostDialog({
   open,
   postTitle,
+  postCount,
   isSubmitting,
   onConfirm,
   onCancel,
@@ -45,11 +47,14 @@ export function DeletePostDialog({
         <AlertDialogHeader>
           <AlertDialogTitle className='flex items-center gap-2 text-destructive'>
             <AlertTriangle className='h-4 w-4' />
-            Delete Job Post
+            {postCount ? 'Delete Selected Job Posts' : 'Delete Job Post'}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            You are permanently deleting{' '}
-            <span className='font-semibold text-foreground'>{postTitle}</span>.
+            {postCount ? (
+              <>You are permanently deleting <span className='font-semibold text-foreground'>{postCount} selected job posts</span>.</>
+            ) : (
+              <>You are permanently deleting <span className='font-semibold text-foreground'>{postTitle}</span>.</>
+            )}
             This cannot be undone.
           </AlertDialogDescription>
           <div className='flex flex-col gap-1.5'>

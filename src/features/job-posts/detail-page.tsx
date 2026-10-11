@@ -10,10 +10,21 @@ import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { useJobPost } from './hooks/use-job-post'
 import { type JobPostDetail } from './types'
+import { type JobPostsSearch } from './route-search'
 
-export function JobPostDetailPage({ id }: { id: string }) {
+export function JobPostDetailPage({
+  id,
+  returnSearch,
+}: {
+  id: string
+  returnSearch: JobPostsSearch
+}) {
   const navigate = useNavigate()
   const { data, isLoading, error, refetch } = useJobPost(id)
+  const backToPosts = () => navigate({
+    to: '/job-posts',
+    search: () => returnSearch,
+  })
 
   return (
     <>
@@ -25,7 +36,7 @@ export function JobPostDetailPage({ id }: { id: string }) {
       </Header>
       <Main>
         <div className='mb-6 flex items-center gap-3'>
-          <Button variant='ghost' size='icon' onClick={() => navigate({ to: '/job-posts' })} title='Back to job posts' aria-label='Back to job posts'>
+          <Button variant='ghost' size='icon' onClick={backToPosts} title='Back to job posts' aria-label='Back to job posts'>
             <ArrowLeft className='h-4 w-4' />
           </Button>
           <div>
