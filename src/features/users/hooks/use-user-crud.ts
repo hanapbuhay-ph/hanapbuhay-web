@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
@@ -27,6 +28,7 @@ function getErrorMessage(error: unknown): string {
 
 export function useUserCrud(onSuccess: () => void) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const queryClient = useQueryClient()
 
   async function createUser(input: UserInput) {
     await submit(() => api.post('/admin/users', input), 'User created successfully.')
@@ -45,6 +47,7 @@ export function useUserCrud(onSuccess: () => void) {
     try {
       await request()
       toast.success(successMessage)
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       onSuccess()
     } catch (error) {
       toast.error(getErrorMessage(error))

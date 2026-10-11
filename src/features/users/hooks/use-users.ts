@@ -1,12 +1,15 @@
-import { startTransition, useEffect, useState } from 'react'
+import { useEffect } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
+import { subscribeToAdminPanel } from '@/lib/realtime'
 import {
   type User,
   type RoleFilter,
   type StatusFilter,
   type UserPagination,
 } from '../types'
+type VerificationFilter = 'all' | 'verified' | 'unverified'
 
 interface UseUsersResult {
   data: User[]
@@ -20,45 +23,52 @@ export function useUsers(
   roleFilter: RoleFilter = 'all',
   statusFilter: StatusFilter = 'all',
   search = '',
-  page = 1
+  page = 1,
+  verification: VerificationFilter = 'all',
+  barangayId: number | null = null,
 ): UseUsersResult {
   const debouncedSearch = useDebouncedValue(search)
-  const [data, setData] = useState<User[]>([])
-  const [pagination, setPagination] = useState<UserPagination | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [tick, setTick] = useState(0)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
-    let cancelled = false
-    startTransition(() => {
-      setIsLoading(true)
-      setError(null)
+    const unsubscribe = subscribeToAdminPanel(() => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
     })
 
-    const params: Record<string, string> = {}
-    if (roleFilter !== 'all') params.role = roleFilter
-    if (statusFilter === 'active') params.status = 'active'
-    if (statusFilter === 'suspended') params.status = 'suspended'
-    if (debouncedSearch.trim()) params.search = debouncedSearch.trim()
-    params.page = String(page)
+    return () => {
+      unsubscribe()
+    }
+  }, [queryClient])
 
-    api
-      .get('/admin/users', { params })
-      .then((res) => {
-        if (!cancelled) {
-          setData(res.data.data.users)
-          setPagination(res.data.data.pagination)
-        }
-      })
-      .catch((err) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load users.')
-      })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+  const params: Record<string, string> = {}
+  if (roleFilter !== 'all') params.role = roleFilter
+  if (statusFilter === 'active') params.status = 'active'
+  if (statusFilter === 'suspended') params.status = 'suspended'
+  if (debouncedSearch.trim()) params.search = debouncedSearch.trim()
+  if (verification !== 'all') params.verification = verification
+  if (barangayId !== null) params.barangay = String(barangayId)
+  params.page = String(page)
 
-    return () => { cancelled = true }
-  }, [roleFilter, statusFilter, debouncedSearch, page, tick])
+  const query = useQuery({
+    queryKey: ['admin', 'users', { roleFilter, statusFilter, search: debouncedSearch, page, verification, params }],
+    queryFn: async () => {
+      const res = await api.get('/admin/users', { params })
+      return res.data.data as {
+        users: User[]
+        pagination: UserPagination
+      }
+    },
+    staleTime: 15_000,
+    refetchInterval: 12_000,
+    refetchOnWindowFocus: true,
+    gcTime: 30 * 60 * 1000,
+  })
 
-  return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return {
+    data: query.data?.users ?? [],
+    pagination: query.data?.pagination ?? null,
+    isLoading: query.isLoading,
+    error: query.error instanceof Error ? query.error.message : query.error ? 'Failed to load users.' : null,
+    refetch: () => query.refetch(),
+  }
 }

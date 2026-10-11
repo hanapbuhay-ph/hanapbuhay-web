@@ -7,6 +7,7 @@ export interface User {
   role: UserRole
   barangay: string | null
   barangay_id?: number
+  worker_profile_id?: number | null
   is_active: boolean
   created_at: string
   profile_photo_url?: string | null

@@ -23,6 +23,7 @@ export function useJobPosts(
   verification: JobPostVerificationFilter = 'all',
   search = '',
   page = 1,
+  workerProfileId: number | null | undefined = null,
 ): UseJobPostsResult {
   const debouncedSearch = useDebouncedValue(search)
   const [data, setData] = useState<JobPost[]>([])
@@ -33,12 +34,17 @@ export function useJobPosts(
 
   useEffect(() => {
     let cancelled = false
+    if (workerProfileId === undefined) {
+      return () => { cancelled = true }
+    }
+
     startTransition(() => {
       setIsLoading(true)
       setError(null)
     })
 
     const params: Record<string, string> = {}
+    if (workerProfileId !== null) params.worker_profile_id = String(workerProfileId)
     if (categoryId !== null) params.category_id = String(categoryId)
     if (barangayId !== null) params.barangay_id = String(barangayId)
     if (status !== 'all') params.status = status
@@ -61,7 +67,7 @@ export function useJobPosts(
       .finally(() => { if (!cancelled) setIsLoading(false) })
 
     return () => { cancelled = true }
-  }, [categoryId, barangayId, status, verification, debouncedSearch, page, tick])
+  }, [workerProfileId, categoryId, barangayId, status, verification, debouncedSearch, page, tick])
 
   return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }
