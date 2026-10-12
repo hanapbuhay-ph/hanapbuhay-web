@@ -48,6 +48,7 @@ interface ReviewRecipientsProps {
 export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
   const [search, setSearch] = useState('')
   const [role, setRole] = useState<'all' | 'client' | 'worker'>('all')
+  const [sort, setSort] = useState('average_rating:desc')
   const [page, setPage] = useState(1)
   const [users, setUsers] = useState<ReviewRecipient[]>([])
   const [pagination, setPagination] = useState<ReviewPagination | null>(null)
@@ -64,6 +65,9 @@ export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
     })
 
     const params: Record<string, string | number> = { page }
+    const [sortBy, sortDirection] = sort.split(':')
+    params.sort_by = sortBy
+    params.sort_direction = sortDirection
     if (role !== 'all') params.role = role
     if (debouncedSearch.trim()) params.search = debouncedSearch.trim()
 
@@ -86,7 +90,7 @@ export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
     return () => {
       cancelled = true
     }
-  }, [role, debouncedSearch, page, tick])
+  }, [role, debouncedSearch, page, sort, tick])
 
   return (
     <>
@@ -121,6 +125,23 @@ export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
               <SelectItem value='all'>All roles</SelectItem>
               <SelectItem value='client'>Client</SelectItem>
               <SelectItem value='worker'>Worker</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={sort}
+            onValueChange={(value) => {
+              setSort(value)
+              setPage(1)
+            }}
+          >
+            <SelectTrigger className='w-52'>
+              <SelectValue placeholder='Sort users' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='name:asc'>Name: A to Z</SelectItem>
+              <SelectItem value='name:desc'>Name: Z to A</SelectItem>
+              <SelectItem value='average_rating:desc'>Average rating: High to low</SelectItem>
+              <SelectItem value='average_rating:asc'>Average rating: Low to high</SelectItem>
             </SelectContent>
           </Select>
           <div className='relative w-full sm:max-w-xs'>
@@ -180,7 +201,7 @@ export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
                   <TableCell colSpan={6}>
                     <div className='flex flex-col items-center gap-2 py-12 text-center'>
                       <InboxIcon className='h-7 w-7 text-muted-foreground' />
-                      <p className='text-sm font-semibold text-foreground'>No users with reviews found</p>
+                      <p className='text-sm font-semibold text-foreground'>No users found</p>
                       <p className='text-xs text-muted-foreground'>Try adjusting the filters.</p>
                     </div>
                   </TableCell>
@@ -204,12 +225,18 @@ export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
                   <TableCell className='capitalize text-sm text-muted-foreground'>{user.role}</TableCell>
                   <TableCell className='text-sm text-muted-foreground'>{user.email}</TableCell>
                   <TableCell className='text-sm text-muted-foreground'>{user.barangay ?? '—'}</TableCell>
-                  <TableCell className='text-sm text-foreground'>{user.reviews_received_count}</TableCell>
+                  <TableCell className='text-sm text-foreground'>
+                    {user.reviews_received_count === 0 ? 'No reviews' : user.reviews_received_count}
+                  </TableCell>
                   <TableCell>
-                    <span className='inline-flex items-center gap-1 text-sm text-foreground'>
-                      <Star className='h-4 w-4 fill-amber-400 text-amber-400' />
-                      {user.average_rating.toFixed(2)}
-                    </span>
+                    {user.reviews_received_count === 0 ? (
+                      <span className='text-sm text-muted-foreground'>—</span>
+                    ) : (
+                      <span className='inline-flex items-center gap-1 text-sm text-foreground'>
+                        <Star className='h-4 w-4 fill-amber-400 text-amber-400' />
+                        {user.average_rating.toFixed(2)}
+                      </span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
