@@ -148,7 +148,7 @@ All 6 sections must be built. Current status:
 [ ] Dashboard (stats overview)
 [ ] Verification Queue (review + approve/reject workers)
 [ ] User Management (search, filter, suspend/reactivate)
-[ ] Booking Oversight (read-only, filterable)
+[x] Booking Oversight (filterable, client booking, pending reschedule, force cancel)
 [ ] Reports Queue (review + resolve disputes)
 [ ] Audit Log (read-only, filterable)
 
@@ -223,7 +223,7 @@ Target route map:
   /users                      — User Management
   /users/$id                  — User detail + history
   /bookings                   — Booking Oversight
-  /bookings/$id               — Booking detail (read-only)
+  /bookings/$id               — Booking detail (reschedule pending, force cancel when eligible)
   /reports                    — Reports Queue
   /reports/$id                — Report detail + resolve
   /audit-logs                 — Audit Log
@@ -279,7 +279,7 @@ All of the following are unfinished:
 [ ] Dashboard page with stat cards
 [ ] Verification Queue — list + detail + approve/reject
 [ ] User Management — list + search/filter + suspend
-[ ] Booking Oversight — read-only list + filters
+[x] Booking Oversight — list + filters, client booking, pending reschedule, force cancel
 [ ] Reports Queue — list + detail + resolve
 [ ] Audit Log — read-only table + filters
 
@@ -292,8 +292,8 @@ All of the following are unfinished:
    Do not allow non-admin users into the panel.
 3. No payment, no real-time tracking, no chat UI
    in the admin panel — those are mobile-only features.
-4. Booking Oversight is READ-ONLY.
-   Admin cannot modify bookings (except force-cancel).
+4. Booking Oversight supports booking for a client and rescheduling pending
+   bookings. Force-cancel remains available for cancellable bookings.
 5. Match response shapes from WEB_API_CONTRACT.md exactly.
    Do not invent or rename fields.
 6. All admin actions (approve, reject, suspend, resolve)

@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   RefreshCw,
   Ban,
+  CalendarClock,
 } from 'lucide-react'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
@@ -25,6 +26,7 @@ import { useBooking } from './hooks/use-booking'
 import { useBookingAction } from './hooks/use-booking-action'
 import { BookingStatusBadge } from './components/booking-status-badge'
 import { ForceCancelDialog } from './components/force-cancel-dialog'
+import { AdminRescheduleDialog } from './components/admin-reschedule-dialog'
 import { CANCELLABLE_STATUSES } from './types'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -38,8 +40,10 @@ interface BookingDetailPageProps {
 export function BookingDetailPage({ id }: BookingDetailPageProps) {
   const navigate = useNavigate()
   const { data, isLoading, error, refetch, setData } = useBooking(id)
-  const { isSubmitting, forceCancel } = useBookingAction()
+  const { isSubmitting, forceCancel, reschedule } = useBookingAction()
   const [showCancel, setShowCancel] = useState(false)
+  const [showReschedule, setShowReschedule] = useState(false)
+  const canReschedule = data?.status === 'pending'
 
   const canForceCancel =
     data !== null && CANCELLABLE_STATUSES.includes(data.status)
@@ -49,6 +53,14 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
     forceCancel(data.id, reason, (updated) => {
       setData((prev) => prev ? { ...prev, ...updated } : prev)
       setShowCancel(false)
+    })
+  }
+
+  function handleRescheduleConfirm(scheduledAt: string) {
+    if (!data) return
+    reschedule(data.id, scheduledAt, (updated) => {
+      setData((prev) => prev ? { ...prev, ...updated } : prev)
+      setShowReschedule(false)
     })
   }
 
@@ -78,7 +90,7 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
               Booking Detail
             </h1>
             <p className='text-sm text-muted-foreground'>
-              Read-only view. Force cancel is the only available admin action.
+              Review booking details and manage pending bookings.
             </p>
           </div>
         </div>
@@ -171,9 +183,19 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
               </CardContent>
             </Card>
 
-            {/* Force Cancel — only shown for cancellable statuses */}
-            {canForceCancel && (
-              <div>
+            {(canReschedule || canForceCancel) && (
+              <div className='flex flex-wrap gap-2'>
+                {canReschedule && (
+                  <Button
+                    variant='outline'
+                    onClick={() => setShowReschedule(true)}
+                    disabled={isSubmitting}
+                    className='border-primary text-primary hover:bg-primary/5'
+                  >
+                    <CalendarClock className='h-4 w-4' />
+                    Reschedule Booking
+                  </Button>
+                )}
                 <Button
                   variant='outline'
                   onClick={() => setShowCancel(true)}
@@ -191,13 +213,25 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
 
       {/* Dialog — outside Main so it portals correctly */}
       {data && (
-        <ForceCancelDialog
-          open={showCancel}
-          bookingCode={data.booking_code}
-          isSubmitting={isSubmitting}
-          onConfirm={handleForceCancelConfirm}
-          onCancel={() => setShowCancel(false)}
-        />
+        <>
+          <ForceCancelDialog
+            open={showCancel}
+            bookingCode={data.booking_code}
+            isSubmitting={isSubmitting}
+            onConfirm={handleForceCancelConfirm}
+            onCancel={() => setShowCancel(false)}
+          />
+          {canReschedule && showReschedule && (
+            <AdminRescheduleDialog
+              open
+              bookingCode={data.booking_code}
+              scheduledAt={data.scheduled_at}
+              isSubmitting={isSubmitting}
+              onConfirm={handleRescheduleConfirm}
+              onOpenChange={setShowReschedule}
+            />
+          )}
+        </>
       )}
     </>
   )

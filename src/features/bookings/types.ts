@@ -55,6 +55,15 @@ export interface Booking {
   tracking_points_count?: number
 }
 
+export interface AdminBookingInput {
+  client_id: number
+  worker_id: number
+  job_post_id: number
+  service_category_id: number
+  scheduled_at: string
+  notes: string | null
+}
+
 export type BookingStatusFilter = BookingStatus | 'all'
 
 export interface BookingPagination {

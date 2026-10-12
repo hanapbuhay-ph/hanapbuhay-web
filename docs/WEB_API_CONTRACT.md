@@ -103,7 +103,7 @@ Verification status values: pending, approved, rejected
 
 ### I3. Review Verification (Approve / Reject)
 
-Real Laravel endpoint (not yet built):
+Real Laravel endpoint:
 POST /api/admin/verifications/{workerProfileId}/review
 
 Mock equivalent (json-server):
@@ -254,6 +254,35 @@ Response:
   "success": true,
   "message": "Booking force cancelled"
 }
+
+### Admin create booking for a client
+POST /api/admin/bookings
+
+Request body:
+{
+  "client_id": 12,
+  "worker_id": 34,
+  "job_post_id": 56,
+  "service_category_id": 2,
+  "scheduled_at": "2026-10-20T09:00:00+08:00",
+  "notes": "Please call before arriving"
+}
+
+The job post must be active, belong to the selected worker, and match the selected
+service category. Creates a pending booking linked to that post; the worker must
+still accept or decline it.
+Both the client and worker receive in-app and push notifications.
+
+### Admin reschedule pending booking
+POST /api/admin/bookings/{bookingId}/reschedule
+
+Request body:
+{
+  "scheduled_at": "2026-10-22T10:00:00+08:00"
+}
+
+Only pending bookings may be rescheduled by an admin. Both the client and
+worker receive in-app and push notifications.
 
 ---
 

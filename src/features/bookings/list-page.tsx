@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from 'react'
-import { ChevronLeft, ChevronRight, SearchIcon } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, SearchIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { api } from '@/lib/api'
 import { BookingsTable } from './components/bookings-table'
 import { useBookings } from './hooks/use-bookings'
+import { useBookingAction } from './hooks/use-booking-action'
+import { AdminBookingDialog } from './components/admin-booking-dialog'
 import { type BookingStatusFilter } from './types'
 
 // ── Filter tab definitions ────────────────────────────────────────────────────
@@ -35,6 +37,8 @@ export function BookingsListPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([])
+  const [showCreateBooking, setShowCreateBooking] = useState(false)
+  const { isSubmitting, createForClient } = useBookingAction()
   const { data, pagination, isLoading, error, refetch } = useBookings(
     statusFilter,
     categoryId,
@@ -67,9 +71,14 @@ export function BookingsListPage() {
             Booking Oversight
           </h1>
           <p className='mt-1 text-sm text-muted-foreground'>
-            View and monitor all platform bookings. Read-only — force cancel is
-            available on the detail page.
+            Manage platform bookings and create bookings on behalf of clients.
           </p>
+        </div>
+        <div className='mb-4 flex justify-end'>
+          <Button onClick={() => setShowCreateBooking(true)}>
+            <Plus className='h-4 w-4' />
+            Book a Job for a Client
+          </Button>
         </div>
 
         {/* Status filter tabs */}
@@ -132,6 +141,15 @@ export function BookingsListPage() {
           </div>
         )}
       </Main>
+      <AdminBookingDialog
+        open={showCreateBooking}
+        isSubmitting={isSubmitting}
+        onOpenChange={(open) => {
+          setShowCreateBooking(open)
+          if (!open) refetch()
+        }}
+        onSubmit={createForClient}
+      />
     </>
   )
 }
