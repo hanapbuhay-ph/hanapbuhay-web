@@ -65,6 +65,14 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
     pagination: workersPagination,
     refetch: refetchWorkers,
   } = useUsers('worker', 'all', workerSearch, workerPage, verification, barangayId)
+  const workerFromList = search.workerId
+    ? workers.find((worker) => String(worker.id) === search.workerId) ?? null
+    : null
+  const activeWorker =
+    selectedWorker &&
+    (!search.workerId || String(selectedWorker.id) === search.workerId)
+      ? selectedWorker
+      : workerFromList
   const { data, pagination, isLoading, error, refetch } = useJobPosts(
     categoryId,
     null,
@@ -72,8 +80,8 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
     'all',
     postSearch,
     page,
-    selectedWorker
-      ? (selectedWorker.worker_profile_id ?? -1)
+    activeWorker
+      ? (activeWorker.worker_profile_id ?? -1)
       : undefined,
   )
   const [deletedIds, setDeletedIds] = useState<number[]>([])
@@ -82,6 +90,8 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
     if (!search.workerId) return
 
     const workerId = search.workerId
+    if (workerFromList) return
+
     let cancelled = false
     api.get(`/admin/users/${workerId}`)
       .then(({ data: response }) => {
@@ -111,7 +121,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
     return () => {
       cancelled = true
     }
-  }, [search.workerId])
+  }, [search.workerId, workerFromList])
 
   useEffect(() => {
     Promise.all([api.get('/service-categories'), api.get('/barangays')])
@@ -130,7 +140,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
 
   const visible = data.filter((p) => !deletedIds.includes(p.id))
   const detailSearch: JobPostsSearch = {
-    workerId: selectedWorker ? String(selectedWorker.id) : undefined,
+    workerId: activeWorker ? String(activeWorker.id) : undefined,
     workerPage,
     workerSearch,
     barangayId: barangayId ?? undefined,
@@ -170,27 +180,12 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
   }
   const isRestoringWorker = Boolean(
     search.workerId &&
+    !activeWorker &&
     restoredWorkerId !== search.workerId &&
     failedWorkerRestoreId !== search.workerId,
   )
 
-  if (!selectedWorker && isRestoringWorker) {
-    return (
-      <>
-        <Header>
-          <div className='ms-auto flex items-center gap-2'>
-            <ThemeSwitch />
-            <ProfileDropdown />
-          </div>
-        </Header>
-        <Main>
-          <p className='py-12 text-center text-sm text-muted-foreground'>Restoring selected worker…</p>
-        </Main>
-      </>
-    )
-  }
-
-  if (!selectedWorker) {
+  if (!activeWorker) {
     return (
       <>
         <Header>
@@ -259,7 +254,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
           </div>
           <WorkersTable
             data={workers}
-            isLoading={workersLoading}
+            isLoading={workersLoading || isRestoringWorker}
             error={workersError}
             onRetry={refetchWorkers}
             onSelect={(worker) => {
@@ -313,7 +308,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
           <div className='flex flex-wrap items-start justify-between gap-3'>
             <div>
               <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-                {selectedWorker.name}'s Job Posts
+                {activeWorker.name}'s Job Posts
               </h1>
               <p className='mt-1 text-sm text-muted-foreground'>
                 View and manage this worker's service listings.
@@ -324,7 +319,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
                 setEditingPost(null)
                 setPostFormOpen(true)
               }}
-              disabled={!selectedWorker.worker_profile_id}
+              disabled={!activeWorker.worker_profile_id}
             >
               <Plus className='h-4 w-4' />
               Add Post
@@ -477,15 +472,15 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
             </div>
           </div>
         )}
-        {selectedWorker.worker_profile_id && (
+        {activeWorker.worker_profile_id && (
           <JobPostFormDialog
             open={postFormOpen}
             onOpenChange={(open) => {
               setPostFormOpen(open)
               if (!open) setEditingPost(null)
             }}
-            workerProfileId={selectedWorker.worker_profile_id}
-            workerName={selectedWorker.name}
+            workerProfileId={activeWorker.worker_profile_id}
+            workerName={activeWorker.name}
             categories={categories}
             post={editingPost}
             onSaved={() => {
