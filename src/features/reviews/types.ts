@@ -8,6 +8,18 @@ export interface Review {
   created_at: string
 }
 
+export interface ReviewRecipient {
+  id: number
+  name: string
+  email: string
+  role: 'client' | 'worker'
+  barangay: string | null
+  profile_photo_url?: string | null
+  is_active: boolean
+  reviews_received_count: number
+  average_rating: number
+}
+
 export type ScoreFilter = 1 | 2 | 3 | 4 | 5 | 'all'
 export type DirectionFilter = 'client_to_worker' | 'worker_to_client' | 'all'
 

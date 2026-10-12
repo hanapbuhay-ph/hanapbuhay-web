@@ -43,10 +43,11 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { ReviewRecipients } from './components/review-recipients'
 import { StarRating } from './components/star-rating'
 import { useReviewAction } from './hooks/use-review-action'
 import { useReviews } from './hooks/use-reviews'
-import { type Review, type ScoreFilter, type DirectionFilter } from './types'
+import { type Review, type ReviewRecipient, type ScoreFilter, type DirectionFilter } from './types'
 
 function getInitials(name: string): string {
   return name
@@ -58,6 +59,7 @@ function getInitials(name: string): string {
 }
 
 export function ReviewsListPage() {
+  const [selectedRecipient, setSelectedRecipient] = useState<ReviewRecipient | null>(null)
   const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('all')
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('all')
   const [search, setSearch] = useState('')
@@ -68,7 +70,8 @@ export function ReviewsListPage() {
     null,
     null,
     search,
-    page
+    page,
+    selectedRecipient?.id ?? null,
   )
   const { isSubmitting, removeRating } = useReviewAction()
 
@@ -84,6 +87,13 @@ export function ReviewsListPage() {
     })
   }
 
+  if (!selectedRecipient) {
+    return <ReviewRecipients onSelect={(recipient) => {
+      setSelectedRecipient(recipient)
+      setPage(1)
+    }} />
+  }
+
   return (
     <>
       <Header>
@@ -95,11 +105,22 @@ export function ReviewsListPage() {
 
       <Main>
         <div className='mb-6'>
+          <Button
+            variant='ghost'
+            className='mb-2 -ms-3'
+            onClick={() => {
+              setSelectedRecipient(null)
+              setPage(1)
+            }}
+          >
+            <ChevronLeft className='h-4 w-4' />
+            Back to users
+          </Button>
           <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-            Ratings & Reviews
+            Reviews for {selectedRecipient.name}
           </h1>
           <p className='mt-1 text-sm text-muted-foreground'>
-            Manage and moderate user reviews and ratings.
+            {selectedRecipient.role === 'worker' ? 'Worker' : 'Client'} · {selectedRecipient.email}
           </p>
         </div>
 
@@ -374,8 +395,8 @@ export function ReviewsListPage() {
               <span className='font-medium text-foreground'>
                 {targetReview?.rated_by.name}
               </span>{' '}
-              and recalculate the worker's average rating. This action cannot be
-              undone.
+              and update the user's average rating where applicable. This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <Textarea

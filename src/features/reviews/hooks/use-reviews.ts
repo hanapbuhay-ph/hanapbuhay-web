@@ -18,6 +18,7 @@ export function useReviews(
   clientId: number | null = null,
   search = '',
   page = 1,
+  ratedUserId: number | null = null,
 ): UseReviewsResult {
   const debouncedSearch = useDebouncedValue(search)
   const [data, setData] = useState<Review[]>([])
@@ -28,6 +29,16 @@ export function useReviews(
 
   useEffect(() => {
     let cancelled = false
+    if (ratedUserId === null) {
+      startTransition(() => {
+        setData([])
+        setPagination(null)
+        setIsLoading(false)
+        setError(null)
+      })
+      return () => { cancelled = true }
+    }
+
     startTransition(() => {
       setIsLoading(true)
       setError(null)
@@ -38,6 +49,7 @@ export function useReviews(
     if (directionFilter !== 'all') params.direction = directionFilter
     if (workerId !== null) params.worker_id = workerId
     if (clientId !== null) params.client_id = clientId
+    params.rated_user_id = ratedUserId
     if (debouncedSearch.trim()) params.search = debouncedSearch.trim()
     params.page = page
 
@@ -58,7 +70,7 @@ export function useReviews(
       .finally(() => { if (!cancelled) setIsLoading(false) })
 
     return () => { cancelled = true }
-  }, [scoreFilter, directionFilter, workerId, clientId, debouncedSearch, page, tick])
+  }, [scoreFilter, directionFilter, workerId, clientId, debouncedSearch, page, ratedUserId, tick])
 
   return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }
