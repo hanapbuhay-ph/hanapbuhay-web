@@ -7,8 +7,10 @@ import {
   ChevronRight,
   InboxIcon,
   RefreshCw,
+  Search,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
@@ -24,13 +26,24 @@ import {
 } from '@/components/ui/table'
 import { useChatLogs } from './hooks/use-chat-logs'
 import { type Conversation } from './types'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function ChatLogsListPage() {
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
-  const { data, pagination, isLoading, error, refetch } = useChatLogs(page)
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search)
+  const { data, pagination, isLoading, error, refetch } = useChatLogs(page, debouncedSearch)
+
+  function openConversation(log: Conversation) {
+    void navigate({
+      to: '/chat-logs/$id',
+      params: { id: log.conversation_id },
+      search: { from: '/chat-logs' },
+    })
+  }
 
   return (
     <>
@@ -57,8 +70,21 @@ export function ChatLogsListPage() {
             Chat Logs
           </h1>
           <p className='mt-1 text-sm text-muted-foreground'>
-            Browse conversation histories between clients and workers.
+            Browse message histories grouped by the client and worker communicating, across their bookings.
           </p>
+        </div>
+
+        <div className='relative mb-4 w-full sm:max-w-xs'>
+          <Search className='absolute inset-y-0 left-3 my-auto h-4 w-4 text-muted-foreground' />
+          <Input
+            value={search}
+            placeholder='Search client or worker'
+            onChange={(event) => {
+              setSearch(event.target.value)
+              setPage(1)
+            }}
+            className='border-border pl-9'
+          />
         </div>
 
         {/* Table */}
@@ -66,20 +92,23 @@ export function ChatLogsListPage() {
           className='overflow-x-auto rounded-2xl border border-border bg-card'
           style={{ boxShadow: '0 2px 12px rgba(52,168,53,0.08)' }}
         >
-          <Table className='min-w-[600px]'>
+          <Table className='min-w-[850px]'>
             <TableHeader>
               <TableRow className='bg-background hover:bg-background'>
                 <TableHead className='ps-4 font-semibold text-foreground'>
-                  Booking Code
+                  Client
                 </TableHead>
                 <TableHead className='font-semibold text-foreground'>
-                  Participant
+                  Worker
                 </TableHead>
                 <TableHead className='font-semibold text-foreground'>
                   Latest Message
                 </TableHead>
                 <TableHead className='font-semibold text-foreground'>
-                  Unread
+                  Messages
+                </TableHead>
+                <TableHead className='font-semibold text-foreground'>
+                  Bookings
                 </TableHead>
                 <TableHead className='font-semibold text-foreground'>Action</TableHead>
               </TableRow>
@@ -103,6 +132,9 @@ export function ChatLogsListPage() {
                       <Skeleton className='h-4 w-10' />
                     </TableCell>
                     <TableCell>
+                      <Skeleton className='h-4 w-10' />
+                    </TableCell>
+                    <TableCell>
                       <Skeleton className='h-7 w-16 rounded-lg' />
                     </TableCell>
                   </TableRow>
@@ -111,7 +143,7 @@ export function ChatLogsListPage() {
               {/* Error */}
               {!isLoading && error && (
                 <TableRow>
-                  <TableCell colSpan={5}>
+                  <TableCell colSpan={6}>
                     <div className='flex flex-col items-center gap-2 py-12 text-center'>
                       <AlertTriangle className='h-7 w-7 text-destructive' />
                       <p className='text-sm font-semibold text-foreground'>
@@ -135,14 +167,14 @@ export function ChatLogsListPage() {
               {/* Empty */}
               {!isLoading && !error && data.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5}>
+                  <TableCell colSpan={6}>
                     <div className='flex flex-col items-center gap-2 py-12 text-center'>
                       <InboxIcon className='h-7 w-7 text-muted-foreground' />
                       <p className='text-sm font-semibold text-foreground'>
                         No chat logs found
                       </p>
                       <p className='text-xs text-muted-foreground'>
-                        Chat histories will appear here once bookings are active.
+                        Conversations will appear here once a client and worker exchange messages.
                       </p>
                     </div>
                   </TableCell>
@@ -154,29 +186,29 @@ export function ChatLogsListPage() {
                 !error &&
                 data.map((log: Conversation) => (
                     <TableRow
-                      key={log.booking_id}
+                      key={log.conversation_id}
                       className='cursor-pointer hover:bg-primary/5'
-                      onClick={() =>
-                        navigate({ to: '/chat-logs/$id', params: { id: String(log.booking_id) }, search: { from: '/chat-logs' } })
-                      }
+                      onClick={() => openConversation(log)}
                     >
                     <TableCell className='ps-4'>
-                      <span className='font-mono text-sm font-semibold text-foreground'>
-                        {log.booking_code}
-                      </span>
+                      <span className='text-sm font-medium text-foreground'>{log.client.name}</span>
                     </TableCell>
                     <TableCell className='text-sm text-muted-foreground'>
-                      {log.other_party?.name ?? '—'}
+                      {log.worker.name}
                     </TableCell>
                     <TableCell className='text-sm text-muted-foreground'>
                       {log.last_message
-                        ? format(new Date(log.last_message_at ?? log.last_message), 'MMM d, yyyy')
+                        ? <>
+                            <span className='block max-w-xs truncate'>{log.last_message}</span>
+                            <span className='text-xs'>{log.last_message_at ? format(new Date(log.last_message_at), 'MMM d, yyyy h:mm a') : '—'}</span>
+                          </>
                         : '—'}
                     </TableCell>
                     <TableCell>
-                      <span className='text-sm text-muted-foreground'>
-                        {log.unread_count}
-                      </span>
+                      <span className='text-sm text-muted-foreground'>{log.messages_count}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className='text-sm text-muted-foreground'>{log.bookings_count}</span>
                     </TableCell>
                     <TableCell>
                         <Button
@@ -185,11 +217,7 @@ export function ChatLogsListPage() {
                           className='h-7 border-border text-xs text-primary hover:bg-primary/5'
                           onClick={(e) => {
                             e.stopPropagation()
-                            navigate({
-                              to: '/chat-logs/$id',
-                              params: { id: String(log.booking_id) },
-                              search: { from: '/chat-logs' },
-                            })
+                            openConversation(log)
                           }}
                         >
                           View

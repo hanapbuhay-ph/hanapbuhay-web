@@ -10,7 +10,7 @@ interface UseChatLogsResult {
   refetch: () => void
 }
 
-export function useChatLogs(page = 1): UseChatLogsResult {
+export function useChatLogs(page = 1, search = ''): UseChatLogsResult {
   const [data, setData] = useState<Conversation[]>([])
   const [pagination, setPagination] = useState<ChatPagination | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -25,7 +25,9 @@ export function useChatLogs(page = 1): UseChatLogsResult {
     })
 
     api
-      .get<{ success: boolean; data: { conversations: Conversation[]; pagination: ChatPagination } }>('/admin/chat-logs', { params: { page } })
+      .get<{ success: boolean; data: { conversations: Conversation[]; pagination: ChatPagination } }>('/admin/chat-logs', {
+        params: { page, ...(search.trim() ? { search: search.trim() } : {}) },
+      })
       .then((res) => {
         if (!cancelled) {
           setData(res.data.data.conversations)
@@ -39,7 +41,7 @@ export function useChatLogs(page = 1): UseChatLogsResult {
       .finally(() => { if (!cancelled) setIsLoading(false) })
 
     return () => { cancelled = true }
-  }, [page, tick])
+  }, [page, search, tick])
 
   return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }

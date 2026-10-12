@@ -4,16 +4,16 @@ import { type ChatMessage, type ChatPagination, type ThreadResponse } from '../t
 
 interface UseChatLogResult {
   data: ChatMessage[]
-  bookingCode: string | null
+  conversation: ThreadResponse['conversation'] | null
   pagination: ChatPagination | null
   isLoading: boolean
   error: string | null
   refetch: () => void
 }
 
-export function useChatLog(bookingId: string, page = 1): UseChatLogResult {
+export function useChatLog(clientId: number, workerId: number, page = 1): UseChatLogResult {
   const [data, setData] = useState<ChatMessage[]>([])
-  const [bookingCode, setBookingCode] = useState<string | null>(null)
+  const [conversation, setConversation] = useState<ThreadResponse['conversation'] | null>(null)
   const [pagination, setPagination] = useState<ChatPagination | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -27,11 +27,14 @@ export function useChatLog(bookingId: string, page = 1): UseChatLogResult {
     })
 
     api
-      .get<{ success: boolean; data: ThreadResponse }>(`/admin/chat-logs/${bookingId}`, { params: { page } })
+      .get<{ success: boolean; data: ThreadResponse }>(
+        `/admin/chat-logs/conversations/${clientId}/${workerId}`,
+        { params: { page } }
+      )
       .then((res) => {
         if (!cancelled) {
           setData(res.data.data.messages)
-          setBookingCode(res.data.data.booking.booking_code)
+          setConversation(res.data.data.conversation)
           setPagination(res.data.data.pagination)
         }
       })
@@ -42,7 +45,7 @@ export function useChatLog(bookingId: string, page = 1): UseChatLogResult {
       .finally(() => { if (!cancelled) setIsLoading(false) })
 
     return () => { cancelled = true }
-  }, [bookingId, page, tick])
+  }, [clientId, workerId, page, tick])
 
-  return { data, bookingCode, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return { data, conversation, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }

@@ -8,6 +8,7 @@ export const Route = createFileRoute('/_authenticated/chat-logs/$id')({
   }),
   component: function ChatLogDetailRoute() {
     const { id } = Route.useParams()
-    return <ChatLogDetailPage bookingId={id} />
+    const [clientId, workerId] = id.split('-').map(Number)
+    return <ChatLogDetailPage clientId={clientId} workerId={workerId} />
   },
 })

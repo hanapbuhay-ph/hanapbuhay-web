@@ -11,6 +11,7 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
@@ -23,7 +24,8 @@ import { type ChatMessage } from './types'
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface ChatLogDetailPageProps {
-  bookingId: string
+  clientId: number
+  workerId: number
 }
 
 // The ?from= query param carries the referring path so the back button
@@ -32,13 +34,22 @@ interface SearchParams {
   from?: string
 }
 
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export function ChatLogDetailPage({ bookingId }: ChatLogDetailPageProps) {
+export function ChatLogDetailPage({ clientId, workerId }: ChatLogDetailPageProps) {
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const search = useSearch({ strict: false }) as SearchParams
-  const { data, bookingCode, pagination, isLoading, error, refetch } = useChatLog(bookingId, page)
+  const { data, conversation, pagination, isLoading, error, refetch } = useChatLog(clientId, workerId, page)
 
   function handleBack() {
     if (search.from) {
@@ -72,13 +83,13 @@ export function ChatLogDetailPage({ bookingId }: ChatLogDetailPageProps) {
           <div>
             <h1 className='text-2xl font-bold tracking-tight text-foreground'>
               {isLoading
-                ? 'Chat Log'
-                : bookingCode
-                  ? `Chat Log — ${bookingCode}`
-                  : 'Chat Log'}
+                ? 'Chat Conversation'
+                : conversation
+                  ? `${conversation.client.name} and ${conversation.worker.name}`
+                  : 'Chat Conversation'}
             </h1>
             <p className='text-sm text-muted-foreground'>
-              Read-only conversation history for this booking.
+              Read-only message history across {conversation?.bookings_count ?? 'their'} booking(s).
             </p>
           </div>
         </div>
@@ -135,19 +146,26 @@ export function ChatLogDetailPage({ bookingId }: ChatLogDetailPageProps) {
               </CardHeader>
               <CardContent className='flex flex-wrap gap-4 pb-4'>
                 {(() => {
-                  const seen = new Map<number, string>()
-                  data.forEach((m) => {
-                    if (!seen.has(m.sender_id)) seen.set(m.sender_id, m.sender_name)
-                  })
-                  const senders = Array.from(seen.values())
-                  return senders.map((name, idx) => (
+                  const participants = [
+                    { name: conversation?.client.name ?? 'Client', label: 'Client' },
+                    { name: conversation?.worker.name ?? 'Worker', label: 'Worker' },
+                  ]
+                  return participants.map(({ name, label }, idx) => (
                     <div key={idx} className='flex items-center gap-2'>
-                      <span className={['h-3 w-3 rounded-full', idx === 0 ? 'bg-muted' : 'bg-primary'].join(' ')} />
+                      <Avatar className='h-9 w-9'>
+                        <AvatarImage
+                          src={(idx === 0 ? conversation?.client.profile_photo_url : conversation?.worker.profile_photo_url) ?? undefined}
+                          alt={`${name} profile`}
+                        />
+                        <AvatarFallback className='bg-primary/10 text-xs text-primary'>
+                          {getInitials(name)}
+                        </AvatarFallback>
+                      </Avatar>
                       <span className='text-sm text-muted-foreground'>
                         <span className='font-medium text-foreground'>
                           {name}
                         </span>{' '}
-                        — {idx === 0 ? 'Client' : 'Worker'}
+                        — {label}
                       </span>
                     </div>
                   ))
@@ -183,7 +201,12 @@ export function ChatLogDetailPage({ bookingId }: ChatLogDetailPageProps) {
                     No messages in this conversation.
                   </p>
                 ) : (
-                  <MessageList messages={data} />
+                  <MessageList
+                    messages={data}
+                    clientId={clientId}
+                    clientPhotoUrl={conversation?.client.profile_photo_url ?? null}
+                    workerPhotoUrl={conversation?.worker.profile_photo_url ?? null}
+                  />
                 )}
               </CardContent>
             </Card>
@@ -205,7 +228,17 @@ export function ChatLogDetailPage({ bookingId }: ChatLogDetailPageProps) {
 
 // ── Message list with date separators ────────────────────────────────────────
 
-function MessageList({ messages }: { messages: ChatMessage[] }) {
+function MessageList({
+  messages,
+  clientId,
+  clientPhotoUrl,
+  workerPhotoUrl,
+}: {
+  messages: ChatMessage[]
+  clientId: number
+  clientPhotoUrl: string | null
+  workerPhotoUrl: string | null
+}) {
   return (
     <>
       {messages.map((msg, idx) => {
@@ -218,7 +251,10 @@ function MessageList({ messages }: { messages: ChatMessage[] }) {
             {showDateSeparator && (
               <DateSeparator date={new Date(msg.created_at)} />
             )}
-            <MessageBubble message={msg} />
+            <MessageBubble
+              message={msg}
+              profilePhotoUrl={msg.sender_id === clientId ? clientPhotoUrl : workerPhotoUrl}
+            />
           </div>
         )
       })}
@@ -242,66 +278,77 @@ function DateSeparator({ date }: { date: Date }) {
 
 // ── Single message bubble ─────────────────────────────────────────────────────
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({
+  message,
+  profilePhotoUrl,
+}: {
+  message: ChatMessage
+  profilePhotoUrl: string | null
+}) {
   const isWorker = message.sender_role === 'worker'
+  const initials = getInitials(message.sender_name)
+  const avatarUrl = profilePhotoUrl ?? message.sender_profile_photo_url ?? undefined
 
   return (
     <div
       className={[
-        'mb-2 flex flex-col',
-        isWorker ? 'items-end' : 'items-start',
+        'mb-2 flex items-end gap-2',
+        isWorker ? 'justify-end' : 'justify-start',
       ].join(' ')}
     >
-      {/* Sender name */}
-      <span className='mb-1 px-1 text-[11px] font-semibold text-muted-foreground'>
-        {message.sender_name}
-      </span>
-
-      {/* Bubble */}
-      <div
-        className={[
-          'relative max-w-[75%] rounded-2xl px-3.5 py-2.5',
-          isWorker
-            ? 'rounded-tr-sm bg-primary text-white'
-            : 'rounded-tl-sm bg-muted text-foreground',
-          // Flagged: amber left border + tinted background
-          message.is_flagged
-            ? isWorker
-              ? 'border-l-4 border-amber-400 bg-primary/80'
-              : 'border-l-4 border-amber-400 bg-amber-50'
-            : '',
-        ].join(' ')}
-      >
-        <p className='text-sm leading-relaxed'>{message.content}</p>
-        {message.attachment_url && (
-          <a href={message.attachment_url} target='_blank' rel='noreferrer' className='mt-2 block text-xs underline'>
-            View attachment
-          </a>
-        )}
-
-        {/* Time + flagged label row */}
+      {!isWorker && (
+        <Avatar className='h-8 w-8 shrink-0'>
+          <AvatarImage src={avatarUrl} alt={`${message.sender_name} profile`} />
+          <AvatarFallback className='bg-primary/10 text-xs text-primary'>{initials}</AvatarFallback>
+        </Avatar>
+      )}
+      <div className={['flex max-w-[75%] flex-col', isWorker ? 'items-end' : 'items-start'].join(' ')}>
+        <span className='mb-1 px-1 text-[11px] font-semibold text-muted-foreground'>
+          {message.sender_name}{message.booking_code ? ` · ${message.booking_code}` : ''}
+        </span>
         <div
           className={[
-            'mt-1 flex items-center gap-2',
-            isWorker ? 'justify-end' : 'justify-start',
+            'relative rounded-2xl px-3.5 py-2.5',
+            isWorker
+              ? 'rounded-br-sm bg-primary text-white'
+              : 'rounded-bl-sm bg-muted text-foreground',
+            message.is_flagged
+              ? isWorker
+                ? 'border-l-4 border-amber-400 bg-primary/80'
+                : 'border-l-4 border-amber-400 bg-amber-50'
+              : '',
           ].join(' ')}
         >
-          <span
-            className={[
-              'text-[10px]',
-              isWorker ? 'text-white/70' : 'text-muted-foreground',
-            ].join(' ')}
-          >
-            {format(new Date(message.created_at), 'h:mm a')}
-          </span>
-          {message.is_flagged && (
-            <span className='inline-flex items-center gap-0.5 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700'>
-              <Flag className='h-2.5 w-2.5' />
-              Flagged
-            </span>
+          <p className='text-sm leading-relaxed'>{message.content}</p>
+          {message.attachment_url && (
+            <a href={message.attachment_url} target='_blank' rel='noreferrer' className='mt-2 block text-xs underline'>
+              View attachment
+            </a>
           )}
+          <div className={['mt-1 flex items-center gap-2', isWorker ? 'justify-end' : 'justify-start'].join(' ')}>
+            <span
+              className={[
+                'text-[10px]',
+                isWorker ? 'text-white/70' : 'text-muted-foreground',
+              ].join(' ')}
+            >
+              {format(new Date(message.created_at), 'h:mm a')}
+            </span>
+            {message.is_flagged && (
+              <span className='inline-flex items-center gap-0.5 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700'>
+                <Flag className='h-2.5 w-2.5' />
+                Flagged
+              </span>
+            )}
+          </div>
         </div>
       </div>
+      {isWorker && (
+        <Avatar className='h-8 w-8 shrink-0'>
+          <AvatarImage src={avatarUrl} alt={`${message.sender_name} profile`} />
+          <AvatarFallback className='bg-primary/10 text-xs text-primary'>{initials}</AvatarFallback>
+        </Avatar>
+      )}
     </div>
   )
 }
