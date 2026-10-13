@@ -13,11 +13,12 @@ export function useAuditLogAction(onSuccess: () => void) {
       toast.success('Audit log deleted.')
       onSuccess()
     } catch (error) {
-      const message = error instanceof AxiosError
-        ? error.response?.data?.message ?? error.message
-        : error instanceof Error
-          ? error.message
-          : 'Unable to delete audit log.'
+      const message =
+        error instanceof AxiosError
+          ? (error.response?.data?.message ?? error.message)
+          : error instanceof Error
+            ? error.message
+            : 'Unable to delete audit log.'
       toast.error(message)
       throw error
     } finally {
@@ -28,15 +29,20 @@ export function useAuditLogAction(onSuccess: () => void) {
   async function deleteAllLogs() {
     setIsSubmitting(true)
     try {
-      await api.delete('/admin/audit-logs')
-      toast.success('All audit logs deleted.')
+      const response = await api.delete<{ data?: { deleted_count?: number } }>(
+        '/admin/audit-logs'
+      )
+      toast.success(
+        `${response.data.data?.deleted_count ?? 0} audit and security logs deleted.`
+      )
       onSuccess()
     } catch (error) {
-      const message = error instanceof AxiosError
-        ? error.response?.data?.message ?? error.message
-        : error instanceof Error
-          ? error.message
-          : 'Unable to delete audit logs.'
+      const message =
+        error instanceof AxiosError
+          ? (error.response?.data?.message ?? error.message)
+          : error instanceof Error
+            ? error.message
+            : 'Unable to delete audit logs.'
       toast.error(message)
       throw error
     } finally {

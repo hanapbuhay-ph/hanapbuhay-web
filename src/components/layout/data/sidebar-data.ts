@@ -91,7 +91,7 @@ export const sidebarData: SidebarData = {
       title: 'SYSTEM',
       items: [
         {
-          title: 'Audit Log',
+          title: 'Audit Logs and Security Logs',
           url: '/audit-logs',
           icon: ScrollText,
         },

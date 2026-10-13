@@ -144,7 +144,7 @@ export function RecentActivity({
             to='/audit-logs'
             className='inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors hover:underline'
           >
-            View full Audit Log
+            View Security Logs
             <ArrowRight className='h-3 w-3' />
           </Link>
         </CardFooter>

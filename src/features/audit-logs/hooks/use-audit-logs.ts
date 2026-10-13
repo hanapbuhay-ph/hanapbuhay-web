@@ -1,6 +1,10 @@
 import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { type AuditLog, type AuditActionFilter, type AuditPagination } from '../types'
+import {
+  type AuditLog,
+  type AuditActionFilter,
+  type AuditPagination,
+} from '../types'
 
 interface UseAuditLogsResult {
   data: AuditLog[]
@@ -14,9 +18,12 @@ export function useAuditLogs(
   actionFilter: AuditActionFilter = 'all',
   targetType = 'all',
   adminName = '',
+  category = 'all',
+  outcome = 'all',
+  ipAddress = '',
   dateFrom = '',
   dateTo = '',
-  page = 1,
+  page = 1
 ): UseAuditLogsResult {
   const [pagination, setPagination] = useState<AuditPagination | null>(null)
   const [data, setData] = useState<AuditLog[]>([])
@@ -35,14 +42,17 @@ export function useAuditLogs(
     if (actionFilter !== 'all') params.action = actionFilter
     if (targetType !== 'all') params.target_type = targetType
     if (adminName.trim()) params.admin_name = adminName.trim()
+    if (category !== 'all') params.category = category
+    if (outcome !== 'all') params.outcome = outcome
+    if (ipAddress.trim()) params.ip_address = ipAddress.trim()
     if (dateFrom) params.date_from = dateFrom
     if (dateTo) params.date_to = dateTo
 
     api
-      .get<{ success: boolean; data: { logs: AuditLog[]; pagination: AuditPagination } }>(
-        '/admin/audit-logs',
-        { params }
-      )
+      .get<{
+        success: boolean
+        data: { logs: AuditLog[]; pagination: AuditPagination }
+      }>('/admin/audit-logs', { params })
       .then((res) => {
         if (!cancelled) {
           setData(res.data.data.logs)
@@ -51,12 +61,35 @@ export function useAuditLogs(
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load audit logs.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load audit logs.'
+          )
       })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
 
-    return () => { cancelled = true }
-  }, [actionFilter, targetType, adminName, dateFrom, dateTo, page, tick])
+    return () => {
+      cancelled = true
+    }
+  }, [
+    actionFilter,
+    targetType,
+    adminName,
+    category,
+    outcome,
+    ipAddress,
+    dateFrom,
+    dateTo,
+    page,
+    tick,
+  ])
 
-  return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return {
+    data,
+    pagination,
+    isLoading,
+    error,
+    refetch: () => setTick((t) => t + 1),
+  }
 }
