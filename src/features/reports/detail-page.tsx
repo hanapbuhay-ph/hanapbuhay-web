@@ -55,7 +55,11 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
     if (!data) return
     resolve(
       data.id,
-      { status: 'resolved', resolution_action: resolutionAction, admin_notes: adminRemarks },
+      {
+        status: 'resolved',
+        resolution_action: resolutionAction,
+        admin_notes: adminRemarks,
+      },
       () => {
         setShowResolve(false)
         refetch()
@@ -65,10 +69,18 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
 
   function handleDismissConfirm(adminRemarks: string) {
     if (!data) return
-    dismiss(data.id, { status: 'dismissed', resolution_action: 'no_action', admin_notes: adminRemarks }, () => {
-      setShowDismiss(false)
-      refetch()
-    })
+    dismiss(
+      data.id,
+      {
+        status: 'dismissed',
+        resolution_action: 'no_action',
+        admin_notes: adminRemarks,
+      },
+      () => {
+        setShowDismiss(false)
+        refetch()
+      }
+    )
   }
 
   return (
@@ -147,6 +159,12 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
                   icon={User}
                   label={`Reported by: ${data.reporter?.name ?? '—'} (${data.reporter?.id ?? '—'})`}
                 />
+                {data.submitted_by_admin && (
+                  <InfoRow
+                    icon={ShieldAlert}
+                    label={`Submitted on behalf by admin: ${data.submitted_by_admin.name} (${data.submitted_by_admin.id})`}
+                  />
+                )}
                 <InfoRow
                   icon={UserX}
                   label={`Reported user: ${data.reported_user?.name ?? '—'} (${data.reported_user?.id ?? '—'})`}

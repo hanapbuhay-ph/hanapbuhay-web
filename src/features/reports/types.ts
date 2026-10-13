@@ -21,11 +21,17 @@ export interface ReportParty {
   name: string
 }
 
+export interface AdminReportSubmitter {
+  id: number
+  name: string
+}
+
 export interface Report {
   id: number
   booking: { id: number; booking_code: string }
   reporter: ReportParty
   reported_user: ReportParty
+  submitted_by_admin?: AdminReportSubmitter | null
   reason: ReportReason
   description?: string
   status: ReportStatus
