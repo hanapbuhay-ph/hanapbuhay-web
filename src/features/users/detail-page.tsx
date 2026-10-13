@@ -229,8 +229,14 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
                     <UserRoleBadge role={data.role} />
                     <UserStatusBadge isActive={data.is_active} />
                   </div>
+                  {data.role === 'super_admin' && (
+                    <p className='mt-3 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300'>
+                      <ShieldCheck className='h-4 w-4 shrink-0' />
+                      Protected super admin account
+                    </p>
+                  )}
                 </div>
-                {data.is_active ? (
+                {data.role !== 'super_admin' && data.is_active ? (
                   <Button
                     variant='outline'
                     onClick={() => setShowSuspend(true)}
@@ -240,7 +246,7 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
                     <UserX className='h-4 w-4' />
                     Suspend User
                   </Button>
-                ) : (
+                ) : data.role !== 'super_admin' ? (
                   <Button
                     onClick={() => setShowReactivate(true)}
                     disabled={isSubmitting}
@@ -249,7 +255,7 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
                     <UserCheck className='h-4 w-4' />
                     Reactivate User
                   </Button>
-                )}
+                ) : null}
               </CardContent>
             </Card>
 

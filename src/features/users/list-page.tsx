@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { ChevronLeft, ChevronRight, Plus, SearchIcon } from 'lucide-react'
+import { getUser } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -8,12 +9,12 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { DeletionRequestsTable } from './components/deletion-requests-table'
-import { UsersTable } from './components/users-table'
 import { UserCrudDialog } from './components/user-crud-dialog'
 import { UsersDeleteDialog } from './components/users-delete-dialog'
+import { UsersTable } from './components/users-table'
 import { useDeletionRequests } from './hooks/use-deletion-requests'
-import { useUsers } from './hooks/use-users'
 import { useUserCrud } from './hooks/use-user-crud'
+import { useUsers } from './hooks/use-users'
 import {
   type User,
   type RoleFilter,
@@ -28,6 +29,7 @@ const ROLE_TABS: { value: RoleFilter; label: string }[] = [
   { value: 'client', label: 'Client' },
   { value: 'worker', label: 'Worker' },
   { value: 'admin', label: 'Admin' },
+  { value: 'super_admin', label: 'Super Admin' },
 ]
 
 const STATUS_TABS: { value: StatusFilter; label: string }[] = [
@@ -39,6 +41,7 @@ const STATUS_TABS: { value: StatusFilter; label: string }[] = [
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function UsersListPage() {
+  const currentUser = getUser<{ id?: number; role?: string }>()
   const [section, setSection] = useState<'users' | 'deletion_requests'>('users')
 
   // Users tab state
@@ -69,7 +72,8 @@ export function UsersListPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [deleteUserId, setDeleteUserId] = useState<number | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const { isSubmitting, createUser, updateUser, deleteUser } = useUserCrud(refetchUsers)
+  const { isSubmitting, createUser, updateUser, deleteUser } =
+    useUserCrud(refetchUsers)
 
   function openCreate() {
     setEditingUser(null)
@@ -137,22 +141,22 @@ export function UsersListPage() {
           <TabsContent value='users' className='mt-4'>
             <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
               <div className='flex w-full gap-2 sm:max-w-md'>
-              <div className='relative w-full'>
-                <SearchIcon className='absolute inset-y-0 left-3 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  placeholder='Search by name or email…'
-                  value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value)
-                    setPage(1)
-                  }}
-                  className='rounded-lg border-border pl-9 focus-visible:ring-ring'
-                />
-              </div>
-              <Button onClick={openCreate} className='shrink-0'>
-                <Plus className='h-4 w-4' />
-                Add user
-              </Button>
+                <div className='relative w-full'>
+                  <SearchIcon className='absolute inset-y-0 left-3 my-auto h-4 w-4 text-muted-foreground' />
+                  <Input
+                    placeholder='Search by name or email…'
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value)
+                      setPage(1)
+                    }}
+                    className='rounded-lg border-border pl-9 focus-visible:ring-ring'
+                  />
+                </div>
+                <Button onClick={openCreate} className='shrink-0'>
+                  <Plus className='h-4 w-4' />
+                  Add user
+                </Button>
               </div>
               <div className='overflow-x-auto pb-1'>
                 <Tabs
@@ -198,6 +202,8 @@ export function UsersListPage() {
               onRetry={refetchUsers}
               onEdit={openEdit}
               onDelete={openDelete}
+              currentUserId={currentUser?.id}
+              currentUserIsSuperAdmin={currentUser?.role === 'super_admin'}
             />
             <UserPaginationControls
               pagination={pagination}
@@ -222,7 +228,9 @@ export function UsersListPage() {
         user={editingUser}
         isSubmitting={isSubmitting}
         onOpenChange={setCrudOpen}
-        onSubmit={(input) => editingUser ? updateUser(editingUser.id, input) : createUser(input)}
+        onSubmit={(input) =>
+          editingUser ? updateUser(editingUser.id, input) : createUser(input)
+        }
       />
       <UsersDeleteDialog
         open={deleteDialogOpen}
@@ -250,7 +258,8 @@ function UserPaginationControls({
   return (
     <div className='mt-4 flex items-center justify-between gap-3 text-sm text-muted-foreground'>
       <span>
-        Page {pagination.current_page} of {pagination.last_page} ({pagination.total} users)
+        Page {pagination.current_page} of {pagination.last_page} (
+        {pagination.total} users)
       </span>
       <div className='flex items-center gap-1'>
         <Button

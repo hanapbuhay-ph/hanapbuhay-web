@@ -215,7 +215,7 @@ export function LoginForm() {
         throw new Error('Invalid login response.')
       }
 
-      if (user.role !== 'admin') {
+      if (user.role !== 'admin' && user.role !== 'super_admin') {
         toast.error('Access denied. Admin accounts only.')
         return
       }
@@ -272,7 +272,11 @@ export function LoginForm() {
       const token = res.data.data.token
       const user = res.data.data.user
 
-      if (!token || !user || user.role !== 'admin') {
+      if (
+        !token ||
+        !user ||
+        (user.role !== 'admin' && user.role !== 'super_admin')
+      ) {
         throw new Error('This Google account is not configured as an admin.')
       }
 

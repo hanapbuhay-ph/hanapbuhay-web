@@ -1,7 +1,21 @@
 ﻿import { useNavigate } from '@tanstack/react-router'
-import { AlertTriangle, RefreshCw, InboxIcon, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+import {
+  AlertTriangle,
+  RefreshCw,
+  InboxIcon,
+  MoreHorizontal,
+  Pencil,
+  ShieldCheck,
+  Trash2,
+} from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -14,7 +28,6 @@ import {
 import { type User } from '../types'
 import { UserRoleBadge } from './user-role-badge'
 import { UserStatusBadge } from './user-status-badge'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 interface UsersTableProps {
   data: User[]
@@ -23,6 +36,8 @@ interface UsersTableProps {
   onRetry: () => void
   onEdit: (user: User) => void
   onDelete: (user: User) => void
+  currentUserId: number | undefined
+  currentUserIsSuperAdmin: boolean
 }
 
 function getInitials(name: string): string {
@@ -70,6 +85,8 @@ export function UsersTable({
   onRetry,
   onEdit,
   onDelete,
+  currentUserId,
+  currentUserIsSuperAdmin,
 }: UsersTableProps) {
   const navigate = useNavigate()
 
@@ -187,18 +204,46 @@ export function UsersTable({
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button size='icon' variant='ghost' aria-label={`Actions for ${user.name}`}>
+                      <Button
+                        size='icon'
+                        variant='ghost'
+                        aria-label={`Actions for ${user.name}`}
+                      >
                         <MoreHorizontal className='h-4 w-4' />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align='end'>
-                      <DropdownMenuItem onClick={() => onEdit(user)}>
-                        <Pencil className='h-4 w-4' /> Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem className='text-destructive' onClick={() => onDelete(user)}>
-                        <Trash2 className='h-4 w-4' /> Delete
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate({ to: '/users/$id', params: { id: user.id } })}>
+                      {user.role === 'super_admin' &&
+                      !(
+                        currentUserIsSuperAdmin && currentUserId === user.id
+                      ) ? (
+                        <DropdownMenuItem disabled>
+                          <ShieldCheck className='h-4 w-4' />
+                          Protected account
+                        </DropdownMenuItem>
+                      ) : (
+                        <>
+                          <DropdownMenuItem onClick={() => onEdit(user)}>
+                            <Pencil className='h-4 w-4' /> Edit
+                          </DropdownMenuItem>
+                          {currentUserId !== user.id && (
+                            <DropdownMenuItem
+                              className='text-destructive'
+                              onClick={() => onDelete(user)}
+                            >
+                              <Trash2 className='h-4 w-4' /> Delete
+                            </DropdownMenuItem>
+                          )}
+                        </>
+                      )}
+                      <DropdownMenuItem
+                        onClick={() =>
+                          navigate({
+                            to: '/users/$id',
+                            params: { id: user.id },
+                          })
+                        }
+                      >
                         View details
                       </DropdownMenuItem>
                     </DropdownMenuContent>
