@@ -9,6 +9,7 @@ import {
   ShieldAlert,
   Settings2,
   Briefcase,
+  Bell,
 } from 'lucide-react'
 import { HanapBuhayLogo } from '@/assets/logo'
 import { type SidebarData } from '../types'
@@ -90,6 +91,11 @@ export const sidebarData: SidebarData = {
     {
       title: 'SYSTEM',
       items: [
+        {
+          title: 'Notifications',
+          url: '/notifications',
+          icon: Bell,
+        },
         {
           title: 'Audit Logs and Security Logs',
           url: '/audit-logs',
