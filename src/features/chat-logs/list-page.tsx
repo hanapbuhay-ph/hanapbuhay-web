@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
 import { format } from 'date-fns'
+import { useNavigate } from '@tanstack/react-router'
 import {
   AlertTriangle,
   ChevronLeft,
@@ -9,12 +9,9 @@ import {
   RefreshCw,
   Search,
 } from 'lucide-react'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Header } from '@/components/layout/header'
-import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { ThemeSwitch } from '@/components/theme-switch'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -24,9 +21,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/theme-switch'
 import { useChatLogs } from './hooks/use-chat-logs'
 import { type Conversation } from './types'
-import { useDebouncedValue } from '@/hooks/use-debounced-value'
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
@@ -35,7 +35,10 @@ export function ChatLogsListPage() {
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search)
-  const { data, pagination, isLoading, error, refetch } = useChatLogs(page, debouncedSearch)
+  const { data, pagination, isLoading, error, refetch } = useChatLogs(
+    page,
+    debouncedSearch
+  )
 
   function openConversation(log: Conversation) {
     void navigate({
@@ -54,10 +57,31 @@ export function ChatLogsListPage() {
         </div>
         {pagination && pagination.last_page > 1 && (
           <div className='mb-4 flex items-center justify-between text-sm text-muted-foreground'>
-            <span>Page {pagination.current_page} of {pagination.last_page} ({pagination.total} conversations)</span>
+            <span>
+              Page {pagination.current_page} of {pagination.last_page} (
+              {pagination.total} conversations)
+            </span>
             <div className='flex gap-1'>
-              <Button variant='outline' size='icon' title='Previous page' aria-label='Previous page' disabled={pagination.current_page <= 1} onClick={() => setPage(pagination.current_page - 1)}><ChevronLeft className='h-4 w-4' /></Button>
-              <Button variant='outline' size='icon' title='Next page' aria-label='Next page' disabled={pagination.current_page >= pagination.last_page} onClick={() => setPage(pagination.current_page + 1)}><ChevronRight className='h-4 w-4' /></Button>
+              <Button
+                variant='outline'
+                size='icon'
+                title='Previous page'
+                aria-label='Previous page'
+                disabled={pagination.current_page <= 1}
+                onClick={() => setPage(pagination.current_page - 1)}
+              >
+                <ChevronLeft className='h-4 w-4' />
+              </Button>
+              <Button
+                variant='outline'
+                size='icon'
+                title='Next page'
+                aria-label='Next page'
+                disabled={pagination.current_page >= pagination.last_page}
+                onClick={() => setPage(pagination.current_page + 1)}
+              >
+                <ChevronRight className='h-4 w-4' />
+              </Button>
             </div>
           </div>
         )}
@@ -70,7 +94,8 @@ export function ChatLogsListPage() {
             Chat Logs
           </h1>
           <p className='mt-1 text-sm text-muted-foreground'>
-            Browse message histories grouped by the client and worker communicating, across their bookings.
+            Browse message histories grouped by the client and worker
+            communicating, across their bookings.
           </p>
         </div>
 
@@ -110,7 +135,9 @@ export function ChatLogsListPage() {
                 <TableHead className='font-semibold text-foreground'>
                   Bookings
                 </TableHead>
-                <TableHead className='font-semibold text-foreground'>Action</TableHead>
+                <TableHead className='font-semibold text-foreground'>
+                  Action
+                </TableHead>
               </TableRow>
             </TableHeader>
 
@@ -174,7 +201,8 @@ export function ChatLogsListPage() {
                         No chat logs found
                       </p>
                       <p className='text-xs text-muted-foreground'>
-                        Conversations will appear here once a client and worker exchange messages.
+                        Conversations will appear here once a client and worker
+                        exchange messages.
                       </p>
                     </div>
                   </TableCell>
@@ -185,43 +213,60 @@ export function ChatLogsListPage() {
               {!isLoading &&
                 !error &&
                 data.map((log: Conversation) => (
-                    <TableRow
-                      key={log.conversation_id}
-                      className='cursor-pointer hover:bg-primary/5'
-                      onClick={() => openConversation(log)}
-                    >
+                  <TableRow
+                    key={log.conversation_id}
+                    className='cursor-pointer hover:bg-primary/5'
+                    onClick={() => openConversation(log)}
+                  >
                     <TableCell className='ps-4'>
-                      <span className='text-sm font-medium text-foreground'>{log.client.name}</span>
+                      <span className='text-sm font-medium text-foreground'>
+                        {log.client.name}
+                      </span>
                     </TableCell>
                     <TableCell className='text-sm text-muted-foreground'>
                       {log.worker.name}
                     </TableCell>
                     <TableCell className='text-sm text-muted-foreground'>
-                      {log.last_message
-                        ? <>
-                            <span className='block max-w-xs truncate'>{log.last_message}</span>
-                            <span className='text-xs'>{log.last_message_at ? format(new Date(log.last_message_at), 'MMM d, yyyy h:mm a') : '—'}</span>
-                          </>
-                        : '—'}
+                      {log.last_message ? (
+                        <>
+                          <span className='block max-w-xs truncate'>
+                            {log.last_message}
+                          </span>
+                          <span className='text-xs'>
+                            {log.last_message_at
+                              ? format(
+                                  new Date(log.last_message_at),
+                                  'MMM d, yyyy h:mm a'
+                                )
+                              : '—'}
+                          </span>
+                        </>
+                      ) : (
+                        '—'
+                      )}
                     </TableCell>
                     <TableCell>
-                      <span className='text-sm text-muted-foreground'>{log.messages_count}</span>
+                      <span className='text-sm text-muted-foreground'>
+                        {log.messages_count}
+                      </span>
                     </TableCell>
                     <TableCell>
-                      <span className='text-sm text-muted-foreground'>{log.bookings_count}</span>
+                      <span className='text-sm text-muted-foreground'>
+                        {log.bookings_count}
+                      </span>
                     </TableCell>
                     <TableCell>
-                        <Button
-                          size='sm'
-                          variant='outline'
-                          className='h-7 border-border text-xs text-primary hover:bg-primary/5'
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            openConversation(log)
-                          }}
-                        >
-                          View
-                        </Button>
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        className='h-7 border-border text-xs text-primary hover:bg-primary/5'
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          openConversation(log)
+                        }}
+                      >
+                        View
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}

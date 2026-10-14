@@ -36,7 +36,9 @@ export function useVerification(id: string | number): UseVerificationResult {
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load verification.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load verification.'
+          )
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)

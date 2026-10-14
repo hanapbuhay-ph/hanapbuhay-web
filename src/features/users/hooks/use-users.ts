@@ -1,14 +1,15 @@
 import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
-import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { subscribeToAdminPanel } from '@/lib/realtime'
+import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import {
   type User,
   type RoleFilter,
   type StatusFilter,
   type UserPagination,
 } from '../types'
+
 type VerificationFilter = 'all' | 'verified' | 'unverified'
 
 interface UseUsersResult {
@@ -25,7 +26,7 @@ export function useUsers(
   search = '',
   page = 1,
   verification: VerificationFilter = 'all',
-  barangayId: number | null = null,
+  barangayId: number | null = null
 ): UseUsersResult {
   const debouncedSearch = useDebouncedValue(search)
   const queryClient = useQueryClient()
@@ -50,7 +51,18 @@ export function useUsers(
   params.page = String(page)
 
   const query = useQuery({
-    queryKey: ['admin', 'users', { roleFilter, statusFilter, search: debouncedSearch, page, verification, params }],
+    queryKey: [
+      'admin',
+      'users',
+      {
+        roleFilter,
+        statusFilter,
+        search: debouncedSearch,
+        page,
+        verification,
+        params,
+      },
+    ],
     queryFn: async () => {
       const res = await api.get('/admin/users', { params })
       return res.data.data as {
@@ -68,7 +80,12 @@ export function useUsers(
     data: query.data?.users ?? [],
     pagination: query.data?.pagination ?? null,
     isLoading: query.isLoading,
-    error: query.error instanceof Error ? query.error.message : query.error ? 'Failed to load users.' : null,
+    error:
+      query.error instanceof Error
+        ? query.error.message
+        : query.error
+          ? 'Failed to load users.'
+          : null,
     refetch: () => query.refetch(),
   }
 }

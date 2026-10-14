@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -60,8 +60,7 @@ export function SuspendDialog({
             htmlFor='suspend-reason'
             className='text-sm font-semibold text-foreground'
           >
-            Reason for suspension{' '}
-            <span className='text-destructive'>*</span>
+            Reason for suspension <span className='text-destructive'>*</span>
           </Label>
           <Textarea
             id='suspend-reason'

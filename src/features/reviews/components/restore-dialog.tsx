@@ -1,4 +1,5 @@
 ﻿import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -7,7 +8,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 
 interface RestoreReviewDialogProps {
   open: boolean
@@ -31,7 +31,9 @@ export function RestoreReviewDialog({
           <DialogTitle className='text-foreground'>Restore Review</DialogTitle>
           <DialogDescription>
             You are restoring the review from{' '}
-            <span className='font-semibold text-foreground'>{reviewerName}</span>
+            <span className='font-semibold text-foreground'>
+              {reviewerName}
+            </span>
             . It will become visible to users again.
           </DialogDescription>
         </DialogHeader>

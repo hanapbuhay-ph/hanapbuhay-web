@@ -218,7 +218,9 @@ export function LoginForm() {
 
       window.google.accounts.id.initialize({
         client_id: clientId,
-        callback: handleGoogleCredential as (r: GoogleCredentialResponse) => void,
+        callback: handleGoogleCredential as (
+          r: GoogleCredentialResponse
+        ) => void,
       })
       googleButtonRef.current.replaceChildren()
       window.google.accounts.id.renderButton(googleButtonRef.current, {

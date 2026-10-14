@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -8,9 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -18,10 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  type ResolutionAction,
-  RESOLUTION_ACTION_LABELS,
-} from '../types'
+import { Textarea } from '@/components/ui/textarea'
+import { type ResolutionAction, RESOLUTION_ACTION_LABELS } from '../types'
 
 interface ResolveDialogProps {
   open: boolean
@@ -130,7 +127,9 @@ export function ResolveDialog({
             Cancel
           </Button>
           <Button
-            onClick={() => isValid && onConfirm(action as ResolutionAction, remarks.trim())}
+            onClick={() =>
+              isValid && onConfirm(action as ResolutionAction, remarks.trim())
+            }
             disabled={isSubmitting || !isValid}
             className='bg-primary text-white hover:bg-primary/90'
           >

@@ -29,14 +29,14 @@ export function ServiceCategoryCard({
   return (
     <Card
       className={
-        category.is_active
-          ? 'flex flex-col'
-          : 'flex flex-col opacity-60'
+        category.is_active ? 'flex flex-col' : 'flex flex-col opacity-60'
       }
     >
       <CardHeader className='pb-2'>
         <div className='flex items-start justify-between gap-2'>
-          <CardTitle className='text-base leading-snug'>{category.name}</CardTitle>
+          <CardTitle className='text-base leading-snug'>
+            {category.name}
+          </CardTitle>
           <Badge
             variant={category.is_active ? 'default' : 'secondary'}
             className={
@@ -51,7 +51,7 @@ export function ServiceCategoryCard({
       </CardHeader>
 
       <CardContent className='flex-1 pb-4'>
-        <p className='text-sm text-muted-foreground leading-relaxed'>
+        <p className='text-sm leading-relaxed text-muted-foreground'>
           {category.description}
         </p>
       </CardContent>

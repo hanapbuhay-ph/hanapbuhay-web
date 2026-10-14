@@ -37,7 +37,9 @@ export function ServiceCategoryDialog({
   onConfirm,
 }: ServiceCategoryDialogProps) {
   const [form, setForm] = useState<ServiceCategoryPayload>(EMPTY)
-  const [errors, setErrors] = useState<Partial<Record<keyof ServiceCategoryPayload, string>>>({})
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof ServiceCategoryPayload, string>>
+  >({})
 
   const isEditing = !!category
 
@@ -46,7 +48,11 @@ export function ServiceCategoryDialog({
     if (open) {
       setForm(
         category
-          ? { name: category.name, description: category.description, is_active: category.is_active }
+          ? {
+              name: category.name,
+              description: category.description,
+              is_active: category.is_active,
+            }
           : EMPTY
       )
       setErrors({})
@@ -63,7 +69,11 @@ export function ServiceCategoryDialog({
 
   function handleSubmit() {
     if (!validate()) return
-    onConfirm({ name: form.name.trim(), description: form.description.trim(), is_active: form.is_active })
+    onConfirm({
+      name: form.name.trim(),
+      description: form.description.trim(),
+      is_active: form.is_active,
+    })
   }
 
   return (

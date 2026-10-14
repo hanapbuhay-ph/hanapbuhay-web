@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
 import { format } from 'date-fns'
+import { useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeft,
   Hash,
@@ -15,18 +15,18 @@ import {
   Ban,
   CalendarClock,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useBooking } from './hooks/use-booking'
-import { useBookingAction } from './hooks/use-booking-action'
+import { AdminRescheduleDialog } from './components/admin-reschedule-dialog'
 import { BookingStatusBadge } from './components/booking-status-badge'
 import { ForceCancelDialog } from './components/force-cancel-dialog'
-import { AdminRescheduleDialog } from './components/admin-reschedule-dialog'
+import { useBooking } from './hooks/use-booking'
+import { useBookingAction } from './hooks/use-booking-action'
 import { CANCELLABLE_STATUSES } from './types'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
   function handleForceCancelConfirm(reason: string) {
     if (!data) return
     forceCancel(data.id, reason, (updated) => {
-      setData((prev) => prev ? { ...prev, ...updated } : prev)
+      setData((prev) => (prev ? { ...prev, ...updated } : prev))
       setShowCancel(false)
     })
   }
@@ -59,7 +59,7 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
   function handleRescheduleConfirm(scheduledAt: string) {
     if (!data) return
     reschedule(data.id, scheduledAt, (updated) => {
-      setData((prev) => prev ? { ...prev, ...updated } : prev)
+      setData((prev) => (prev ? { ...prev, ...updated } : prev))
       setShowReschedule(false)
     })
   }
@@ -150,36 +150,57 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
                   icon={Clock}
                   label={`Created: ${format(new Date(data.created_at), 'MMMM d, yyyy')}`}
                 />
-                <InfoRow
-                  icon={Hash}
-                  label={`Booking ID: ${data.id}`}
-                />
+                <InfoRow icon={Hash} label={`Booking ID: ${data.id}`} />
                 {/* Notes — only rendered when present */}
                 {data.notes && (
                   <InfoRow icon={FileText} label={`Notes: ${data.notes}`} />
                 )}
                 {data.client.email && (
-                  <InfoRow icon={User} label={`Client email: ${data.client.email}`} />
+                  <InfoRow
+                    icon={User}
+                    label={`Client email: ${data.client.email}`}
+                  />
                 )}
                 {data.client.mobile_number && (
-                  <InfoRow icon={User} label={`Client mobile: ${data.client.mobile_number}`} />
+                  <InfoRow
+                    icon={User}
+                    label={`Client mobile: ${data.client.mobile_number}`}
+                  />
                 )}
                 {data.client.barangay && (
-                  <InfoRow icon={User} label={`Client barangay: ${data.client.barangay}`} />
+                  <InfoRow
+                    icon={User}
+                    label={`Client barangay: ${data.client.barangay}`}
+                  />
                 )}
                 {data.worker.email && (
-                  <InfoRow icon={HardHat} label={`Worker email: ${data.worker.email}`} />
+                  <InfoRow
+                    icon={HardHat}
+                    label={`Worker email: ${data.worker.email}`}
+                  />
                 )}
                 {data.worker.mobile_number && (
-                  <InfoRow icon={HardHat} label={`Worker mobile: ${data.worker.mobile_number}`} />
+                  <InfoRow
+                    icon={HardHat}
+                    label={`Worker mobile: ${data.worker.mobile_number}`}
+                  />
                 )}
                 {data.worker.barangay && (
-                  <InfoRow icon={HardHat} label={`Worker barangay: ${data.worker.barangay}`} />
+                  <InfoRow
+                    icon={HardHat}
+                    label={`Worker barangay: ${data.worker.barangay}`}
+                  />
                 )}
                 {data.job_post && (
-                  <InfoRow icon={Wrench} label={`Job post: ${data.job_post.title}`} />
+                  <InfoRow
+                    icon={Wrench}
+                    label={`Job post: ${data.job_post.title}`}
+                  />
                 )}
-                <InfoRow icon={FileText} label={`Messages: ${data.messages_count ?? 0} · Reports: ${data.reports_count ?? 0} · Tracking points: ${data.tracking_points_count ?? 0}`} />
+                <InfoRow
+                  icon={FileText}
+                  label={`Messages: ${data.messages_count ?? 0} · Reports: ${data.reports_count ?? 0} · Tracking points: ${data.tracking_points_count ?? 0}`}
+                />
               </CardContent>
             </Card>
 

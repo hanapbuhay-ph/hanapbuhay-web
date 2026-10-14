@@ -47,7 +47,9 @@ export function useVerifications(
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load verifications.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load verifications.'
+          )
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)
