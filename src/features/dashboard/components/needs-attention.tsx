@@ -115,7 +115,9 @@ export function NeedsAttention({ data, isLoading }: NeedsAttentionProps) {
             <div className='flex h-12 w-12 items-center justify-center rounded-full bg-primary/10'>
               <CheckCircle2 className='h-6 w-6 text-primary' />
             </div>
-            <p className='text-sm font-medium text-foreground'>All caught up!</p>
+            <p className='text-sm font-medium text-foreground'>
+              All caught up!
+            </p>
             <p className='max-w-xs text-xs text-muted-foreground'>
               Nothing needs your attention right now.
             </p>
@@ -158,7 +160,7 @@ export function NeedsAttention({ data, isLoading }: NeedsAttentionProps) {
                   <div className='flex shrink-0 items-center gap-3'>
                     <span
                       className={[
-                        'min-w-[1.75rem] text-right text-lg font-bold leading-none',
+                        'min-w-[1.75rem] text-right text-lg leading-none font-bold',
                         failed
                           ? 'text-muted-foreground'
                           : hasItems
@@ -171,7 +173,13 @@ export function NeedsAttention({ data, isLoading }: NeedsAttentionProps) {
 
                     {hasItems && (
                       <Link
-                        to={href as '/verifications' | '/reports' | '/reviews' | '/users'}
+                        to={
+                          href as
+                            | '/verifications'
+                            | '/reports'
+                            | '/reviews'
+                            | '/users'
+                        }
                         className='inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary/5'
                         aria-label={`Review ${label}`}
                       >

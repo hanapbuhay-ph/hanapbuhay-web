@@ -1,21 +1,26 @@
 // Real API: POST /admin/deletion-requests/{id}/process
 //   No request body — irreversible anonymisation + soft-delete
 //   response: { success, message }
-
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { AxiosError } from 'axios'
+import { toast } from 'sonner'
 import { api } from '@/lib/api'
 
 interface UseDeletionRequestActionResult {
   isSubmitting: boolean
-  processDeletion: (userId: string | number, onSuccess: () => void) => Promise<void>
+  processDeletion: (
+    userId: string | number,
+    onSuccess: () => void
+  ) => Promise<void>
 }
 
 export function useDeletionRequestAction(): UseDeletionRequestActionResult {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  async function processDeletion(userId: string | number, onSuccess: () => void) {
+  async function processDeletion(
+    userId: string | number,
+    onSuccess: () => void
+  ) {
     setIsSubmitting(true)
     try {
       const res = await api.post(`/admin/deletion-requests/${userId}/process`)

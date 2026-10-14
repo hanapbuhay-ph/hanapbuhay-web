@@ -1,6 +1,10 @@
 import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { type ChatMessage, type ChatPagination, type ThreadResponse } from '../types'
+import {
+  type ChatMessage,
+  type ChatPagination,
+  type ThreadResponse,
+} from '../types'
 
 interface UseChatLogResult {
   data: ChatMessage[]
@@ -11,9 +15,15 @@ interface UseChatLogResult {
   refetch: () => void
 }
 
-export function useChatLog(clientId: number, workerId: number, page = 1): UseChatLogResult {
+export function useChatLog(
+  clientId: number,
+  workerId: number,
+  page = 1
+): UseChatLogResult {
   const [data, setData] = useState<ChatMessage[]>([])
-  const [conversation, setConversation] = useState<ThreadResponse['conversation'] | null>(null)
+  const [conversation, setConversation] = useState<
+    ThreadResponse['conversation'] | null
+  >(null)
   const [pagination, setPagination] = useState<ChatPagination | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -40,12 +50,25 @@ export function useChatLog(clientId: number, workerId: number, page = 1): UseCha
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load chat log.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load chat log.'
+          )
       })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [clientId, workerId, page, tick])
 
-  return { data, conversation, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return {
+    data,
+    conversation,
+    pagination,
+    isLoading,
+    error,
+    refetch: () => setTick((t) => t + 1),
+  }
 }

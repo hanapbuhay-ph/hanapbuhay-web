@@ -77,7 +77,11 @@ export function ServiceCategoryDialog({
 
   function handleSubmit() {
     if (!validate()) return
-    onConfirm({ name: form.name.trim(), description: form.description.trim(), is_active: form.is_active })
+    onConfirm({
+      name: form.name.trim(),
+      description: form.description.trim(),
+      is_active: form.is_active,
+    })
   }
 
   return (

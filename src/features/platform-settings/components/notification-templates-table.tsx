@@ -23,7 +23,7 @@ const CHANNEL_CLASSES: Record<NotificationChannel, string> = {
 function ChannelBadge({ channel }: { channel: NotificationChannel }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium uppercase tracking-wide ${CHANNEL_CLASSES[channel]}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium tracking-wide uppercase ${CHANNEL_CLASSES[channel]}`}
     >
       {channel}
     </span>
@@ -101,7 +101,7 @@ export function NotificationTemplatesTable({
             >
               {/* Key — read-only monospace */}
               <TableCell>
-                <code className='rounded bg-muted px-1.5 py-0.5 text-xs font-mono'>
+                <code className='rounded bg-muted px-1.5 py-0.5 font-mono text-xs'>
                   {template.key}
                 </code>
               </TableCell>
@@ -138,7 +138,7 @@ export function NotificationTemplatesTable({
                       : ''
                   }
                 >
-                  {template.is_active ?? true ? 'Active' : 'Inactive'}
+                  {(template.is_active ?? true) ? 'Active' : 'Inactive'}
                 </Badge>
               </TableCell>
 

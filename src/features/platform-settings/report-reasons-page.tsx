@@ -1,16 +1,16 @@
-import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
-import { ArrowLeft, Plus } from 'lucide-react'
+import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
+import { ArrowLeft, Plus } from 'lucide-react'
+import { api } from '@/lib/api'
+import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { Button } from '@/components/ui/button'
-import { api } from '@/lib/api'
-import { useReportReasonAction } from './hooks/use-report-reason-action'
 import { ReportReasonDialog } from './components/report-reason-dialog'
 import { ReportReasonsTable } from './components/report-reasons-table'
+import { useReportReasonAction } from './hooks/use-report-reason-action'
 import { type ReportReason, type ReportReasonPayload } from './types'
 
 export function ReportReasonsPage() {
@@ -111,11 +111,22 @@ export function ReportReasonsPage() {
               Report Reason Categories
             </h1>
             <p className='mt-1 text-sm text-muted-foreground'>
-              Manage the predefined reasons users can select when filing a report.
+              Manage the predefined reasons users can select when filing a
+              report.
             </p>
             <div className='mt-4 flex gap-2'>
-              <Button variant={audience === 'client' ? 'default' : 'outline'} onClick={() => setAudience('client')}>Client Reports</Button>
-              <Button variant={audience === 'worker' ? 'default' : 'outline'} onClick={() => setAudience('worker')}>Worker Reports</Button>
+              <Button
+                variant={audience === 'client' ? 'default' : 'outline'}
+                onClick={() => setAudience('client')}
+              >
+                Client Reports
+              </Button>
+              <Button
+                variant={audience === 'worker' ? 'default' : 'outline'}
+                onClick={() => setAudience('worker')}
+              >
+                Worker Reports
+              </Button>
             </div>
           </div>
 

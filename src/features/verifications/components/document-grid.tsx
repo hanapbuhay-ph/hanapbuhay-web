@@ -42,11 +42,16 @@ export function DocumentGrid({ documents }: DocumentGridProps) {
       </div>
 
       {/* Lightbox */}
-      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+      <Dialog
+        open={!!selected}
+        onOpenChange={(open) => !open && setSelected(null)}
+      >
         <DialogContent className='max-w-2xl rounded-2xl border-border bg-card p-4'>
           <DialogHeader>
             <DialogTitle className='text-sm font-semibold text-foreground'>
-              {selected ? (DOCUMENT_LABELS[selected.type] ?? selected.type) : ''}
+              {selected
+                ? (DOCUMENT_LABELS[selected.type] ?? selected.type)
+                : ''}
             </DialogTitle>
           </DialogHeader>
           {selected && (

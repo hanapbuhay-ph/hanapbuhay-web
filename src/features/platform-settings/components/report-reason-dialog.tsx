@@ -47,11 +47,12 @@ export function ReportReasonDialog({
     Partial<Record<keyof ReportReasonPayload, string>>
   >({})
 
-  const generatedCode = form.label
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '') || 'other'
+  const generatedCode =
+    form.label
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'other'
 
   // Pre-fill whenever the dialog opens
   useEffect(() => {
@@ -113,7 +114,12 @@ export function ReportReasonDialog({
             <Label>Applies to</Label>
             <div className='flex gap-2'>
               {(['client', 'worker'] as const).map((value) => (
-                <Button key={value} type='button' variant={form.audience === value ? 'default' : 'outline'} onClick={() => setForm((f) => ({ ...f, audience: value }))}>
+                <Button
+                  key={value}
+                  type='button'
+                  variant={form.audience === value ? 'default' : 'outline'}
+                  onClick={() => setForm((f) => ({ ...f, audience: value }))}
+                >
                   {value === 'client' ? 'Client reports' : 'Worker reports'}
                 </Button>
               ))}

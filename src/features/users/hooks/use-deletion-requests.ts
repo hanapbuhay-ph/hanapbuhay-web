@@ -1,7 +1,6 @@
 // Real API: GET /admin/deletion-requests
 //   response: { success, data: { users: DeletionUser[], pagination } }
 //   No status filter — endpoint always returns users with pending deletion_requested_at
-
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { type DeletionUser } from '../types'
@@ -57,7 +56,9 @@ export function useDeletionRequests(): UseDeletionRequestsResult {
         if (!cancelled) setLoadedTick(tick)
       })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [tick])
 
   return {

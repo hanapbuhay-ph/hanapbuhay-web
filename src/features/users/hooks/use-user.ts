@@ -35,14 +35,17 @@ export function useUser(id: string): UseUserResult {
         if (!cancelled)
           setRequestError({
             key: requestKey,
-            message: err instanceof Error ? err.message : 'Failed to load user.',
+            message:
+              err instanceof Error ? err.message : 'Failed to load user.',
           })
       })
       .finally(() => {
         if (!cancelled) setLoadedRequestKey(requestKey)
       })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [id, requestKey])
 
   return {

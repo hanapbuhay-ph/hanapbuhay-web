@@ -25,14 +25,14 @@ interface RawSettings {
 }
 
 const REASON_LABELS: Record<string, string> = {
-  no_show:              'No Show',
-  unsatisfactory_work:  'Unsatisfactory Work',
-  misconduct:           'Misconduct',
-  non_payment:          'Non-Payment',
-  unsafe_environment:   'Unsafe Environment',
-  abusive_behavior:     'Abusive Behavior',
-  false_information:    'False Information',
-  other:                'Other',
+  no_show: 'No Show',
+  unsatisfactory_work: 'Unsatisfactory Work',
+  misconduct: 'Misconduct',
+  non_payment: 'Non-Payment',
+  unsafe_environment: 'Unsafe Environment',
+  abusive_behavior: 'Abusive Behavior',
+  false_information: 'False Information',
+  other: 'Other',
 }
 
 function normalise(raw: RawSettings): PlatformSettings {
@@ -70,10 +70,10 @@ function normalise(raw: RawSettings): PlatformSettings {
   }))
 
   return {
-    service_categories:     raw.service_categories,
+    service_categories: raw.service_categories,
     report_reasons,
     notification_templates,
-    active_announcement:    raw.active_announcement,
+    active_announcement: raw.active_announcement,
   }
 }
 
@@ -97,14 +97,22 @@ export function useSettings(): UseSettingsResult {
 
     api
       .get<{ success: boolean; data: RawSettings }>('/admin/settings')
-      .then((res) => { if (!cancelled) setData(normalise(res.data.data)) })
+      .then((res) => {
+        if (!cancelled) setData(normalise(res.data.data))
+      })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load settings.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load settings.'
+          )
       })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [tick])
 
   return { data, isLoading, error, refetch: () => setTick((t) => t + 1) }

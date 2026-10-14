@@ -4,7 +4,11 @@ import { api } from '@/lib/api'
 
 interface UseReviewActionResult {
   isSubmitting: boolean
-  removeRating: (id: number, reason: string, onSuccess: () => void) => Promise<void>
+  removeRating: (
+    id: number,
+    reason: string,
+    onSuccess: () => void
+  ) => Promise<void>
 }
 
 export function useReviewAction(): UseReviewActionResult {
@@ -21,7 +25,9 @@ export function useReviewAction(): UseReviewActionResult {
         onSuccess()
       } catch (err) {
         const msg =
-          err instanceof Error ? err.message : 'Action failed. Please try again.'
+          err instanceof Error
+            ? err.message
+            : 'Action failed. Please try again.'
         toast.error(msg)
       } finally {
         setIsSubmitting(false)

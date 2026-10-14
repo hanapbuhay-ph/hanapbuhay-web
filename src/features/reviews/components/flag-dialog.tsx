@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -45,7 +45,9 @@ export function FlagReviewDialog({
           <DialogTitle className='text-foreground'>Flag Review</DialogTitle>
           <DialogDescription>
             You are flagging the review from{' '}
-            <span className='font-semibold text-foreground'>{reviewerName}</span>
+            <span className='font-semibold text-foreground'>
+              {reviewerName}
+            </span>
             . This review will be hidden from users and marked for admin review.
           </DialogDescription>
         </DialogHeader>

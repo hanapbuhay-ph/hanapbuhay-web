@@ -25,15 +25,29 @@ export function useReport(id: string): UseReportResult {
 
     api
       .get<{ success: boolean; data: Report }>(`/admin/reports/${id}`)
-      .then((res) => { if (!cancelled) setData(res.data.data) })
+      .then((res) => {
+        if (!cancelled) setData(res.data.data)
+      })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load report.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load report.'
+          )
       })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [id, tick])
 
-  return { data, isLoading, error, refetch: () => setTick((t) => t + 1), setData }
+  return {
+    data,
+    isLoading,
+    error,
+    refetch: () => setTick((t) => t + 1),
+    setData,
+  }
 }
