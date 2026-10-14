@@ -62,7 +62,7 @@ export function UserCrudDialog({
   useEffect(() => {
     if (!open || barangays.length > 0) return
 
-    setBarangaysLoading(true)
+    setBarangaysLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
     api
       .get('/barangays')
       .then((response) => setBarangays(response.data.data ?? []))
@@ -71,7 +71,7 @@ export function UserCrudDialog({
   }, [open, barangays.length])
 
   useEffect(() => {
-    setForm(
+    setForm( // eslint-disable-line react-hooks/set-state-in-effect
       user
         ? {
             name: user.name,

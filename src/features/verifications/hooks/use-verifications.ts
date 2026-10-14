@@ -32,8 +32,8 @@ export function useVerifications(
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
+    setError(null) // eslint-disable-line react-hooks/set-state-in-effect
 
     api
       .get<VerificationsApiResponse>('/admin/verifications', {

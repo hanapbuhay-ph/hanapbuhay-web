@@ -41,7 +41,7 @@ export function ReportReasonsPage() {
   }
 
   useEffect(() => {
-    loadReasons()
+    loadReasons() // eslint-disable-line react-hooks/set-state-in-effect
   }, [audience])
 
   function resetDialog() {

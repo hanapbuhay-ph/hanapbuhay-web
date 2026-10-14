@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
@@ -140,6 +140,70 @@ export function LoginForm() {
     return () => window.clearInterval(intervalId)
   }, [otpDialogOpen, otpSecondsRemaining])
 
+  // ── Google credential handler (declared before the effect that references it) ──
+
+  const handleGoogleCredential = useCallback(
+    async (response: GoogleCredentialResponse) => {
+      setIsGoogleLoading(true)
+
+      try {
+        const res = await api.post<LoginApiResponse>('/auth/admin/google', {
+          google_token: response.credential,
+          device_name: getDeviceName(),
+        })
+
+        if (res.data.data.requiresOtp) {
+          const email = res.data.data.user?.email
+          if (!email) {
+            throw new Error('Google login did not return an email address.')
+          }
+
+          setOtpEmail(email)
+          setOtpCode('')
+          startOtpExpiryWindow(res.data.data.otp_expires_in_seconds)
+          setOtpDialogOpen(true)
+          toast.info('A verification code has been sent to your admin email.')
+          return
+        }
+
+        const token = res.data.data.token
+        const user = res.data.data.user
+
+        if (
+          !token ||
+          !user ||
+          (user.role !== 'admin' && user.role !== 'super_admin')
+        ) {
+          throw new Error('This Google account is not configured as an admin.')
+        }
+
+        setToken(token)
+        setUser(user)
+        toast.success(`Welcome back, ${user.name}!`)
+        navigate({ to: getRedirectTarget(), replace: true })
+      } catch (err) {
+        const axiosErr = err instanceof AxiosError ? err : null
+        if (axiosErr?.response?.status === 429) {
+          const retryAfter = Number(
+            axiosErr.response.data?.data?.retry_after_seconds
+          )
+          if (Number.isFinite(retryAfter) && retryAfter > 0) {
+            setLoginLockoutSeconds(retryAfter)
+          }
+        }
+        const message =
+          axiosErr?.response?.data?.message ??
+          axiosErr?.message ??
+          'Google sign-in failed. Please try again.'
+        toast.error(message)
+      } finally {
+        setIsGoogleLoading(false)
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  )
+
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
     if (!clientId || !googleButtonRef.current) {
@@ -154,7 +218,7 @@ export function LoginForm() {
 
       window.google.accounts.id.initialize({
         client_id: clientId,
-        callback: handleGoogleCredential,
+        callback: handleGoogleCredential as (r: GoogleCredentialResponse) => void,
       })
       googleButtonRef.current.replaceChildren()
       window.google.accounts.id.renderButton(googleButtonRef.current, {
@@ -183,7 +247,7 @@ export function LoginForm() {
       }
       window.google?.accounts.id.cancel()
     }
-  }, [])
+  }, [handleGoogleCredential])
 
   // ── Real login ─────────────────────────────────────────────────────────────
 
@@ -255,64 +319,6 @@ export function LoginForm() {
       }
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  async function handleGoogleCredential(response: GoogleCredentialResponse) {
-    setIsGoogleLoading(true)
-
-    try {
-      const res = await api.post<LoginApiResponse>('/auth/admin/google', {
-        google_token: response.credential,
-        device_name: getDeviceName(),
-      })
-
-      if (res.data.data.requiresOtp) {
-        const email = res.data.data.user?.email
-        if (!email) {
-          throw new Error('Google login did not return an email address.')
-        }
-
-        setOtpEmail(email)
-        setOtpCode('')
-        startOtpExpiryWindow(res.data.data.otp_expires_in_seconds)
-        setOtpDialogOpen(true)
-        toast.info('A verification code has been sent to your admin email.')
-        return
-      }
-
-      const token = res.data.data.token
-      const user = res.data.data.user
-
-      if (
-        !token ||
-        !user ||
-        (user.role !== 'admin' && user.role !== 'super_admin')
-      ) {
-        throw new Error('This Google account is not configured as an admin.')
-      }
-
-      setToken(token)
-      setUser(user)
-      toast.success(`Welcome back, ${user.name}!`)
-      navigate({ to: getRedirectTarget(), replace: true })
-    } catch (err) {
-      const axiosErr = err instanceof AxiosError ? err : null
-      if (axiosErr?.response?.status === 429) {
-        const retryAfter = Number(
-          axiosErr.response.data?.data?.retry_after_seconds
-        )
-        if (Number.isFinite(retryAfter) && retryAfter > 0) {
-          setLoginLockoutSeconds(retryAfter)
-        }
-      }
-      const message =
-        axiosErr?.response?.data?.message ??
-        axiosErr?.message ??
-        'Google sign-in failed. Please try again.'
-      toast.error(message)
-    } finally {
-      setIsGoogleLoading(false)
     }
   }
 

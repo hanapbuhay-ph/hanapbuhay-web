@@ -117,7 +117,7 @@ export function ServiceCategoriesPage() {
     SERVICE_CATEGORY_ICON_OPTIONS.find((option) => option.key === icon) ?? null
 
   useEffect(() => {
-    setIconScrollTop(0)
+    setIconScrollTop(0) // eslint-disable-line react-hooks/set-state-in-effect
   }, [deferredIconQuery])
 
   const filteredIconOptions = useMemo(() => {

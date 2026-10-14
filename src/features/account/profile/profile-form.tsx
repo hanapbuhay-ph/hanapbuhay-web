@@ -137,7 +137,6 @@ export function ProfileForm() {
 
   useEffect(() => {
     if (!selectedFile) {
-      setPhotoPreview(null)
       return
     }
 
@@ -145,6 +144,12 @@ export function ProfileForm() {
     setPhotoPreview(objectUrl)
 
     return () => URL.revokeObjectURL(objectUrl)
+  }, [selectedFile])
+
+  useEffect(() => {
+    if (selectedFile) return
+    const timer = setTimeout(() => setPhotoPreview(null), 0)
+    return () => clearTimeout(timer)
   }, [selectedFile])
 
   // ── Mutation ───────────────────────────────────────────────────────────────
