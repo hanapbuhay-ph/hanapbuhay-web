@@ -193,7 +193,7 @@ export function LoginForm() {
   async function onSubmit(data: FormValues) {
     setIsLoading(true)
     try {
-      const res = await api.post<LoginApiResponse>('/auth/login', {
+      const res = await api.post<LoginApiResponse>('/auth/admin/login', {
         email: data.email,
         password: data.password,
         device_name: getDeviceName(),
@@ -249,10 +249,9 @@ export function LoginForm() {
     setIsGoogleLoading(true)
 
     try {
-      const res = await api.post<LoginApiResponse>('/auth/google', {
+      const res = await api.post<LoginApiResponse>('/auth/admin/google', {
         google_token: response.credential,
         device_name: getDeviceName(),
-        admin_only: true,
       })
 
       if (res.data.data.requiresOtp) {
@@ -309,7 +308,7 @@ export function LoginForm() {
     setIsVerifyingOtp(true)
 
     try {
-      const res = await api.post<LoginApiResponse>('/auth/login/verify-otp', {
+      const res = await api.post<LoginApiResponse>('/auth/admin/login/verify-otp', {
         email: otpEmail,
         code: otpCode,
         device_name: getDeviceName(),
@@ -349,7 +348,7 @@ export function LoginForm() {
     setIsResendingOtp(true)
 
     try {
-      await api.post('/auth/login/resend-otp', { email: otpEmail })
+      await api.post('/auth/admin/login/resend-otp', { email: otpEmail })
       setOtpCode('')
       setOtpExpired(false)
       startOtpExpiryWindow()

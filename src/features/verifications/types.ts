@@ -7,6 +7,8 @@ export type VerificationStatus =
 export type TrustTier = 'verified' | 'trusted' | 'flagged' | 'revoked'
 
 export type DocumentType =
+  | 'government_id_front'
+  | 'government_id_back'
   | 'government_id'
   | 'barangay_certificate'
   | 'selfie_with_id'
@@ -50,6 +52,8 @@ export interface Verification {
 }
 
 export const DOCUMENT_LABELS: Record<DocumentType, string> = {
+  government_id_front: 'Government ID (Front)',
+  government_id_back: 'Government ID (Back)',
   government_id: 'Government ID',
   barangay_certificate: 'Barangay Certificate',
   selfie_with_id: 'Selfie with ID',
