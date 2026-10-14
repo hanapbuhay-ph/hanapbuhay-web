@@ -51,8 +51,8 @@ export function AnnouncementsPage() {
   }
 
   useEffect(() => {
-    void loadAnnouncements()
-  }, []) // eslint-disable-line react-hooks/set-state-in-effect
+    void loadAnnouncements() // eslint-disable-line react-hooks/set-state-in-effect
+  }, [])
 
   async function handleSaveAnnouncement(payload: AnnouncementPayload) {
     const done = async () => {

@@ -137,19 +137,14 @@ export function ProfileForm() {
 
   useEffect(() => {
     if (!selectedFile) {
+      setPhotoPreview(null) // eslint-disable-line react-hooks/set-state-in-effect
       return
     }
 
     const objectUrl = URL.createObjectURL(selectedFile)
-    setPhotoPreview(objectUrl)
+    setPhotoPreview(objectUrl) // eslint-disable-line react-hooks/set-state-in-effect
 
     return () => URL.revokeObjectURL(objectUrl)
-  }, [selectedFile])
-
-  useEffect(() => {
-    if (selectedFile) return
-    const timer = setTimeout(() => setPhotoPreview(null), 0)
-    return () => clearTimeout(timer)
   }, [selectedFile])
 
   // ── Mutation ───────────────────────────────────────────────────────────────
