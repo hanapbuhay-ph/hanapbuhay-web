@@ -50,7 +50,15 @@ interface UserProfile {
 const profileSchema = z.object({
   name: z.string().min(1, 'Name is required.'),
   email: z.string().trim().email('Please enter a valid email address.'),
-  mobile_number: z.string().optional(),
+  mobile_number: z
+    .string()
+    .optional()
+    .refine(
+      (value) =>
+        !value ||
+        /^(09\d{9}|\+639\d{9})$/.test(value.replace(/[\s()-]/g, '')),
+      'Enter a Philippine mobile number, e.g. 0917 123 4567.'
+    ),
 })
 
 type ProfileValues = z.infer<typeof profileSchema>
@@ -334,8 +342,17 @@ export function ProfileForm() {
               <FormItem>
                 <FormLabel>Mobile Number</FormLabel>
                 <FormControl>
-                  <Input placeholder='09171234567' {...field} />
+                  <Input
+                    type='tel'
+                    inputMode='tel'
+                    placeholder='0917 123 4567'
+                    aria-describedby='profile-mobile-help'
+                    {...field}
+                  />
                 </FormControl>
+                <FormDescription id='profile-mobile-help'>
+                  Use an 11-digit Philippine mobile number starting with 09.
+                </FormDescription>
                 <FormMessage />
               </FormItem>
             )}

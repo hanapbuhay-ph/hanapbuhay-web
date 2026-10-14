@@ -57,6 +57,7 @@ export function UserCrudDialog({
   const [barangaysLoading, setBarangaysLoading] = useState(false)
   const [barangayError, setBarangayError] = useState<string | null>(null)
   const isEdit = user !== null
+  const canAssignAdminRole = !isEdit || user.role === 'admin' || user.role === 'super_admin'
 
   useEffect(() => {
     if (!open || barangays.length > 0) return
@@ -119,15 +120,33 @@ export function UserCrudDialog({
           <div className='grid gap-2 sm:grid-cols-2 sm:gap-3'>
             <div className='grid gap-2'>
               <Label htmlFor='user-mobile'>Mobile number</Label>
-              <Input id='user-mobile' required={!isEdit} value={form.mobile_number ?? ''} onChange={(event) => updateField('mobile_number', event.target.value)} />
+              <Input
+                id='user-mobile'
+                type='tel'
+                inputMode='tel'
+                placeholder='0917 123 4567'
+                pattern='(09[0-9]{2}[ -]?[0-9]{3}[ -]?[0-9]{4}|[+]63[ -]?9[0-9]{2}[ -]?[0-9]{3}[ -]?[0-9]{4})'
+                title='Enter a Philippine mobile number, e.g. 0917 123 4567.'
+                required={!isEdit}
+                value={form.mobile_number ?? ''}
+                onChange={(event) => updateField('mobile_number', event.target.value)}
+              />
+              <p className='text-xs text-muted-foreground'>
+                Enter an 11-digit Philippine mobile number starting with 09.
+              </p>
             </div>
             <div className='grid gap-2'>
               <Label htmlFor='user-role'>Role</Label>
               <select id='user-role' className='h-10 rounded-md border border-input bg-background px-3 text-sm' value={form.role} onChange={(event) => updateField('role', event.target.value as User['role'])}>
                 <option value='client'>Client</option>
                 <option value='worker'>Worker</option>
-                <option value='admin'>Admin</option>
+                <option value='admin' disabled={!canAssignAdminRole}>Admin</option>
               </select>
+              {isEdit && !canAssignAdminRole && (
+                <p className='text-xs text-muted-foreground'>
+                  Client and worker accounts cannot be changed to Admin.
+                </p>
+              )}
             </div>
           </div>
           <div className='grid gap-2'>
