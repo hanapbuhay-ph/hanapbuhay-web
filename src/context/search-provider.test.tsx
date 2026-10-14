@@ -125,9 +125,7 @@ describe('SearchProvider and CommandMenu', () => {
 
     await openCommandPalette(screen)
 
-    await userEvent.click(
-      getByRole('option', { name: 'Platform Settings' })
-    )
+    await userEvent.click(getByRole('option', { name: 'Platform Settings' }))
 
     expect(mocks.navigate).toHaveBeenCalledWith({ to: '/platform-settings' })
     await expect
