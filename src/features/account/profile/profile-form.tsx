@@ -142,7 +142,7 @@ export function ProfileForm() {
     }
 
     const objectUrl = URL.createObjectURL(selectedFile)
-    setPhotoPreview(objectUrl) // eslint-disable-line react-hooks/set-state-in-effect
+    setPhotoPreview(objectUrl)
 
     return () => URL.revokeObjectURL(objectUrl)
   }, [selectedFile])

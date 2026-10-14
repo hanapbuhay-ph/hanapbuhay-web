@@ -18,8 +18,8 @@ export function useUser(id: string): UseUserResult {
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
-    setError(null) // eslint-disable-line react-hooks/set-state-in-effect
+    setIsLoading(true)
+    setError(null)
 
     api
       .get(`/admin/users/${id}`)

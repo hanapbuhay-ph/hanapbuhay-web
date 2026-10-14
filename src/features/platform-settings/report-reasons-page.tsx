@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ArrowLeft, Plus } from 'lucide-react'
 import { api } from '@/lib/api'
@@ -23,7 +23,7 @@ export function ReportReasonsPage() {
 
   const [audience, setAudience] = useState<'client' | 'worker'>('client')
 
-  function loadReasons() {
+  const loadReasons = useCallback(() => {
     setIsLoading(true)
     setError(null)
 
@@ -42,11 +42,11 @@ export function ReportReasonsPage() {
       .finally(() => {
         setIsLoading(false)
       })
-  }
+  }, [audience])
 
   useEffect(() => {
-    loadReasons() // eslint-disable-line react-hooks/set-state-in-effect
-  }, [audience])
+    loadReasons()
+  }, [loadReasons])
 
   function resetDialog() {
     setDialogOpen(false)

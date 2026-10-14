@@ -24,8 +24,8 @@ export function useVerification(id: string | number): UseVerificationResult {
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
-    setError(null) // eslint-disable-line react-hooks/set-state-in-effect
+    setIsLoading(true)
+    setError(null)
 
     api
       .get<VerificationApiResponse>(`/admin/verifications/${id}`)

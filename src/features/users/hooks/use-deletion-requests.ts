@@ -29,8 +29,8 @@ export function useDeletionRequests(): UseDeletionRequestsResult {
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
-    setError(null) // eslint-disable-line react-hooks/set-state-in-effect
+    setIsLoading(true)
+    setError(null)
 
     api
       .get('/admin/deletion-requests')

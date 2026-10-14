@@ -71,8 +71,7 @@ export function UserCrudDialog({
   }, [open, barangays.length])
 
   useEffect(() => {
-    setForm(
-      // eslint-disable-line react-hooks/set-state-in-effect
+    setForm( // eslint-disable-line react-hooks/set-state-in-effect
       user
         ? {
             name: user.name,
