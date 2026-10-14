@@ -46,6 +46,8 @@ function extractErrorMessage(error: unknown): string | null {
     // No usable API message — fall back to generic
     return null
   }
+
+  return null
 }
 
 export function handleServerError(error: unknown) {

@@ -68,7 +68,7 @@ export function ReportReasonsPage() {
     if (editingReason?.id === undefined) {
       add(payload, () => {
         resetDialog()
-        refetch()
+        loadReasons()
       })
       return
     }
