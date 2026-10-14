@@ -32,7 +32,7 @@ export interface ReportReason {
 export interface ReportReasonPayload {
   code?: string
   label: string
-  description?: string
+  description: string
   is_active: boolean
   audience: 'client' | 'worker'
 }
@@ -47,12 +47,12 @@ export interface NotificationTemplate {
   id?: number
   key: string
   body: string
-  title?: string
-  channel?: NotificationChannel
+  title: string
+  channel: NotificationChannel
   subject?: string | null
-  is_active?: boolean
-  variables?: string[]
-  last_updated_at?: string
+  is_active: boolean
+  variables: string[]
+  last_updated_at: string
 }
 
 export interface NotificationTemplatePayload {

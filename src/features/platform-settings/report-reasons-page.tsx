@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { ArrowLeft, Plus } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { Header } from '@/components/layout/header'
@@ -14,35 +15,31 @@ import { type ReportReason, type ReportReasonPayload } from './types'
 
 export function ReportReasonsPage() {
   const { isSubmitting, add, update, toggle, remove } = useReportReasonAction()
+  const [audience, setAudience] = useState<'client' | 'worker'>('client')
+  const {
+    data: reasons = [],
+    isFetching: isLoading,
+    error: reasonsLoadError,
+    refetch,
+  } = useQuery({
+    queryKey: ['admin-settings-report-reasons', audience],
+    queryFn: async () => {
+      const response = await api.get<{
+        success: boolean
+        data: ReportReason[]
+      }>(`/admin/settings/report-reasons?audience=${audience}`)
+      return response.data.data ?? []
+    },
+  })
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingReason, setEditingReason] = useState<ReportReason | null>(null)
   const [togglingId, setTogglingId] = useState<number | null>(null)
-  const [reasons, setReasons] = useState<ReportReason[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const [audience, setAudience] = useState<'client' | 'worker'>('client')
-
-  function loadReasons() {
-    setIsLoading(true)
-    setError(null)
-
-    api
-      .get<{ success: boolean; data: ReportReason[] }>(`/admin/settings/report-reasons?audience=${audience}`)
-      .then((res) => {
-        setReasons(res.data.data ?? [])
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : 'Failed to load report reasons.')
-      })
-      .finally(() => {
-        setIsLoading(false)
-      })
-  }
-
-  useEffect(() => {
-    loadReasons()
-  }, [audience])
+  const error =
+    reasonsLoadError instanceof Error
+      ? reasonsLoadError.message
+      : reasonsLoadError
+        ? 'Failed to load report reasons.'
+        : null
 
   function resetDialog() {
     setDialogOpen(false)
@@ -63,14 +60,14 @@ export function ReportReasonsPage() {
     if (editingReason?.id === undefined) {
       add(payload, () => {
         resetDialog()
-        refetch()
+        void refetch()
       })
       return
     }
 
     update(editingReason.id, payload, () => {
       resetDialog()
-      loadReasons()
+      void refetch()
     })
   }
 
@@ -79,14 +76,14 @@ export function ReportReasonsPage() {
     setTogglingId(reason.id)
     toggle(reason.id, !(reason.is_active ?? true), () => {
       setTogglingId(null)
-      loadReasons()
+      void refetch()
     })
   }
 
   function handleDelete(reason: ReportReason) {
     if (reason.id === undefined) return
     remove(reason.id, () => {
-      loadReasons()
+      void refetch()
     })
   }
 
@@ -139,7 +136,7 @@ export function ReportReasonsPage() {
           onEdit={openEditDialog}
           onToggle={handleToggle}
           onDelete={handleDelete}
-          onRetry={loadReasons}
+          onRetry={() => void refetch()}
         />
       </Main>
 

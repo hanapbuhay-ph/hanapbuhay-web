@@ -79,6 +79,7 @@ function getInitials(name: string): string {
 export function ProfileForm() {
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const photoPreviewUrlRef = useRef<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
   const [pendingEmailVerification, setPendingEmailVerification] = useState<
@@ -135,17 +136,23 @@ export function ProfileForm() {
     }
   }, [profile, form])
 
-  useEffect(() => {
-    if (!selectedFile) {
-      setPhotoPreview(null)
-      return
+  useEffect(
+    () => () => {
+      if (photoPreviewUrlRef.current) {
+        URL.revokeObjectURL(photoPreviewUrlRef.current)
+      }
+    },
+    []
+  )
+
+  function selectPhoto(file: File | null) {
+    if (photoPreviewUrlRef.current) {
+      URL.revokeObjectURL(photoPreviewUrlRef.current)
     }
-
-    const objectUrl = URL.createObjectURL(selectedFile)
-    setPhotoPreview(objectUrl)
-
-    return () => URL.revokeObjectURL(objectUrl)
-  }, [selectedFile])
+    photoPreviewUrlRef.current = file ? URL.createObjectURL(file) : null
+    setPhotoPreview(photoPreviewUrlRef.current)
+    setSelectedFile(file)
+  }
 
   // ── Mutation ───────────────────────────────────────────────────────────────
   const { mutate: saveProfile, isPending } = useMutation({
@@ -173,7 +180,7 @@ export function ProfileForm() {
     },
     onSuccess: async (updated, values) => {
       queryClient.setQueryData(['user_profile'], updated)
-      setSelectedFile(null)
+      selectPhoto(null)
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -326,7 +333,7 @@ export function ProfileForm() {
             className='hidden'
             onChange={(event) => {
               const file = event.target.files?.[0] ?? null
-              setSelectedFile(file)
+              selectPhoto(file)
             }}
           />
         </div>

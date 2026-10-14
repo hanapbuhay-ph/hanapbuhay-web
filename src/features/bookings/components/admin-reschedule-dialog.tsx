@@ -35,7 +35,9 @@ export function AdminRescheduleDialog({
   onConfirm,
   onOpenChange,
 }: AdminRescheduleDialogProps) {
-  const [value] = useState(() => localDateTimeValue(new Date(scheduledAt)))
+  const [value, setValue] = useState(() =>
+    localDateTimeValue(new Date(scheduledAt))
+  )
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
