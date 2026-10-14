@@ -68,6 +68,8 @@ type FormValues = z.infer<typeof formSchema>
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
+  const [loginLockoutSeconds, setLoginLockoutSeconds] = useState(0)
+  const [loginError, setLoginError] = useState('')
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [otpDialogOpen, setOtpDialogOpen] = useState(false)
   const [otpEmail, setOtpEmail] = useState('')
@@ -80,6 +82,14 @@ export function LoginForm() {
   const googleButtonRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
   const { redirect } = useSearch({ from: '/(auth)/login' })
+
+  useEffect(() => {
+    if (loginLockoutSeconds <= 0) return
+    const intervalId = window.setInterval(() => {
+      setLoginLockoutSeconds((seconds) => Math.max(0, seconds - 1))
+    }, 1000)
+    return () => window.clearInterval(intervalId)
+  }, [loginLockoutSeconds])
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -191,6 +201,7 @@ export function LoginForm() {
   // ── Real login ─────────────────────────────────────────────────────────────
 
   async function onSubmit(data: FormValues) {
+    setLoginError('')
     setIsLoading(true)
     try {
       const res = await api.post<LoginApiResponse>('/auth/admin/login', {
@@ -228,16 +239,31 @@ export function LoginForm() {
       const axiosErr = err instanceof AxiosError ? err : null
       const status = axiosErr?.response?.status
 
-      if (status === 401) {
+      if (status === 429) {
+        const retryAfter = Number(
+          axiosErr?.response?.data?.data?.retry_after_seconds
+        )
+        if (Number.isFinite(retryAfter) && retryAfter > 0) {
+          setLoginLockoutSeconds(retryAfter)
+        }
+        const message =
+          axiosErr?.response?.data?.message ??
+          'Too many failed login attempts. Please wait before trying again.'
+        setLoginError(message)
+        toast.error(message)
+      } else if (status === 401) {
+        setLoginError('Invalid email or password.')
         toast.error('Invalid email or password.')
       } else if (status === 403) {
         const message = axiosErr?.response?.data?.message ?? 'Access denied.'
+        setLoginError(message)
         toast.error(message)
       } else {
         const message =
           axiosErr?.response?.data?.message ??
           axiosErr?.message ??
           'Something went wrong. Please try again.'
+        setLoginError(message)
         toast.error(message)
       }
     } finally {
@@ -285,6 +311,14 @@ export function LoginForm() {
       navigate({ to: getRedirectTarget(), replace: true })
     } catch (err) {
       const axiosErr = err instanceof AxiosError ? err : null
+      if (axiosErr?.response?.status === 429) {
+        const retryAfter = Number(
+          axiosErr.response.data?.data?.retry_after_seconds
+        )
+        if (Number.isFinite(retryAfter) && retryAfter > 0) {
+          setLoginLockoutSeconds(retryAfter)
+        }
+      }
       const message =
         axiosErr?.response?.data?.message ??
         axiosErr?.message ??
@@ -308,11 +342,14 @@ export function LoginForm() {
     setIsVerifyingOtp(true)
 
     try {
-      const res = await api.post<LoginApiResponse>('/auth/admin/login/verify-otp', {
-        email: otpEmail,
-        code: otpCode,
-        device_name: getDeviceName(),
-      })
+      const res = await api.post<LoginApiResponse>(
+        '/auth/admin/login/verify-otp',
+        {
+          email: otpEmail,
+          code: otpCode,
+          device_name: getDeviceName(),
+        }
+      )
 
       const token = res.data.data.token
       const user = res.data.data.user
@@ -421,9 +458,15 @@ export function LoginForm() {
             )}
           />
 
+          {loginError && (
+            <p role='alert' className='text-sm text-destructive'>
+              {loginError}
+            </p>
+          )}
+
           <Button
             type='submit'
-            disabled={isLoading}
+            disabled={isLoading || loginLockoutSeconds > 0}
             className='mt-1 bg-primary text-white hover:bg-primary/90 hover:shadow-md'
           >
             {isLoading ? (
@@ -431,8 +474,15 @@ export function LoginForm() {
             ) : (
               <LogIn className='h-4 w-4' />
             )}
-            Sign In
+            {loginLockoutSeconds > 0
+              ? `Try again in ${String(Math.floor(loginLockoutSeconds / 60)).padStart(2, '0')}:${String(loginLockoutSeconds % 60).padStart(2, '0')}`
+              : 'Sign In'}
           </Button>
+          {loginLockoutSeconds > 0 && (
+            <p className='text-center text-sm text-destructive'>
+              Too many failed attempts. Please wait for the countdown to finish.
+            </p>
+          )}
         </form>
       </Form>
 
@@ -519,7 +569,9 @@ export function LoginForm() {
           <div
             ref={googleButtonRef}
             className={`flex min-h-10 justify-center transition-opacity ${
-              isGoogleLoading ? 'pointer-events-none opacity-60' : ''
+              isGoogleLoading || loginLockoutSeconds > 0
+                ? 'pointer-events-none opacity-60'
+                : ''
             }`}
           />
         </div>
