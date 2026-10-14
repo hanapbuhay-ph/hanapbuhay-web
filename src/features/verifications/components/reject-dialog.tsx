@@ -1,6 +1,5 @@
 ﻿import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -9,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -45,9 +45,7 @@ export function RejectDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className='rounded-2xl border-border bg-card'>
         <DialogHeader>
-          <DialogTitle className='text-foreground'>
-            Reject Verification
-          </DialogTitle>
+          <DialogTitle className='text-foreground'>Reject Verification</DialogTitle>
           <DialogDescription>
             You are rejecting the verification for{' '}
             <span className='font-semibold text-foreground'>{workerName}</span>.
@@ -56,10 +54,7 @@ export function RejectDialog({
         </DialogHeader>
 
         <div className='flex flex-col gap-1.5 py-1'>
-          <Label
-            htmlFor='reject-remarks'
-            className='text-sm font-semibold text-foreground'
-          >
+          <Label htmlFor='reject-remarks' className='text-sm font-semibold text-foreground'>
             Rejection Reason <span className='text-destructive'>*</span>
           </Label>
           <Textarea

@@ -1,9 +1,10 @@
 // Real API: POST /admin/bookings/{id}/cancel
 //   body: { reason: string }
 //   response: { success, message, data: { id, booking_code, status, ... } }
+
 import { useState } from 'react'
-import { AxiosError } from 'axios'
 import { toast } from 'sonner'
+import { AxiosError } from 'axios'
 import { api } from '@/lib/api'
 import { type AdminBookingInput, type Booking } from '../types'
 
@@ -55,9 +56,7 @@ export function useBookingAction(): UseBookingActionResult {
       const res = await api.post(`/admin/bookings/${id}/reschedule`, {
         scheduled_at: scheduledAt,
       })
-      toast.success(
-        'Booking rescheduled. Both the client and worker were notified.'
-      )
+      toast.success('Booking rescheduled. Both the client and worker were notified.')
       onSuccess(res.data.data)
     } catch (err) {
       const msg =

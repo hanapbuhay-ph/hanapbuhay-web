@@ -47,12 +47,7 @@ import { ReviewRecipients } from './components/review-recipients'
 import { StarRating } from './components/star-rating'
 import { useReviewAction } from './hooks/use-review-action'
 import { useReviews } from './hooks/use-reviews'
-import {
-  type Review,
-  type ReviewRecipient,
-  type ScoreFilter,
-  type DirectionFilter,
-} from './types'
+import { type Review, type ReviewRecipient, type ScoreFilter, type DirectionFilter } from './types'
 
 function getInitials(name: string): string {
   return name
@@ -64,8 +59,7 @@ function getInitials(name: string): string {
 }
 
 export function ReviewsListPage() {
-  const [selectedRecipient, setSelectedRecipient] =
-    useState<ReviewRecipient | null>(null)
+  const [selectedRecipient, setSelectedRecipient] = useState<ReviewRecipient | null>(null)
   const [scoreFilter, setScoreFilter] = useState<ScoreFilter>('all')
   const [directionFilter, setDirectionFilter] = useState<DirectionFilter>('all')
   const [search, setSearch] = useState('')
@@ -77,7 +71,7 @@ export function ReviewsListPage() {
     null,
     search,
     page,
-    selectedRecipient?.id ?? null
+    selectedRecipient?.id ?? null,
   )
   const { isSubmitting, removeRating } = useReviewAction()
 
@@ -94,14 +88,10 @@ export function ReviewsListPage() {
   }
 
   if (!selectedRecipient) {
-    return (
-      <ReviewRecipients
-        onSelect={(recipient) => {
-          setSelectedRecipient(recipient)
-          setPage(1)
-        }}
-      />
-    )
+    return <ReviewRecipients onSelect={(recipient) => {
+      setSelectedRecipient(recipient)
+      setPage(1)
+    }} />
   }
 
   return (
@@ -117,7 +107,7 @@ export function ReviewsListPage() {
         <div className='mb-6'>
           <Button
             variant='ghost'
-            className='-ms-3 mb-2'
+            className='mb-2 -ms-3'
             onClick={() => {
               setSelectedRecipient(null)
               setPage(1)
@@ -130,8 +120,7 @@ export function ReviewsListPage() {
             Reviews for {selectedRecipient.name}
           </h1>
           <p className='mt-1 text-sm text-muted-foreground'>
-            {selectedRecipient.role === 'worker' ? 'Worker' : 'Client'} ·{' '}
-            {selectedRecipient.email}
+            {selectedRecipient.role === 'worker' ? 'Worker' : 'Client'} · {selectedRecipient.email}
           </p>
         </div>
 

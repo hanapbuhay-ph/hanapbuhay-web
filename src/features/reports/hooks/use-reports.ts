@@ -18,7 +18,7 @@ interface UseReportsResult {
 export function useReports(
   statusFilter: ReportStatusFilter = 'under_review',
   reasonFilter: ReportReasonFilter = 'all',
-  page = 1
+  page = 1,
 ): UseReportsResult {
   const [data, setData] = useState<Report[]>([])
   const [pagination, setPagination] = useState<ReportPagination | null>(null)
@@ -38,10 +38,7 @@ export function useReports(
     if (reasonFilter !== 'all') params.reason = reasonFilter
 
     api
-      .get<{
-        success: boolean
-        data: { reports: Report[]; pagination: ReportPagination }
-      }>('/admin/reports', { params })
+      .get<{ success: boolean; data: { reports: Report[]; pagination: ReportPagination } }>('/admin/reports', { params })
       .then((res) => {
         if (!cancelled) {
           setData(res.data.data.reports)
@@ -50,24 +47,12 @@ export function useReports(
       })
       .catch((err) => {
         if (!cancelled)
-          setError(
-            err instanceof Error ? err.message : 'Failed to load reports.'
-          )
+          setError(err instanceof Error ? err.message : 'Failed to load reports.')
       })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+      .finally(() => { if (!cancelled) setIsLoading(false) })
 
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [statusFilter, reasonFilter, page, tick])
 
-  return {
-    data,
-    pagination,
-    isLoading,
-    error,
-    refetch: () => setTick((t) => t + 1),
-  }
+  return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }

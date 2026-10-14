@@ -1,20 +1,12 @@
 import { useState } from 'react'
-import { AxiosError } from 'axios'
 import { toast } from 'sonner'
+import { AxiosError } from 'axios'
 import { api } from '@/lib/api'
 
 interface UseJobPostActionResult {
   isSubmitting: boolean
-  deletePost: (
-    id: number,
-    reason: string,
-    onSuccess: () => void
-  ) => Promise<void>
-  deletePosts: (
-    ids: number[],
-    reason: string,
-    onSuccess: () => void
-  ) => Promise<void>
+  deletePost: (id: number, reason: string, onSuccess: () => void) => Promise<void>
+  deletePosts: (ids: number[], reason: string, onSuccess: () => void) => Promise<void>
 }
 
 export function useJobPostAction(): UseJobPostActionResult {
@@ -39,19 +31,13 @@ export function useJobPostAction(): UseJobPostActionResult {
     }
   }
 
-  async function deletePosts(
-    ids: number[],
-    reason: string,
-    onSuccess: () => void
-  ) {
+  async function deletePosts(ids: number[], reason: string, onSuccess: () => void) {
     setIsSubmitting(true)
     try {
       await api.delete('/admin/posts/bulk', {
         data: { post_ids: ids, reason },
       })
-      toast.success(
-        `${ids.length} job post${ids.length === 1 ? '' : 's'} permanently deleted.`
-      )
+      toast.success(`${ids.length} job post${ids.length === 1 ? '' : 's'} permanently deleted.`)
       onSuccess()
     } catch (err) {
       const msg =

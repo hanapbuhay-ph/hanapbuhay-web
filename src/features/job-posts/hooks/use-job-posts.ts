@@ -23,7 +23,7 @@ export function useJobPosts(
   verification: JobPostVerificationFilter = 'all',
   search = '',
   page = 1,
-  workerProfileId: number | null | undefined = null
+  workerProfileId: number | null | undefined = null,
 ): UseJobPostsResult {
   const debouncedSearch = useDebouncedValue(search)
   const params: Record<string, string> = {}
@@ -41,16 +41,7 @@ export function useJobPosts(
     queryKey: [
       'admin',
       'job-posts',
-      {
-        categoryId,
-        barangayId,
-        status,
-        verification,
-        search: debouncedSearch,
-        page,
-        workerProfileId,
-        params,
-      },
+      { categoryId, barangayId, status, verification, search: debouncedSearch, page, workerProfileId, params },
     ],
     queryFn: async () => {
       const response = await api.get('/admin/posts', { params })

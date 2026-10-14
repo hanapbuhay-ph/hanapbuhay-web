@@ -4,11 +4,11 @@ import { type Locator, userEvent } from 'vitest/browser'
 import { showSubmittedData } from '@/lib/show-submitted-data'
 import { OtpForm } from './otp-form'
 
-const mocks = vi.hoisted(() => ({ navigate: vi.fn() }))
+const navigate = vi.fn()
 
 vi.mock('@tanstack/react-router', async (orig) => {
   const actual = await orig<typeof import('@tanstack/react-router')>()
-  return { ...actual, useNavigate: () => mocks.navigate }
+  return { ...actual, useNavigate: () => navigate }
 })
 
 vi.mock('@/lib/show-submitted-data', () => ({ showSubmittedData: vi.fn() }))
@@ -50,6 +50,6 @@ describe('OtpForm', () => {
     expect(showSubmittedData).toHaveBeenCalledWith({ otp: '123456' })
 
     await vi.advanceTimersByTimeAsync(1000)
-    expect(mocks.navigate).toHaveBeenCalledWith({ to: '/' })
+    expect(navigate).toHaveBeenCalledWith({ to: '/' })
   })
 })

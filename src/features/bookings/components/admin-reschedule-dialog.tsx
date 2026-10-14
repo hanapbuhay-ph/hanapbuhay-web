@@ -35,9 +35,7 @@ export function AdminRescheduleDialog({
   onConfirm,
   onOpenChange,
 }: AdminRescheduleDialogProps) {
-  const [value, setValue] = useState(() =>
-    localDateTimeValue(new Date(scheduledAt))
-  )
+  const [value] = useState(() => localDateTimeValue(new Date(scheduledAt)))
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -49,15 +47,10 @@ export function AdminRescheduleDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className='rounded-2xl border-border bg-card'>
         <DialogHeader>
-          <DialogTitle className='text-foreground'>
-            Reschedule Booking
-          </DialogTitle>
+          <DialogTitle className='text-foreground'>Reschedule Booking</DialogTitle>
           <DialogDescription>
-            Update the schedule for{' '}
-            <span className='font-mono font-semibold text-foreground'>
-              {bookingCode}
-            </span>
-            . The client and worker will both be notified.
+            Update the schedule for <span className='font-mono font-semibold text-foreground'>{bookingCode}</span>.
+            The client and worker will both be notified.
           </DialogDescription>
         </DialogHeader>
 
@@ -76,12 +69,7 @@ export function AdminRescheduleDialog({
           </div>
 
           <DialogFooter>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
-            >
+            <Button type='button' variant='outline' onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
             <Button type='submit' disabled={isSubmitting || !value}>

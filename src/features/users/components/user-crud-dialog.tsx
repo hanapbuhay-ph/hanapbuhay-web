@@ -1,5 +1,5 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { api } from '@/lib/api'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,8 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { UserInput } from '../hooks/use-user-crud'
+import { api } from '@/lib/api'
 import type { User } from '../types'
+import type { UserInput } from '../hooks/use-user-crud'
 
 interface UserCrudDialogProps {
   open: boolean
@@ -56,13 +57,12 @@ export function UserCrudDialog({
   const [barangaysLoading, setBarangaysLoading] = useState(false)
   const [barangayError, setBarangayError] = useState<string | null>(null)
   const isEdit = user !== null
-  const canAssignAdminRole =
-    !isEdit || user.role === 'admin' || user.role === 'super_admin'
+  const canAssignAdminRole = !isEdit || user.role === 'admin' || user.role === 'super_admin'
 
   useEffect(() => {
     if (!open || barangays.length > 0) return
 
-    setBarangaysLoading(true) // eslint-disable-line react-hooks/set-state-in-effect
+    setBarangaysLoading(true)
     api
       .get('/barangays')
       .then((response) => setBarangays(response.data.data ?? []))
@@ -71,7 +71,6 @@ export function UserCrudDialog({
   }, [open, barangays.length])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setForm(
       user
         ? {
@@ -88,10 +87,7 @@ export function UserCrudDialog({
     )
   }, [user, open])
 
-  function updateField<K extends keyof UserInput>(
-    field: K,
-    value: UserInput[K]
-  ) {
+  function updateField<K extends keyof UserInput>(field: K, value: UserInput[K]) {
     setForm((current) => ({ ...current, [field]: value }))
   }
 
@@ -115,22 +111,11 @@ export function UserCrudDialog({
         <form onSubmit={handleSubmit} className='grid gap-4'>
           <div className='grid gap-2'>
             <Label htmlFor='user-name'>Full name</Label>
-            <Input
-              id='user-name'
-              required
-              value={form.name}
-              onChange={(event) => updateField('name', event.target.value)}
-            />
+            <Input id='user-name' required value={form.name} onChange={(event) => updateField('name', event.target.value)} />
           </div>
           <div className='grid gap-2'>
             <Label htmlFor='user-email'>Email</Label>
-            <Input
-              id='user-email'
-              type='email'
-              required
-              value={form.email}
-              onChange={(event) => updateField('email', event.target.value)}
-            />
+            <Input id='user-email' type='email' required value={form.email} onChange={(event) => updateField('email', event.target.value)} />
           </div>
           <div className='grid gap-2 sm:grid-cols-2 sm:gap-3'>
             <div className='grid gap-2'>
@@ -144,9 +129,7 @@ export function UserCrudDialog({
                 title='Enter a Philippine mobile number, e.g. 0917 123 4567.'
                 required={!isEdit}
                 value={form.mobile_number ?? ''}
-                onChange={(event) =>
-                  updateField('mobile_number', event.target.value)
-                }
+                onChange={(event) => updateField('mobile_number', event.target.value)}
               />
               <p className='text-xs text-muted-foreground'>
                 Enter an 11-digit Philippine mobile number starting with 09.
@@ -154,19 +137,10 @@ export function UserCrudDialog({
             </div>
             <div className='grid gap-2'>
               <Label htmlFor='user-role'>Role</Label>
-              <select
-                id='user-role'
-                className='h-10 rounded-md border border-input bg-background px-3 text-sm'
-                value={form.role}
-                onChange={(event) =>
-                  updateField('role', event.target.value as User['role'])
-                }
-              >
+              <select id='user-role' className='h-10 rounded-md border border-input bg-background px-3 text-sm' value={form.role} onChange={(event) => updateField('role', event.target.value as User['role'])}>
                 <option value='client'>Client</option>
                 <option value='worker'>Worker</option>
-                <option value='admin' disabled={!canAssignAdminRole}>
-                  Admin
-                </option>
+                <option value='admin' disabled={!canAssignAdminRole}>Admin</option>
               </select>
               {isEdit && !canAssignAdminRole && (
                 <p className='text-xs text-muted-foreground'>
@@ -179,19 +153,11 @@ export function UserCrudDialog({
             <Label htmlFor='user-barangay'>Barangay</Label>
             <Select
               value={form.barangay_id ? String(form.barangay_id) : undefined}
-              onValueChange={(value) =>
-                updateField('barangay_id', Number(value))
-              }
+              onValueChange={(value) => updateField('barangay_id', Number(value))}
               disabled={barangaysLoading || !!barangayError}
             >
               <SelectTrigger id='user-barangay' className='w-full'>
-                <SelectValue
-                  placeholder={
-                    barangaysLoading
-                      ? 'Loading barangays...'
-                      : 'Select a barangay'
-                  }
-                />
+                <SelectValue placeholder={barangaysLoading ? 'Loading barangays...' : 'Select a barangay'} />
               </SelectTrigger>
               <SelectContent>
                 {barangays.map((barangay) => (
@@ -201,58 +167,21 @@ export function UserCrudDialog({
                 ))}
               </SelectContent>
             </Select>
-            {barangayError && (
-              <p className='text-sm text-destructive'>{barangayError}</p>
-            )}
+            {barangayError && <p className='text-sm text-destructive'>{barangayError}</p>}
           </div>
           <div className='grid gap-2 sm:grid-cols-2 sm:gap-3'>
             <div className='grid gap-2'>
-              <Label htmlFor='user-password'>
-                {isEdit ? 'New password (optional)' : 'Password'}
-              </Label>
-              <Input
-                id='user-password'
-                type='password'
-                required={!isEdit}
-                minLength={8}
-                value={form.password ?? ''}
-                onChange={(event) =>
-                  updateField('password', event.target.value)
-                }
-              />
+              <Label htmlFor='user-password'>{isEdit ? 'New password (optional)' : 'Password'}</Label>
+              <Input id='user-password' type='password' required={!isEdit} minLength={8} value={form.password ?? ''} onChange={(event) => updateField('password', event.target.value)} />
             </div>
             <div className='grid gap-2'>
-              <Label htmlFor='user-password-confirmation'>
-                Confirm password
-              </Label>
-              <Input
-                id='user-password-confirmation'
-                type='password'
-                required={!isEdit || !!form.password}
-                value={form.password_confirmation ?? ''}
-                onChange={(event) =>
-                  updateField('password_confirmation', event.target.value)
-                }
-              />
+              <Label htmlFor='user-password-confirmation'>Confirm password</Label>
+              <Input id='user-password-confirmation' type='password' required={!isEdit || !!form.password} value={form.password_confirmation ?? ''} onChange={(event) => updateField('password_confirmation', event.target.value)} />
             </div>
           </div>
           <DialogFooter>
-            <Button
-              type='button'
-              variant='outline'
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type='submit'
-              disabled={
-                isSubmitting ||
-                barangaysLoading ||
-                !!barangayError ||
-                !form.barangay_id
-              }
-            >
+            <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type='submit' disabled={isSubmitting || barangaysLoading || !!barangayError || !form.barangay_id}>
               {isSubmitting ? 'Saving...' : 'Save user'}
             </Button>
           </DialogFooter>

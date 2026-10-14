@@ -1,15 +1,15 @@
 /**
  * Login Activity page.
  */
+
 import { useState } from 'react'
-import { formatDistanceToNow } from 'date-fns'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Loader2, MonitorSmartphone } from 'lucide-react'
 import { toast } from 'sonner'
+import { Loader2, MonitorSmartphone } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
 import { api } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import {
   Table,
   TableBody,
@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Separator } from '@/components/ui/separator'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -42,9 +43,7 @@ export function AccountLoginActivity() {
   const { data: sessions = [], isLoading } = useQuery<LoginSession[]>({
     queryKey: ['user_sessions'],
     queryFn: async () => {
-      const res = await api.get<{ success: boolean; data: LoginSession[] }>(
-        '/user/sessions'
-      )
+      const res = await api.get<{ success: boolean; data: LoginSession[] }>('/user/sessions')
       return res.data.data
     },
   })
@@ -112,11 +111,11 @@ export function AccountLoginActivity() {
                     </TableCell>
                     <TableCell>
                       {session.is_current ? (
-                        <Badge className='border-0 bg-primary/10 text-primary hover:bg-primary/10'>
+                        <Badge className='bg-primary/10 text-primary hover:bg-primary/10 border-0'>
                           Current Session
                         </Badge>
                       ) : (
-                        <span className='text-xs text-muted-foreground'>—</span>
+                        <span className='text-muted-foreground text-xs'>—</span>
                       )}
                     </TableCell>
                     <TableCell className='text-right'>

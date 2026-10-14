@@ -1,22 +1,16 @@
 // Real API: POST /admin/users/{id}/toggle-status
 //   body: { action: 'suspend' | 'reactivate', reason?: string }
 //   response: { success, message, data: { user_id, is_active } }
+
 import { useState } from 'react'
-import { AxiosError } from 'axios'
 import { toast } from 'sonner'
+import { AxiosError } from 'axios'
 import { api } from '@/lib/api'
 
 interface UseUserActionResult {
   isSubmitting: boolean
-  suspend: (
-    id: string | number,
-    reason: string,
-    onSuccess: (isActive: boolean) => void
-  ) => Promise<void>
-  reactivate: (
-    id: string | number,
-    onSuccess: (isActive: boolean) => void
-  ) => Promise<void>
+  suspend: (id: string | number, reason: string, onSuccess: (isActive: boolean) => void) => Promise<void>
+  reactivate: (id: string | number, onSuccess: (isActive: boolean) => void) => Promise<void>
 }
 
 export function useUserAction(): UseUserActionResult {
@@ -51,8 +45,7 @@ export function useUserAction(): UseUserActionResult {
 
   return {
     isSubmitting,
-    suspend: (id, reason, onSuccess) =>
-      toggleStatus(id, 'suspend', onSuccess, reason),
+    suspend: (id, reason, onSuccess) => toggleStatus(id, 'suspend', onSuccess, reason),
     reactivate: (id, onSuccess) => toggleStatus(id, 'reactivate', onSuccess),
   }
 }

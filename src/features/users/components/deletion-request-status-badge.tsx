@@ -4,10 +4,7 @@ interface DeletionRequestStatusBadgeProps {
   status: DeletionRequestStatus
 }
 
-const config: Record<
-  DeletionRequestStatus,
-  { label: string; className: string }
-> = {
+const config: Record<DeletionRequestStatus, { label: string; className: string }> = {
   pending: {
     label: 'Pending',
     className: 'bg-amber-100 text-amber-700',

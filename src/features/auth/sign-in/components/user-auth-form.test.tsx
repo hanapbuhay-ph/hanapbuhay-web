@@ -9,17 +9,15 @@ const FORM_MESSAGES = {
   passwordShort: 'Password must be at least 7 characters long.',
 } as const
 
-const mocks = vi.hoisted(() => ({
-  navigate: vi.fn(),
-  setUserMock: vi.fn(),
-  setAccessTokenMock: vi.fn(),
-}))
+const navigate = vi.fn()
+const setUserMock = vi.fn()
+const setAccessTokenMock = vi.fn()
 
 vi.mock('@/stores/auth-store', () => ({
   useAuthStore: () => ({
     auth: {
-      setUser: mocks.setUserMock,
-      setAccessToken: mocks.setAccessTokenMock,
+      setUser: setUserMock,
+      setAccessToken: setAccessTokenMock,
     },
   }),
 }))
@@ -28,7 +26,7 @@ vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>()
   return {
     ...actual,
-    useNavigate: () => mocks.navigate,
+    useNavigate: () => navigate,
     Link: ({
       children,
       to,
@@ -92,8 +90,8 @@ describe('UserAuthForm', () => {
 
       await userEvent.click(signInButton)
 
-      await vi.waitFor(() => expect(mocks.setUserMock).toHaveBeenCalledOnce())
-      expect(mocks.setUserMock).toHaveBeenCalledWith(
+      await vi.waitFor(() => expect(setUserMock).toHaveBeenCalledOnce())
+      expect(setUserMock).toHaveBeenCalledWith(
         expect.objectContaining({
           email: 'a@b.com',
           accountNo: expect.any(String),
@@ -101,11 +99,11 @@ describe('UserAuthForm', () => {
           exp: expect.any(Number),
         })
       )
-      expect(mocks.setAccessTokenMock).toHaveBeenCalledOnce()
-      expect(mocks.setAccessTokenMock).toHaveBeenCalledWith('mock-access-token')
+      expect(setAccessTokenMock).toHaveBeenCalledOnce()
+      expect(setAccessTokenMock).toHaveBeenCalledWith('mock-access-token')
 
       await vi.waitFor(() =>
-        expect(mocks.navigate).toHaveBeenCalledWith({ to: '/', replace: true })
+        expect(navigate).toHaveBeenCalledWith({ to: '/', replace: true })
       )
     })
   })
@@ -122,11 +120,11 @@ describe('UserAuthForm', () => {
 
     await userEvent.click(getByRole('button', { name: /Sign in/i }))
 
-    await vi.waitFor(() => expect(mocks.setUserMock).toHaveBeenCalledOnce())
-    expect(mocks.setAccessTokenMock).toHaveBeenCalledOnce()
+    await vi.waitFor(() => expect(setUserMock).toHaveBeenCalledOnce())
+    expect(setAccessTokenMock).toHaveBeenCalledOnce()
 
     await vi.waitFor(() =>
-      expect(mocks.navigate).toHaveBeenCalledWith({
+      expect(navigate).toHaveBeenCalledWith({
         to: '/settings',
         replace: true,
       })

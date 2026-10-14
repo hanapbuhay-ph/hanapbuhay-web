@@ -23,10 +23,7 @@ export function StarRating({
       <div className='flex items-center gap-0.5'>
         {/* Filled stars */}
         {Array.from({ length: filledStars }).map((_, i) => (
-          <span
-            key={`filled-${i}`}
-            className={`${sizeMap[size]} text-amber-400`}
-          >
+          <span key={`filled-${i}`} className={`${sizeMap[size]} text-amber-400`}>
             ★
           </span>
         ))}
@@ -51,7 +48,9 @@ export function StarRating({
 
       {/* Numeric value */}
       {showNumeric && (
-        <span className='text-sm font-medium text-foreground'>{rating}/5</span>
+        <span className='text-sm font-medium text-foreground'>
+          {rating}/5
+        </span>
       )}
     </div>
   )

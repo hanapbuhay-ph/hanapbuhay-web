@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { api } from '@/lib/api'
 import useDialogState from '@/hooks/use-dialog-state'
+import { api } from '@/lib/api'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -39,9 +39,7 @@ export function ProfileDropdown() {
   const { data: profile } = useQuery({
     queryKey: ['user_profile'],
     queryFn: async () => {
-      const res = await api.get<{ success: boolean; data: UserProfile }>(
-        '/user'
-      )
+      const res = await api.get<{ success: boolean; data: UserProfile }>('/user')
       return res.data.data
     },
   })

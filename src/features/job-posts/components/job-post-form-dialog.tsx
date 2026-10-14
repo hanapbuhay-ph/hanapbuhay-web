@@ -3,26 +3,14 @@ import { useEffect, useState } from 'react'
 import { AxiosError } from 'axios'
 import { Loader2, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { api } from '@/lib/api'
 import { type JobPost, type JobPostDetail } from '../types'
 
 interface Category {
@@ -59,19 +47,11 @@ const MAX_IMAGE_SIZE = 10 * 1024 * 1024
 
 function errorMessage(error: unknown): string {
   if (error instanceof AxiosError) {
-    const errors = error.response?.data?.errors as
-      | Record<string, string[]>
-      | undefined
-    const firstValidationError = errors
-      ? Object.values(errors).flat()[0]
-      : undefined
-    return (
-      firstValidationError ?? error.response?.data?.message ?? error.message
-    )
+    const errors = error.response?.data?.errors as Record<string, string[]> | undefined
+    const firstValidationError = errors ? Object.values(errors).flat()[0] : undefined
+    return firstValidationError ?? error.response?.data?.message ?? error.message
   }
-  return error instanceof Error
-    ? error.message
-    : 'Unable to save this job post.'
+  return error instanceof Error ? error.message : 'Unable to save this job post.'
 }
 
 export function JobPostFormDialog({
@@ -116,8 +96,7 @@ export function JobPostFormDialog({
 
     let cancelled = false
     setIsLoadingPost(true)
-    api
-      .get<{ data: { job_post: JobPostDetail } }>(`/admin/posts/${post.id}`)
+    api.get<{ data: { job_post: JobPostDetail } }>(`/admin/posts/${post.id}`)
       .then(({ data: response }) => {
         if (cancelled) return
         const detail = response.data.job_post
@@ -148,22 +127,16 @@ export function JobPostFormDialog({
     if (!files) return
     const selected = Array.from(files)
     const allowed = selected.filter((file) => {
-      const validType = ['image/jpeg', 'image/png', 'image/webp'].includes(
-        file.type
-      )
+      const validType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)
       if (!validType) toast.error(`${file.name} is not a supported image type.`)
-      if (file.size > MAX_IMAGE_SIZE)
-        toast.error(`${file.name} exceeds the 10 MB limit.`)
+      if (file.size > MAX_IMAGE_SIZE) toast.error(`${file.name} exceeds the 10 MB limit.`)
       return validType && file.size <= MAX_IMAGE_SIZE
     })
     const slots = MAX_IMAGES - remainingImageCount
     if (allowed.length > slots) {
       toast.error(`A job post can have at most ${MAX_IMAGES} photos.`)
     }
-    setNewImages((current) => [
-      ...current,
-      ...allowed.slice(0, Math.max(slots, 0)),
-    ])
+    setNewImages((current) => [...current, ...allowed.slice(0, Math.max(slots, 0))])
   }
 
   async function uploadImages(postId: number, files: File[]) {
@@ -177,14 +150,7 @@ export function JobPostFormDialog({
 
   async function handleSubmit() {
     const numericRate = Number(rateAmount)
-    if (
-      !categoryId ||
-      !title.trim() ||
-      !description.trim() ||
-      rateAmount.trim() === '' ||
-      !Number.isFinite(numericRate) ||
-      numericRate < 0
-    ) {
+    if (!categoryId || !title.trim() || !description.trim() || rateAmount.trim() === '' || !Number.isFinite(numericRate) || numericRate < 0) {
       toast.error('Complete all required fields with a valid starting rate.')
       return
     }
@@ -206,26 +172,19 @@ export function JobPostFormDialog({
         await api.put(`/admin/posts/${post.id}`, payload)
         savedPostId = post.id
       } else {
-        const response = await api.post<{ data: { job_post: { id: number } } }>(
-          '/admin/posts',
-          payload
-        )
+        const response = await api.post<{ data: { job_post: { id: number } } }>('/admin/posts', payload)
         savedPostId = response.data.data.job_post.id
       }
 
       try {
         if (post && removedImageIds.length > 0) {
-          await Promise.all(
-            removedImageIds.map((imageId) =>
-              api.delete(`/admin/posts/${post.id}/images/${imageId}`)
-            )
-          )
+          await Promise.all(removedImageIds.map((imageId) =>
+            api.delete(`/admin/posts/${post.id}/images/${imageId}`)
+          ))
         }
         await uploadImages(savedPostId, newImages)
       } catch (imageError) {
-        toast.error(
-          `Post saved, but photo changes failed: ${errorMessage(imageError)}`
-        )
+        toast.error(`Post saved, but photo changes failed: ${errorMessage(imageError)}`)
         onSaved()
         return
       }
@@ -248,9 +207,7 @@ export function JobPostFormDialog({
     >
       <DialogContent className='max-h-[90vh] overflow-y-auto rounded-2xl border-border bg-card sm:max-w-2xl'>
         <DialogHeader>
-          <DialogTitle>
-            {post ? 'Edit Job Post' : `Add Job Post for ${workerName}`}
-          </DialogTitle>
+          <DialogTitle>{post ? 'Edit Job Post' : `Add Job Post for ${workerName}`}</DialogTitle>
         </DialogHeader>
 
         {isLoadingPost ? (
@@ -265,11 +222,7 @@ export function JobPostFormDialog({
           <div className='grid gap-4 py-2 sm:grid-cols-2'>
             <div className='space-y-1.5 sm:col-span-2'>
               <Label htmlFor='job-post-category'>Service category *</Label>
-              <Select
-                value={categoryId}
-                onValueChange={setCategoryId}
-                disabled={isSubmitting}
-              >
+              <Select value={categoryId} onValueChange={setCategoryId} disabled={isSubmitting}>
                 <SelectTrigger id='job-post-category'>
                   <SelectValue placeholder='Select a category' />
                 </SelectTrigger>
@@ -292,9 +245,7 @@ export function JobPostFormDialog({
                 onChange={(event) => setTitle(event.target.value)}
                 disabled={isSubmitting}
               />
-              <p className='text-xs text-muted-foreground'>
-                {title.length}/100 characters
-              </p>
+              <p className='text-xs text-muted-foreground'>{title.length}/100 characters</p>
             </div>
 
             <div className='space-y-1.5 sm:col-span-2'>
@@ -307,9 +258,7 @@ export function JobPostFormDialog({
                 onChange={(event) => setDescription(event.target.value)}
                 disabled={isSubmitting}
               />
-              <p className='text-xs text-muted-foreground'>
-                {description.length}/500 characters
-              </p>
+              <p className='text-xs text-muted-foreground'>{description.length}/500 characters</p>
             </div>
 
             <div className='space-y-1.5'>
@@ -327,19 +276,13 @@ export function JobPostFormDialog({
 
             <div className='space-y-1.5'>
               <Label htmlFor='job-post-rate-type'>Rate type *</Label>
-              <Select
-                value={rateType}
-                onValueChange={setRateType}
-                disabled={isSubmitting}
-              >
+              <Select value={rateType} onValueChange={setRateType} disabled={isSubmitting}>
                 <SelectTrigger id='job-post-rate-type'>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {RATE_TYPES.map((rate) => (
-                    <SelectItem key={rate.value} value={rate.value}>
-                      {rate.label}
-                    </SelectItem>
+                    <SelectItem key={rate.value} value={rate.value}>{rate.label}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -348,41 +291,23 @@ export function JobPostFormDialog({
             <div className='flex items-center justify-between rounded-lg border border-border px-4 py-3 sm:col-span-2'>
               <div>
                 <p className='text-sm font-medium'>Available for booking</p>
-                <p className='text-xs text-muted-foreground'>
-                  Clients can send requests for this post.
-                </p>
+                <p className='text-xs text-muted-foreground'>Clients can send requests for this post.</p>
               </div>
-              <Switch
-                checked={isAvailable}
-                onCheckedChange={setIsAvailable}
-                disabled={isSubmitting}
-                aria-label='Available for booking'
-              />
+              <Switch checked={isAvailable} onCheckedChange={setIsAvailable} disabled={isSubmitting} aria-label='Available for booking' />
             </div>
 
             <div className='flex items-center justify-between rounded-lg border border-border px-4 py-3 sm:col-span-2'>
               <div>
                 <p className='text-sm font-medium'>Active listing</p>
-                <p className='text-xs text-muted-foreground'>
-                  Inactive posts are hidden from clients.
-                </p>
+                <p className='text-xs text-muted-foreground'>Inactive posts are hidden from clients.</p>
               </div>
-              <Switch
-                checked={isActive}
-                onCheckedChange={setIsActive}
-                disabled={isSubmitting}
-                aria-label='Active listing'
-              />
+              <Switch checked={isActive} onCheckedChange={setIsActive} disabled={isSubmitting} aria-label='Active listing' />
             </div>
 
             <div className='space-y-2 sm:col-span-2'>
               <div>
-                <Label htmlFor='job-post-photos'>
-                  Service photos (optional)
-                </Label>
-                <p className='mt-1 text-xs text-muted-foreground'>
-                  Up to 10 JPG, PNG, or WebP photos; 10 MB max each.
-                </p>
+                <Label htmlFor='job-post-photos'>Service photos (optional)</Label>
+                <p className='mt-1 text-xs text-muted-foreground'>Up to 10 JPG, PNG, or WebP photos; 10 MB max each.</p>
               </div>
               <Input
                 id='job-post-photos'
@@ -398,24 +323,16 @@ export function JobPostFormDialog({
               <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
                 {images.map((image) => (
                   <div key={image.id} className='relative'>
-                    <img
-                      src={image.image_url}
-                      alt='Job post service'
-                      className='aspect-square w-full rounded-md object-cover'
-                    />
+                    <img src={image.image_url} alt='Job post service' className='aspect-square w-full rounded-md object-cover' />
                     <Button
                       type='button'
                       variant='destructive'
                       size='icon'
-                      className='absolute top-1 right-1 h-7 w-7'
+                      className='absolute right-1 top-1 h-7 w-7'
                       disabled={isSubmitting}
                       aria-label='Remove photo'
                       onClick={() => {
-                        setImages((current) =>
-                          current.filter(
-                            (currentImage) => currentImage.id !== image.id
-                          )
-                        )
+                        setImages((current) => current.filter((currentImage) => currentImage.id !== image.id))
                         setRemovedImageIds((current) => [...current, image.id])
                       }}
                     >
@@ -424,10 +341,7 @@ export function JobPostFormDialog({
                   </div>
                 ))}
                 {newImages.map((file, index) => (
-                  <div
-                    key={`${file.name}-${file.lastModified}`}
-                    className='flex min-h-20 items-center justify-between gap-2 rounded-md border border-border p-2 text-xs'
-                  >
+                  <div key={`${file.name}-${file.lastModified}`} className='flex min-h-20 items-center justify-between gap-2 rounded-md border border-border p-2 text-xs'>
                     <span className='truncate'>{file.name}</span>
                     <Button
                       type='button'
@@ -435,38 +349,23 @@ export function JobPostFormDialog({
                       size='icon'
                       className='h-7 w-7 shrink-0'
                       aria-label={`Remove ${file.name}`}
-                      onClick={() =>
-                        setNewImages((current) =>
-                          current.filter(
-                            (_, currentIndex) => currentIndex !== index
-                          )
-                        )
-                      }
+                      onClick={() => setNewImages((current) => current.filter((_, currentIndex) => currentIndex !== index))}
                     >
                       <X className='h-3.5 w-3.5' />
                     </Button>
                   </div>
                 ))}
               </div>
-              <p className='text-xs text-muted-foreground'>
-                {remainingImageCount}/{MAX_IMAGES} photos
-              </p>
+              <p className='text-xs text-muted-foreground'>{remainingImageCount}/{MAX_IMAGES} photos</p>
             </div>
           </div>
         )}
 
         <DialogFooter>
-          <Button
-            variant='outline'
-            onClick={() => onOpenChange(false)}
-            disabled={isSubmitting}
-          >
+          <Button variant='outline' onClick={() => onOpenChange(false)} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={isSubmitting || isLoadingPost || !!loadError}
-          >
+          <Button onClick={handleSubmit} disabled={isSubmitting || isLoadingPost || !!loadError}>
             {isSubmitting && <Loader2 className='h-4 w-4 animate-spin' />}
             {isSubmitting ? 'Saving…' : post ? 'Save Changes' : 'Add Post'}
           </Button>

@@ -1,5 +1,9 @@
-import { Link } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/theme-switch'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -10,10 +14,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Header } from '@/components/layout/header'
-import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { ThemeSwitch } from '@/components/theme-switch'
 import { useSettings } from './hooks/use-settings'
 
 export function NotificationTemplatesPage() {
@@ -32,7 +32,7 @@ export function NotificationTemplatesPage() {
       <Main>
         <Link
           to='/platform-settings'
-          className='mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground'
+          className='mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors'
         >
           <ArrowLeft size={14} />
           Platform Settings

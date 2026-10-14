@@ -1,6 +1,7 @@
 // Real API: GET /admin/deletion-requests
 //   response: { success, data: { users: DeletionUser[], pagination } }
 //   No status filter — endpoint always returns users with pending deletion_requested_at
+
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { type DeletionUser } from '../types'
@@ -29,7 +30,6 @@ export function useDeletionRequests(): UseDeletionRequestsResult {
 
   useEffect(() => {
     let cancelled = false
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true)
     setError(null)
 
@@ -43,26 +43,12 @@ export function useDeletionRequests(): UseDeletionRequestsResult {
       })
       .catch((err) => {
         if (!cancelled)
-          setError(
-            err instanceof Error
-              ? err.message
-              : 'Failed to load deletion requests.'
-          )
+          setError(err instanceof Error ? err.message : 'Failed to load deletion requests.')
       })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+      .finally(() => { if (!cancelled) setIsLoading(false) })
 
-    return () => {
-      cancelled = true
-    }
+    return () => { cancelled = true }
   }, [tick])
 
-  return {
-    data,
-    pagination,
-    isLoading,
-    error,
-    refetch: () => setTick((t) => t + 1),
-  }
+  return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }

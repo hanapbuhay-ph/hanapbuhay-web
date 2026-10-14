@@ -1,5 +1,4 @@
 ﻿import { AlertTriangle, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -8,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 interface RemoveReviewDialogProps {
   open: boolean
@@ -35,9 +35,7 @@ export function RemoveReviewDialog({
           <DialogDescription className='space-y-2'>
             <span className='block'>
               You are removing the review from{' '}
-              <span className='font-semibold text-foreground'>
-                {reviewerName}
-              </span>
+              <span className='font-semibold text-foreground'>{reviewerName}</span>
               .
             </span>
             <span className='block font-medium text-destructive'>

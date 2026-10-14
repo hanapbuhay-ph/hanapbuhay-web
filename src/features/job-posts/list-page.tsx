@@ -1,17 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import {
-  ArrowLeft,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  SearchIcon,
-  Trash2,
-} from 'lucide-react'
-import { toast } from 'sonner'
-import { api } from '@/lib/api'
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, SearchIcon, Trash2 } from 'lucide-react'
+import { useUsers } from '@/features/users/hooks/use-users'
+import { type User } from '@/features/users/types'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/theme-switch'
 import {
   Select,
   SelectContent,
@@ -19,24 +16,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Header } from '@/components/layout/header'
-import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { ThemeSwitch } from '@/components/theme-switch'
-import { useUsers } from '@/features/users/hooks/use-users'
-import { type User } from '@/features/users/types'
-import { DeletePostDialog } from './components/delete-post-dialog'
-import { JobPostFormDialog } from './components/job-post-form-dialog'
+import { api } from '@/lib/api'
+import { toast } from 'sonner'
 import { JobPostsTable } from './components/job-posts-table'
-import { WorkersTable } from './components/workers-table'
-import { useJobPostAction } from './hooks/use-job-post-action'
+import { JobPostFormDialog } from './components/job-post-form-dialog'
+import { DeletePostDialog } from './components/delete-post-dialog'
 import { useJobPosts } from './hooks/use-job-posts'
+import { useJobPostAction } from './hooks/use-job-post-action'
+import { type JobPost, type JobPostStatusFilter, type JobPostVerificationFilter } from './types'
+import { WorkersTable } from './components/workers-table'
 import { type JobPostsSearch } from './route-search'
-import {
-  type JobPost,
-  type JobPostStatusFilter,
-  type JobPostVerificationFilter,
-} from './types'
 
 interface Category {
   id: number
@@ -52,25 +41,15 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
   const navigate = useNavigate()
   const [selectedWorker, setSelectedWorker] = useState<User | null>(null)
   const [restoredWorkerId, setRestoredWorkerId] = useState<string | null>(null)
-  const [failedWorkerRestoreId, setFailedWorkerRestoreId] = useState<
-    string | null
-  >(null)
+  const [failedWorkerRestoreId, setFailedWorkerRestoreId] = useState<string | null>(null)
   const [workerPage, setWorkerPage] = useState(search.workerPage ?? 1)
-  const [barangayId, setBarangayId] = useState<number | null>(
-    search.barangayId ?? null
-  )
-  const [postStatus, setPostStatus] = useState<JobPostStatusFilter>(
-    search.postStatus ?? 'all'
-  )
-  const [verification, setVerification] = useState<JobPostVerificationFilter>(
-    search.verification ?? 'all'
-  )
+  const [barangayId, setBarangayId] = useState<number | null>(search.barangayId ?? null)
+  const [postStatus, setPostStatus] = useState<JobPostStatusFilter>(search.postStatus ?? 'all')
+  const [verification, setVerification] = useState<JobPostVerificationFilter>(search.verification ?? 'all')
   const [page, setPage] = useState(search.postPage ?? 1)
   const [workerSearch, setWorkerSearch] = useState(search.workerSearch ?? '')
   const [postSearch, setPostSearch] = useState(search.postSearch ?? '')
-  const [categoryId, setCategoryId] = useState<number | null>(
-    search.categoryId ?? null
-  )
+  const [categoryId, setCategoryId] = useState<number | null>(search.categoryId ?? null)
   const [postFormOpen, setPostFormOpen] = useState(false)
   const [editingPost, setEditingPost] = useState<JobPost | null>(null)
   const [isSelectingPosts, setIsSelectingPosts] = useState(false)
@@ -85,16 +64,9 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
     error: workersError,
     pagination: workersPagination,
     refetch: refetchWorkers,
-  } = useUsers(
-    'worker',
-    'all',
-    workerSearch,
-    workerPage,
-    verification,
-    barangayId
-  )
+  } = useUsers('worker', 'all', workerSearch, workerPage, verification, barangayId)
   const workerFromList = search.workerId
-    ? (workers.find((worker) => String(worker.id) === search.workerId) ?? null)
+    ? workers.find((worker) => String(worker.id) === search.workerId) ?? null
     : null
   const activeWorker =
     selectedWorker &&
@@ -108,7 +80,9 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
     'all',
     postSearch,
     page,
-    activeWorker ? (activeWorker.worker_profile_id ?? -1) : undefined
+    activeWorker
+      ? (activeWorker.worker_profile_id ?? -1)
+      : undefined,
   )
   const [deletedIds, setDeletedIds] = useState<number[]>([])
 
@@ -119,8 +93,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
     if (workerFromList) return
 
     let cancelled = false
-    api
-      .get(`/admin/users/${workerId}`)
+    api.get(`/admin/users/${workerId}`)
       .then(({ data: response }) => {
         if (cancelled) return
         const worker = response.data
@@ -141,11 +114,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
       .catch((error: unknown) => {
         if (!cancelled) {
           setFailedWorkerRestoreId(workerId)
-          toast.error(
-            error instanceof Error
-              ? error.message
-              : 'Failed to restore the selected worker.'
-          )
+          toast.error(error instanceof Error ? error.message : 'Failed to restore the selected worker.')
         }
       })
 
@@ -157,22 +126,14 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
   useEffect(() => {
     Promise.all([api.get('/service-categories'), api.get('/barangays')])
       .then(([categoryResponse, barangayResponse]) => {
-        setCategories(
-          Array.isArray(categoryResponse.data?.data)
-            ? categoryResponse.data.data
-            : []
-        )
-        setBarangays(
-          Array.isArray(barangayResponse.data?.data)
-            ? barangayResponse.data.data
-            : []
-        )
+        setCategories(Array.isArray(categoryResponse.data?.data) ? categoryResponse.data.data : [])
+        setBarangays(Array.isArray(barangayResponse.data?.data) ? barangayResponse.data.data : [])
       })
       .catch((error: unknown) => {
         toast.error(
           error instanceof Error
             ? error.message
-            : 'Failed to load job post categories and barangays.'
+            : 'Failed to load job post categories and barangays.',
         )
       })
   }, [])
@@ -193,7 +154,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
   function startPostSelection(postId: number) {
     setIsSelectingPosts(true)
     setSelectedPostIds((current) =>
-      current.includes(postId) ? current : [...current, postId]
+      current.includes(postId) ? current : [...current, postId],
     )
   }
 
@@ -201,7 +162,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
     setSelectedPostIds((current) =>
       current.includes(postId)
         ? current.filter((id) => id !== postId)
-        : [...current, postId]
+        : [...current, postId],
     )
   }
 
@@ -221,7 +182,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
     search.workerId &&
     !activeWorker &&
     restoredWorkerId !== search.workerId &&
-    failedWorkerRestoreId !== search.workerId
+    failedWorkerRestoreId !== search.workerId,
   )
 
   if (!activeWorker) {
@@ -303,11 +264,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
           />
           {workersPagination && workersPagination.last_page > 1 && (
             <div className='mt-4 flex items-center justify-between text-sm text-muted-foreground'>
-              <span>
-                Page {workersPagination.current_page} of{' '}
-                {workersPagination.last_page} ({workersPagination.total}{' '}
-                workers)
-              </span>
+              <span>Page {workersPagination.current_page} of {workersPagination.last_page} ({workersPagination.total} workers)</span>
               <div className='flex items-center gap-1'>
                 <Button
                   variant='outline'
@@ -315,9 +272,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
                   title='Previous page'
                   aria-label='Previous page'
                   disabled={workersPagination.current_page <= 1}
-                  onClick={() =>
-                    setWorkerPage(workersPagination.current_page - 1)
-                  }
+                  onClick={() => setWorkerPage(workersPagination.current_page - 1)}
                 >
                   <ChevronLeft className='h-4 w-4' />
                 </Button>
@@ -326,13 +281,8 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
                   size='icon'
                   title='Next page'
                   aria-label='Next page'
-                  disabled={
-                    workersPagination.current_page >=
-                    workersPagination.last_page
-                  }
-                  onClick={() =>
-                    setWorkerPage(workersPagination.current_page + 1)
-                  }
+                  disabled={workersPagination.current_page >= workersPagination.last_page}
+                  onClick={() => setWorkerPage(workersPagination.current_page + 1)}
                 >
                   <ChevronRight className='h-4 w-4' />
                 </Button>
@@ -467,9 +417,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
           onRetry={refetch}
           onDeleted={(id) => {
             setDeletedIds((prev) => [...prev, id])
-            setSelectedPostIds((current) =>
-              current.filter((selectedId) => selectedId !== id)
-            )
+            setSelectedPostIds((current) => current.filter((selectedId) => selectedId !== id))
           }}
           detailSearch={detailSearch}
           isSelecting={isSelectingPosts}
@@ -499,10 +447,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
         />
         {pagination && pagination.last_page > 1 && (
           <div className='mt-4 flex items-center justify-between text-sm text-muted-foreground'>
-            <span>
-              Page {pagination.current_page} of {pagination.last_page} (
-              {pagination.total} posts)
-            </span>
+            <span>Page {pagination.current_page} of {pagination.last_page} ({pagination.total} posts)</span>
             <div className='flex items-center gap-1'>
               <Button
                 variant='outline'
