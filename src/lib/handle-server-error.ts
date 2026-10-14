@@ -42,16 +42,10 @@ function extractErrorMessage(error: unknown): string | null {
         }
       }
     }
-  }
 
-  if (error && typeof error === 'object' && 'message' in error) {
-    const message = error.message
-    if (typeof message === 'string' && message.length > 0) {
-      return message
-    }
+    // No usable API message — fall back to generic
+    return null
   }
-
-  return null
 }
 
 export function handleServerError(error: unknown) {
