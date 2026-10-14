@@ -14,6 +14,7 @@ interface RawReportReason {
   label: string
   description?: string | null
   is_active?: boolean
+  audience?: 'client' | 'worker'
 }
 
 interface RawSettings {
@@ -41,6 +42,7 @@ function normalise(raw: RawSettings): PlatformSettings {
         code: value,
         label: REASON_LABELS[value] ?? value,
         is_active: true,
+        audience: 'client',
       }
     }
 
@@ -50,6 +52,7 @@ function normalise(raw: RawSettings): PlatformSettings {
       label: value.label || REASON_LABELS[value.code] || value.code,
       description: value.description ?? '',
       is_active: value.is_active ?? true,
+      audience: value.audience ?? 'client',
     }
   })
 

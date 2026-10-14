@@ -3,12 +3,10 @@
 import { AlertTriangle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import type { User } from '../types'
-
 type UserDeleteDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  user: User | null
+  user: { name: string } | null
   onConfirm: () => void
   isSubmitting?: boolean
 }

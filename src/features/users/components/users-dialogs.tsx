@@ -36,7 +36,9 @@ export function UsersDialogs() {
           <UsersDeleteDialog
             key={`user-delete-${currentRow.id}`}
             open={open === 'delete'}
-            user={currentRow}
+            user={{
+              name: `${currentRow.firstName} ${currentRow.lastName}`,
+            }}
             onOpenChange={(next) => {
               setOpen(next ? 'delete' : null)
               if (!next) {

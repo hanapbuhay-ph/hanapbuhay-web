@@ -55,6 +55,21 @@ export interface ReportPagination {
   last_page: number
 }
 
+export interface ReportHistoryEntry {
+  id: number
+  action: string
+  status: ReportStatus
+  changed_at: string
+  changed_by: string
+  remarks?: string | null
+}
+
+export const HISTORY_ACTION_LABELS: Record<string, string> = {
+  under_review: 'Marked Under Review',
+  resolved: 'Resolved',
+  dismissed: 'Dismissed',
+}
+
 export const REASON_LABELS: Record<ReportReason, string> = {
   no_show: 'No Show',
   unsatisfactory_work: 'Unsatisfactory Work',

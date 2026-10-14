@@ -66,17 +66,13 @@ export const ACTION_LABELS: Record<string, string> = {
   update_trust_tier: 'Updated Trust Tier',
   suspend_user: 'Suspended User',
   reactivate_user: 'Reactivated User',
-  process_account_deletion: 'Processed Account Deletion',
   process_deletion: 'Processed Account Deletion',
-  resolve_report: 'Resolved Report',
   force_cancel_booking: 'Force Cancelled Booking',
   delete_job_post: 'Deleted Job Post',
   delete_rating: 'Deleted Rating',
   create_category: 'Created Service Category',
   update_category: 'Updated Service Category',
   post_announcement: 'Posted Announcement',
-  user_suspend: 'Suspended User',
-  user_reactivate: 'Reactivated User',
 }
 
 export const ALL_ACTIONS = Object.keys(ACTION_LABELS)
