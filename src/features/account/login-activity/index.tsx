@@ -1,18 +1,15 @@
 /**
  * Login Activity page.
- *
- * NOTE: When the real API is ready, the "Log Out" action triggers actual
- * token revocation for that session via /api/admin/sessions/:id/revoke.
  */
-
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { Loader2, MonitorSmartphone } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { Loader2, MonitorSmartphone } from 'lucide-react'
+import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import {
   Table,
   TableBody,
@@ -21,7 +18,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Separator } from '@/components/ui/separator'
 import { ConfirmDialog } from '@/components/confirm-dialog'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -29,10 +25,8 @@ import { ConfirmDialog } from '@/components/confirm-dialog'
 interface LoginSession {
   id: number
   device: string
-  location: string
-  ip_address: string
-  logged_in_at: string
-  is_current_session: boolean
+  last_used_at: string
+  is_current: boolean
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
@@ -46,10 +40,12 @@ export function AccountLoginActivity() {
 
   // ── Fetch sessions ─────────────────────────────────────────────────────────
   const { data: sessions = [], isLoading } = useQuery<LoginSession[]>({
-    queryKey: ['login_activity'],
+    queryKey: ['user_sessions'],
     queryFn: async () => {
-      const res = await api.get<LoginSession[]>('/login_activity')
-      return res.data
+      const res = await api.get<{ success: boolean; data: LoginSession[] }>(
+        '/user/sessions'
+      )
+      return res.data.data
     },
   })
 
@@ -58,12 +54,8 @@ export function AccountLoginActivity() {
     if (!sessionToRevoke) return
     setIsRevoking(true)
     try {
-      // Mock only — remove from local list state after toast.
-      // Real implementation: PATCH /login_activity/:id → triggers token revocation.
-      await api.patch(`/login_activity/${sessionToRevoke.id}`, {
-        revoked: true,
-      })
-      queryClient.setQueryData<LoginSession[]>(['login_activity'], (prev) =>
+      await api.delete(`/user/sessions/${sessionToRevoke.id}`)
+      queryClient.setQueryData<LoginSession[]>(['user_sessions'], (prev) =>
         (prev ?? []).filter((s) => s.id !== sessionToRevoke.id)
       )
       toast.success('Session ended.')
@@ -102,9 +94,7 @@ export function AccountLoginActivity() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Device</TableHead>
-                  <TableHead>Location</TableHead>
-                  <TableHead>IP Address</TableHead>
-                  <TableHead>Logged In</TableHead>
+                  <TableHead>Last Used</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className='text-right'>Action</TableHead>
                 </TableRow>
@@ -115,26 +105,22 @@ export function AccountLoginActivity() {
                     <TableCell className='font-medium'>
                       {session.device}
                     </TableCell>
-                    <TableCell>{session.location}</TableCell>
-                    <TableCell className='font-mono text-xs'>
-                      {session.ip_address}
-                    </TableCell>
                     <TableCell className='text-sm text-muted-foreground'>
-                      {formatDistanceToNow(new Date(session.logged_in_at), {
+                      {formatDistanceToNow(new Date(session.last_used_at), {
                         addSuffix: true,
                       })}
                     </TableCell>
                     <TableCell>
-                      {session.is_current_session ? (
-                        <Badge className='bg-primary/10 text-primary hover:bg-primary/10 border-0'>
+                      {session.is_current ? (
+                        <Badge className='border-0 bg-primary/10 text-primary hover:bg-primary/10'>
                           Current Session
                         </Badge>
                       ) : (
-                        <span className='text-muted-foreground text-xs'>—</span>
+                        <span className='text-xs text-muted-foreground'>—</span>
                       )}
                     </TableCell>
                     <TableCell className='text-right'>
-                      {!session.is_current_session && (
+                      {!session.is_current && (
                         <Button
                           variant='outline'
                           size='sm'

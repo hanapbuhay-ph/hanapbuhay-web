@@ -1,90 +1,99 @@
-// When the real API is ready, published announcements are pushed to all target
-// users via /api/admin/announcements. The mobile app displays active
-// (published, not expired) announcements in the notification center.
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
-import { type Announcement, type AnnouncementPayload } from '../types'
+
+interface AnnouncementPayload {
+  title: string
+  body: string
+  status?: 'draft' | 'published' | 'archived'
+  target_audience?: 'all' | 'clients' | 'workers'
+  expires_at: string | null
+}
 
 interface UseAnnouncementActionResult {
   isSubmitting: boolean
-  create: (
+  post: (payload: AnnouncementPayload, onSuccess: () => void) => Promise<void>
+  save: (
     payload: AnnouncementPayload,
-    onSuccess: (created: Announcement) => void
+    onSuccess: () => void,
+    id?: number
   ) => Promise<void>
-  edit: (
-    id: number,
-    payload: AnnouncementPayload,
-    onSuccess: (updated: Announcement) => void
-  ) => Promise<void>
-  archive: (
-    id: number,
-    onSuccess: (updated: Announcement) => void
-  ) => Promise<void>
+  archive: (id: number, onSuccess: () => void) => Promise<void>
+  remove: (id: number, onSuccess: () => void) => Promise<void>
 }
 
 export function useAnnouncementAction(): UseAnnouncementActionResult {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  async function create(
-    payload: AnnouncementPayload,
-    onSuccess: (created: Announcement) => void
+  async function runMutation(
+    request: () => Promise<unknown>,
+    successMessage: string,
+    onSuccess: () => void
   ) {
     setIsSubmitting(true)
     try {
-      const res = await api.post<Announcement>('/announcements', payload)
-      toast.success('Announcement created.')
-      onSuccess(res.data)
+      await request()
+      toast.success(successMessage)
+      onSuccess()
     } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'Failed to create announcement.'
-      )
+      const message = err instanceof Error ? err.message : 'Request failed.'
+      toast.error(message)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  async function edit(
-    id: number,
-    payload: AnnouncementPayload,
-    onSuccess: (updated: Announcement) => void
-  ) {
-    setIsSubmitting(true)
-    try {
-      // Read-then-merge to preserve all fields
-      const current = await api.get<Announcement>(`/announcements/${id}`)
-      const merged = { ...current.data, ...payload }
-      const res = await api.put<Announcement>(`/announcements/${id}`, merged)
-      toast.success('Announcement updated.')
-      onSuccess(res.data)
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'Failed to update announcement.'
-      )
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  return {
+    isSubmitting,
 
-  async function archive(
-    id: number,
-    onSuccess: (updated: Announcement) => void
-  ) {
-    setIsSubmitting(true)
-    try {
-      const res = await api.patch<Announcement>(`/announcements/${id}`, {
-        status: 'archived',
-      })
-      toast.success('Announcement archived.')
-      onSuccess(res.data)
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : 'Failed to archive announcement.'
+    post: async (payload, onSuccess) => {
+      await runMutation(
+        () =>
+          api.post('/admin/settings/announcements', {
+            ...payload,
+            status: payload.status ?? 'published',
+            target_audience: payload.target_audience ?? 'all',
+          }),
+        'Announcement posted.',
+        onSuccess
       )
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+    },
 
-  return { isSubmitting, create, edit, archive }
+    save: async (payload, onSuccess, id) => {
+      await runMutation(
+        () => {
+          if (id) {
+            return api.patch(`/admin/settings/announcements/${id}`, payload)
+          }
+
+          return api.post('/admin/settings/announcements', {
+            ...payload,
+            status: payload.status ?? 'draft',
+            target_audience: payload.target_audience ?? 'all',
+          })
+        },
+        id ? 'Announcement updated.' : 'Announcement created.',
+        onSuccess
+      )
+    },
+
+    archive: async (id, onSuccess) => {
+      await runMutation(
+        () =>
+          api.patch(`/admin/settings/announcements/${id}`, {
+            status: 'archived',
+          }),
+        'Announcement archived.',
+        onSuccess
+      )
+    },
+
+    remove: async (id, onSuccess) => {
+      await runMutation(
+        () => api.delete(`/admin/settings/announcements/${id}`),
+        'Announcement deleted.',
+        onSuccess
+      )
+    },
+  }
 }

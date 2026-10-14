@@ -1,40 +1,62 @@
-import { useEffect, useMemo, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { type AuditLog, type AuditActionFilter } from '../types'
+import {
+  type AuditLog,
+  type AuditActionFilter,
+  type AuditPagination,
+} from '../types'
 
 interface UseAuditLogsResult {
   data: AuditLog[]
+  pagination: AuditPagination | null
   isLoading: boolean
   error: string | null
   refetch: () => void
 }
 
 export function useAuditLogs(
-  actionFilter: AuditActionFilter = 'all'
+  actionFilter: AuditActionFilter = 'all',
+  targetType = 'all',
+  adminName = '',
+  category = 'all',
+  outcome = 'all',
+  ipAddress = '',
+  dateFrom = '',
+  dateTo = '',
+  page = 1
 ): UseAuditLogsResult {
-  const [raw, setRaw] = useState<AuditLog[]>([])
+  const [pagination, setPagination] = useState<AuditPagination | null>(null)
+  const [data, setData] = useState<AuditLog[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    startTransition(() => {
+      setIsLoading(true)
+      setError(null)
+    })
 
-    // Fetch all — json-server doesn't support filtering on nested fields,
-    // so we filter client-side after fetching all records.
+    const params: Record<string, string | number> = { page }
+    if (actionFilter !== 'all') params.action = actionFilter
+    if (targetType !== 'all') params.target_type = targetType
+    if (adminName.trim()) params.admin_name = adminName.trim()
+    if (category !== 'all') params.category = category
+    if (outcome !== 'all') params.outcome = outcome
+    if (ipAddress.trim()) params.ip_address = ipAddress.trim()
+    if (dateFrom) params.date_from = dateFrom
+    if (dateTo) params.date_to = dateTo
+
     api
-      .get<AuditLog[]>('/audit_logs')
+      .get<{
+        success: boolean
+        data: { logs: AuditLog[]; pagination: AuditPagination }
+      }>('/admin/audit-logs', { params })
       .then((res) => {
         if (!cancelled) {
-          // Sort newest first
-          const sorted = [...res.data].sort(
-            (a, b) =>
-              new Date(b.created_at).getTime() -
-              new Date(a.created_at).getTime()
-          )
-          setRaw(sorted)
+          setData(res.data.data.logs)
+          setPagination(res.data.data.pagination)
         }
       })
       .catch((err) => {
@@ -50,12 +72,24 @@ export function useAuditLogs(
     return () => {
       cancelled = true
     }
-  }, [tick])
+  }, [
+    actionFilter,
+    targetType,
+    adminName,
+    category,
+    outcome,
+    ipAddress,
+    dateFrom,
+    dateTo,
+    page,
+    tick,
+  ])
 
-  const data = useMemo(() => {
-    if (actionFilter === 'all') return raw
-    return raw.filter((log) => log.action === actionFilter)
-  }, [raw, actionFilter])
-
-  return { data, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return {
+    data,
+    pagination,
+    isLoading,
+    error,
+    refetch: () => setTick((t) => t + 1),
+  }
 }

@@ -1,17 +1,11 @@
-/**
- * Change Password form.
- *
- * NOTE: When the real API is ready, POST to /api/admin/change-password
- * with { currentPassword, newPassword }. The backend validates the current
- * password before accepting the change.
- */
-
+import { useEffect, useState } from 'react'
 import { z } from 'zod'
+import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { toast } from 'sonner'
+import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -45,6 +39,33 @@ type PasswordValues = z.infer<typeof passwordSchema>
 
 export function ChangePasswordForm() {
   const [isPending, setIsPending] = useState(false)
+  const [cooldownSeconds, setCooldownSeconds] = useState(0)
+
+  useEffect(() => {
+    api
+      .get('/user/password/cooldown')
+      .then((response) => {
+        const seconds = Number(response.data?.data?.retry_after_seconds)
+        if (Number.isFinite(seconds) && seconds > 0) {
+          setCooldownSeconds(seconds)
+        }
+      })
+      .catch(() => {
+        toast.error('Unable to check the password-change cooldown.')
+      })
+  }, [])
+
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return
+    const intervalId = window.setInterval(() => {
+      setCooldownSeconds((remaining) => Math.max(0, remaining - 1))
+    }, 1000)
+    return () => window.clearInterval(intervalId)
+  }, [cooldownSeconds])
+
+  function startCooldown(seconds: number) {
+    setCooldownSeconds(seconds)
+  }
 
   const form = useForm<PasswordValues>({
     resolver: zodResolver(passwordSchema),
@@ -55,13 +76,39 @@ export function ChangePasswordForm() {
     },
   })
 
-  async function onSubmit(_values: PasswordValues) {
+  async function onSubmit(values: PasswordValues) {
+    if (cooldownSeconds > 0) return
     setIsPending(true)
-    // Simulate network delay
-    await new Promise((r) => setTimeout(r, 600))
-    setIsPending(false)
-    toast.success('Password updated successfully.')
-    form.reset()
+
+    try {
+      const response = await api.post('/user/password', {
+        current_password: values.currentPassword,
+        password: values.newPassword,
+        password_confirmation: values.confirmPassword,
+      })
+
+      const retryAfter = Number(response.data?.data?.retry_after_seconds)
+      startCooldown(
+        Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : 60
+      )
+      toast.success('Password updated successfully.')
+      form.reset()
+    } catch (error) {
+      const axiosError = error instanceof AxiosError ? error : null
+      const message =
+        axiosError?.response?.data?.message ??
+        'Unable to update password. Please try again.'
+
+      const retryAfter = Number(
+        axiosError?.response?.data?.data?.retry_after_seconds
+      )
+      if (Number.isFinite(retryAfter) && retryAfter > 0) {
+        startCooldown(retryAfter)
+      }
+      toast.error(message)
+    } finally {
+      setIsPending(false)
+    }
   }
 
   return (
@@ -115,12 +162,19 @@ export function ChangePasswordForm() {
 
         <Button
           type='submit'
-          disabled={isPending}
+          disabled={isPending || cooldownSeconds > 0}
           className='bg-primary text-white hover:bg-primary/90'
         >
           {isPending && <Loader2 className='me-2 h-4 w-4 animate-spin' />}
-          Update Password
+          {cooldownSeconds > 0
+            ? `Try again in ${String(Math.floor(cooldownSeconds / 60)).padStart(2, '0')}:${String(cooldownSeconds % 60).padStart(2, '0')}`
+            : 'Update Password'}
         </Button>
+        {cooldownSeconds > 0 && (
+          <p className='text-sm text-muted-foreground'>
+            You can submit another password change when the countdown ends.
+          </p>
+        )}
       </form>
     </Form>
   )

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { CalendarIcon } from 'lucide-react'
@@ -12,7 +13,11 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -158,9 +163,7 @@ export function AnnouncementDialog({
               placeholder='Write the announcement message…'
               rows={4}
               value={form.body}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, body: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
               aria-invalid={!!errors.body}
             />
             {errors.body && (

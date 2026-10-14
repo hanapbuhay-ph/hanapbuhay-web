@@ -1,5 +1,7 @@
-﻿import { useMemo, useState } from 'react'
-import { SearchIcon } from 'lucide-react'
+﻿import { useState } from 'react'
+import { ChevronLeft, ChevronRight, Plus, SearchIcon } from 'lucide-react'
+import { getUser } from '@/lib/auth'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
@@ -7,13 +9,17 @@ import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { DeletionRequestsTable } from './components/deletion-requests-table'
+import { UserCrudDialog } from './components/user-crud-dialog'
+import { UsersDeleteDialog } from './components/users-delete-dialog'
 import { UsersTable } from './components/users-table'
 import { useDeletionRequests } from './hooks/use-deletion-requests'
+import { useUserCrud } from './hooks/use-user-crud'
 import { useUsers } from './hooks/use-users'
 import {
-  type DeletionRequest,
+  type User,
   type RoleFilter,
   type StatusFilter,
+  type UserPagination,
 } from './types'
 
 // ── User filter tab definitions ───────────────────────────────────────────────
@@ -23,6 +29,7 @@ const ROLE_TABS: { value: RoleFilter; label: string }[] = [
   { value: 'client', label: 'Client' },
   { value: 'worker', label: 'Worker' },
   { value: 'admin', label: 'Admin' },
+  { value: 'super_admin', label: 'Super Admin' },
 ]
 
 const STATUS_TABS: { value: StatusFilter; label: string }[] = [
@@ -34,56 +41,63 @@ const STATUS_TABS: { value: StatusFilter; label: string }[] = [
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function UsersListPage() {
+  const currentUser = getUser<{ id?: number; role?: string }>()
   const [section, setSection] = useState<'users' | 'deletion_requests'>('users')
 
   // Users tab state
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
 
   const {
     data: users,
     isLoading: usersLoading,
     error: usersError,
+    pagination,
     refetch: refetchUsers,
-  } = useUsers(roleFilter, statusFilter)
-
-  const filtered = useMemo(() => {
-    if (!search.trim()) return users
-    const q = search.toLowerCase()
-    return users.filter(
-      (u) =>
-        u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-    )
-  }, [users, search])
+  } = useUsers(roleFilter, statusFilter, search, page)
 
   // Deletion requests tab state
   const {
     data: deletionRequests,
-    pendingCount,
     isLoading: drLoading,
     error: drError,
     refetch: refetchDr,
   } = useDeletionRequests()
 
-  // In-place update when a request is approved/denied
-  const [localDr, setLocalDr] = useState<DeletionRequest[]>([])
-  const mergedDr = useMemo(() => {
-    if (localDr.length === 0) return deletionRequests
-    return deletionRequests.map((r) => localDr.find((l) => l.id === r.id) ?? r)
-  }, [deletionRequests, localDr])
+  const [processedIds, setProcessedIds] = useState<number[]>([])
+  const visibleDr = deletionRequests.filter((r) => !processedIds.includes(r.id))
+  const [crudOpen, setCrudOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [deleteUserId, setDeleteUserId] = useState<number | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const { isSubmitting, createUser, updateUser, deleteUser } =
+    useUserCrud(refetchUsers)
 
-  function handleDrUpdated(updated: DeletionRequest) {
-    setLocalDr((prev) => {
-      const existing = prev.findIndex((r) => r.id === updated.id)
-      if (existing >= 0) {
-        const next = [...prev]
-        next[existing] = updated
-        return next
-      }
-      return [...prev, updated]
-    })
+  function openCreate() {
+    setEditingUser(null)
+    setCrudOpen(true)
   }
+
+  function openEdit(user: User) {
+    setEditingUser(user)
+    setCrudOpen(true)
+  }
+
+  function openDelete(user: User) {
+    setDeleteUserId(user.id)
+    setDeleteDialogOpen(true)
+  }
+
+  async function handleDeleteConfirm() {
+    if (deleteUserId === null) return
+    await deleteUser(deleteUserId)
+    setDeleteDialogOpen(false)
+    setDeleteUserId(null)
+  }
+
+  const deleteTarget = users.find((user) => user.id === deleteUserId) ?? null
 
   return (
     <>
@@ -115,9 +129,9 @@ export function UsersListPage() {
             <TabsTrigger value='users'>All Users</TabsTrigger>
             <TabsTrigger value='deletion_requests' className='gap-1.5'>
               Deletion Requests
-              {pendingCount > 0 && (
+              {deletionRequests.length > 0 && (
                 <span className='inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white'>
-                  {pendingCount}
+                  {deletionRequests.length}
                 </span>
               )}
             </TabsTrigger>
@@ -126,19 +140,31 @@ export function UsersListPage() {
           {/* ── All Users tab ──────────────────────────────────────── */}
           <TabsContent value='users' className='mt-4'>
             <div className='mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
-              <div className='relative w-full sm:max-w-xs'>
-                <SearchIcon className='absolute inset-y-0 left-3 my-auto h-4 w-4 text-muted-foreground' />
-                <Input
-                  placeholder='Search by name or email…'
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className='rounded-lg border-border pl-9 focus-visible:ring-ring'
-                />
+              <div className='flex w-full gap-2 sm:max-w-md'>
+                <div className='relative w-full'>
+                  <SearchIcon className='absolute inset-y-0 left-3 my-auto h-4 w-4 text-muted-foreground' />
+                  <Input
+                    placeholder='Search by name or email…'
+                    value={search}
+                    onChange={(e) => {
+                      setSearch(e.target.value)
+                      setPage(1)
+                    }}
+                    className='rounded-lg border-border pl-9 focus-visible:ring-ring'
+                  />
+                </div>
+                <Button onClick={openCreate} className='shrink-0'>
+                  <Plus className='h-4 w-4' />
+                  Add user
+                </Button>
               </div>
               <div className='overflow-x-auto pb-1'>
                 <Tabs
                   value={statusFilter}
-                  onValueChange={(v) => setStatusFilter(v as StatusFilter)}
+                  onValueChange={(v) => {
+                    setStatusFilter(v as StatusFilter)
+                    setPage(1)
+                  }}
                 >
                   <TabsList className='min-w-max'>
                     {STATUS_TABS.map((t) => (
@@ -154,7 +180,10 @@ export function UsersListPage() {
             <div className='mb-4 w-full overflow-x-auto pb-1'>
               <Tabs
                 value={roleFilter}
-                onValueChange={(v) => setRoleFilter(v as RoleFilter)}
+                onValueChange={(v) => {
+                  setRoleFilter(v as RoleFilter)
+                  setPage(1)
+                }}
               >
                 <TabsList className='min-w-max'>
                   {ROLE_TABS.map((t) => (
@@ -167,25 +196,93 @@ export function UsersListPage() {
             </div>
 
             <UsersTable
-              data={filtered}
+              data={users}
               isLoading={usersLoading}
               error={usersError}
               onRetry={refetchUsers}
+              onEdit={openEdit}
+              onDelete={openDelete}
+              currentUserId={currentUser?.id}
+              currentUserIsSuperAdmin={currentUser?.role === 'super_admin'}
+            />
+            <UserPaginationControls
+              pagination={pagination}
+              onPageChange={setPage}
             />
           </TabsContent>
 
           {/* ── Deletion Requests tab ─────────────────────────────── */}
           <TabsContent value='deletion_requests' className='mt-4'>
             <DeletionRequestsTable
-              data={mergedDr}
+              data={visibleDr}
               isLoading={drLoading}
               error={drError}
               onRetry={refetchDr}
-              onUpdated={handleDrUpdated}
+              onProcessed={(id) => setProcessedIds((prev) => [...prev, id])}
             />
           </TabsContent>
         </Tabs>
       </Main>
+      <UserCrudDialog
+        open={crudOpen}
+        user={editingUser}
+        isSubmitting={isSubmitting}
+        onOpenChange={setCrudOpen}
+        onSubmit={(input) =>
+          editingUser ? updateUser(editingUser.id, input) : createUser(input)
+        }
+      />
+      <UsersDeleteDialog
+        open={deleteDialogOpen}
+        user={deleteTarget}
+        isSubmitting={isSubmitting}
+        onOpenChange={(open) => {
+          setDeleteDialogOpen(open)
+          if (!open) setDeleteUserId(null)
+        }}
+        onConfirm={handleDeleteConfirm}
+      />
     </>
+  )
+}
+
+function UserPaginationControls({
+  pagination,
+  onPageChange,
+}: {
+  pagination: UserPagination | null
+  onPageChange: (page: number) => void
+}) {
+  if (!pagination || pagination.last_page <= 1) return null
+
+  return (
+    <div className='mt-4 flex items-center justify-between gap-3 text-sm text-muted-foreground'>
+      <span>
+        Page {pagination.current_page} of {pagination.last_page} (
+        {pagination.total} users)
+      </span>
+      <div className='flex items-center gap-1'>
+        <Button
+          variant='outline'
+          size='icon'
+          title='Previous page'
+          aria-label='Previous page'
+          disabled={pagination.current_page <= 1}
+          onClick={() => onPageChange(pagination.current_page - 1)}
+        >
+          <ChevronLeft className='h-4 w-4' />
+        </Button>
+        <Button
+          variant='outline'
+          size='icon'
+          title='Next page'
+          aria-label='Next page'
+          disabled={pagination.current_page >= pagination.last_page}
+          onClick={() => onPageChange(pagination.current_page + 1)}
+        >
+          <ChevronRight className='h-4 w-4' />
+        </Button>
+      </div>
+    </div>
   )
 }

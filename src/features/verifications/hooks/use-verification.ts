@@ -2,6 +2,13 @@ import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { type Verification } from '../types'
 
+interface VerificationApiResponse {
+  success: boolean
+  data: {
+    verification: Verification
+  }
+}
+
 interface UseVerificationResult {
   data: Verification | null
   isLoading: boolean
@@ -17,17 +24,22 @@ export function useVerification(id: string | number): UseVerificationResult {
 
   useEffect(() => {
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true)
     setError(null)
 
     api
-      .get<Verification>(`/verifications/${id}`)
+      .get<VerificationApiResponse>(`/admin/verifications/${id}`)
       .then((res) => {
-        if (!cancelled) setData(res.data)
+        if (!cancelled) {
+          setData(res.data.data.verification)
+        }
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load verification.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load verification.'
+          )
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)

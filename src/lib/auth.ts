@@ -1,16 +1,33 @@
 export const TOKEN_KEY = 'admin_token'
+export const LEGACY_TOKEN_KEY = 'hanapbuhay_admin_token'
 export const USER_KEY = 'admin_user'
 
 export function getToken(): string | null {
-  return localStorage.getItem(TOKEN_KEY)
+  const currentToken = localStorage.getItem(TOKEN_KEY)
+
+  if (currentToken) {
+    return currentToken
+  }
+
+  const legacyToken = localStorage.getItem(LEGACY_TOKEN_KEY)
+
+  if (legacyToken) {
+    localStorage.setItem(TOKEN_KEY, legacyToken)
+    localStorage.removeItem(LEGACY_TOKEN_KEY)
+    return legacyToken
+  }
+
+  return null
 }
 
 export function setToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token)
+  localStorage.removeItem(LEGACY_TOKEN_KEY)
 }
 
 export function clearToken(): void {
   localStorage.removeItem(TOKEN_KEY)
+  localStorage.removeItem(LEGACY_TOKEN_KEY)
 }
 
 export function getUser<T = unknown>(): T | null {

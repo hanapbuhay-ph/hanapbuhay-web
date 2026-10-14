@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
-import { useNavigate } from '@tanstack/react-router'
 import { format } from 'date-fns'
+import { useNavigate } from '@tanstack/react-router'
 import {
   ArrowLeft,
   Hash,
@@ -13,18 +13,20 @@ import {
   AlertTriangle,
   RefreshCw,
   Ban,
+  CalendarClock,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useBooking } from './hooks/use-booking'
-import { useBookingAction } from './hooks/use-booking-action'
+import { AdminRescheduleDialog } from './components/admin-reschedule-dialog'
 import { BookingStatusBadge } from './components/booking-status-badge'
 import { ForceCancelDialog } from './components/force-cancel-dialog'
+import { useBooking } from './hooks/use-booking'
+import { useBookingAction } from './hooks/use-booking-action'
 import { CANCELLABLE_STATUSES } from './types'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -38,8 +40,10 @@ interface BookingDetailPageProps {
 export function BookingDetailPage({ id }: BookingDetailPageProps) {
   const navigate = useNavigate()
   const { data, isLoading, error, refetch, setData } = useBooking(id)
-  const { isSubmitting, forceCancel } = useBookingAction()
+  const { isSubmitting, forceCancel, reschedule } = useBookingAction()
   const [showCancel, setShowCancel] = useState(false)
+  const [showReschedule, setShowReschedule] = useState(false)
+  const canReschedule = data?.status === 'pending'
 
   const canForceCancel =
     data !== null && CANCELLABLE_STATUSES.includes(data.status)
@@ -47,8 +51,16 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
   function handleForceCancelConfirm(reason: string) {
     if (!data) return
     forceCancel(data.id, reason, (updated) => {
-      setData(updated)
+      setData((prev) => (prev ? { ...prev, ...updated } : prev))
       setShowCancel(false)
+    })
+  }
+
+  function handleRescheduleConfirm(scheduledAt: string) {
+    if (!data) return
+    reschedule(data.id, scheduledAt, (updated) => {
+      setData((prev) => (prev ? { ...prev, ...updated } : prev))
+      setShowReschedule(false)
     })
   }
 
@@ -78,7 +90,7 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
               Booking Detail
             </h1>
             <p className='text-sm text-muted-foreground'>
-              Read-only view. Force cancel is the only available admin action.
+              Review booking details and manage pending bookings.
             </p>
           </div>
         </div>
@@ -124,11 +136,11 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
               </CardHeader>
 
               <CardContent className='flex flex-col gap-2'>
-                <InfoRow icon={User} label={`Client: ${data.client}`} />
-                <InfoRow icon={HardHat} label={`Worker: ${data.worker}`} />
+                <InfoRow icon={User} label={`Client: ${data.client.name}`} />
+                <InfoRow icon={HardHat} label={`Worker: ${data.worker.name}`} />
                 <InfoRow
                   icon={Wrench}
-                  label={`Service: ${data.service_category}`}
+                  label={`Service: ${data.service_category.name}`}
                 />
                 <InfoRow
                   icon={Calendar}
@@ -138,20 +150,73 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
                   icon={Clock}
                   label={`Created: ${format(new Date(data.created_at), 'MMMM d, yyyy')}`}
                 />
-                <InfoRow
-                  icon={Hash}
-                  label={`Booking ID: ${data.id}`}
-                />
+                <InfoRow icon={Hash} label={`Booking ID: ${data.id}`} />
                 {/* Notes — only rendered when present */}
                 {data.notes && (
                   <InfoRow icon={FileText} label={`Notes: ${data.notes}`} />
                 )}
+                {data.client.email && (
+                  <InfoRow
+                    icon={User}
+                    label={`Client email: ${data.client.email}`}
+                  />
+                )}
+                {data.client.mobile_number && (
+                  <InfoRow
+                    icon={User}
+                    label={`Client mobile: ${data.client.mobile_number}`}
+                  />
+                )}
+                {data.client.barangay && (
+                  <InfoRow
+                    icon={User}
+                    label={`Client barangay: ${data.client.barangay}`}
+                  />
+                )}
+                {data.worker.email && (
+                  <InfoRow
+                    icon={HardHat}
+                    label={`Worker email: ${data.worker.email}`}
+                  />
+                )}
+                {data.worker.mobile_number && (
+                  <InfoRow
+                    icon={HardHat}
+                    label={`Worker mobile: ${data.worker.mobile_number}`}
+                  />
+                )}
+                {data.worker.barangay && (
+                  <InfoRow
+                    icon={HardHat}
+                    label={`Worker barangay: ${data.worker.barangay}`}
+                  />
+                )}
+                {data.job_post && (
+                  <InfoRow
+                    icon={Wrench}
+                    label={`Job post: ${data.job_post.title}`}
+                  />
+                )}
+                <InfoRow
+                  icon={FileText}
+                  label={`Messages: ${data.messages_count ?? 0} · Reports: ${data.reports_count ?? 0} · Tracking points: ${data.tracking_points_count ?? 0}`}
+                />
               </CardContent>
             </Card>
 
-            {/* Force Cancel — only shown for cancellable statuses */}
-            {canForceCancel && (
-              <div>
+            {(canReschedule || canForceCancel) && (
+              <div className='flex flex-wrap gap-2'>
+                {canReschedule && (
+                  <Button
+                    variant='outline'
+                    onClick={() => setShowReschedule(true)}
+                    disabled={isSubmitting}
+                    className='border-primary text-primary hover:bg-primary/5'
+                  >
+                    <CalendarClock className='h-4 w-4' />
+                    Reschedule Booking
+                  </Button>
+                )}
                 <Button
                   variant='outline'
                   onClick={() => setShowCancel(true)}
@@ -169,13 +234,25 @@ export function BookingDetailPage({ id }: BookingDetailPageProps) {
 
       {/* Dialog — outside Main so it portals correctly */}
       {data && (
-        <ForceCancelDialog
-          open={showCancel}
-          bookingCode={data.booking_code}
-          isSubmitting={isSubmitting}
-          onConfirm={handleForceCancelConfirm}
-          onCancel={() => setShowCancel(false)}
-        />
+        <>
+          <ForceCancelDialog
+            open={showCancel}
+            bookingCode={data.booking_code}
+            isSubmitting={isSubmitting}
+            onConfirm={handleForceCancelConfirm}
+            onCancel={() => setShowCancel(false)}
+          />
+          {canReschedule && showReschedule && (
+            <AdminRescheduleDialog
+              open
+              bookingCode={data.booking_code}
+              scheduledAt={data.scheduled_at}
+              isSubmitting={isSubmitting}
+              onConfirm={handleRescheduleConfirm}
+              onOpenChange={setShowReschedule}
+            />
+          )}
+        </>
       )}
     </>
   )

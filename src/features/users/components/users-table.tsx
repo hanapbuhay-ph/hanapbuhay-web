@@ -1,6 +1,21 @@
 ﻿import { useNavigate } from '@tanstack/react-router'
-import { AlertTriangle, RefreshCw, InboxIcon } from 'lucide-react'
+import {
+  AlertTriangle,
+  RefreshCw,
+  InboxIcon,
+  MoreHorizontal,
+  Pencil,
+  ShieldCheck,
+  Trash2,
+} from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -18,7 +33,20 @@ interface UsersTableProps {
   data: User[]
   isLoading: boolean
   error: string | null
-  onRetry: () => void
+  onRetry?: () => void
+  onEdit?: (user: User) => void
+  onDelete?: (user: User) => void
+  currentUserId?: number
+  currentUserIsSuperAdmin?: boolean
+}
+
+function getInitials(name: string): string {
+  return name
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
 }
 
 function TableSkeleton() {
@@ -55,8 +83,13 @@ export function UsersTable({
   isLoading,
   error,
   onRetry,
+  onEdit,
+  onDelete,
+  currentUserId,
+  currentUserIsSuperAdmin,
 }: UsersTableProps) {
   const navigate = useNavigate()
+  const hasActions = onEdit !== undefined || onDelete !== undefined
 
   return (
     <div
@@ -72,16 +105,20 @@ export function UsersTable({
             <TableHead className='font-semibold text-foreground'>
               Email
             </TableHead>
-            <TableHead className='font-semibold text-foreground'>Role</TableHead>
+            <TableHead className='font-semibold text-foreground'>
+              Role
+            </TableHead>
             <TableHead className='font-semibold text-foreground'>
               Barangay
             </TableHead>
             <TableHead className='font-semibold text-foreground'>
               Status
             </TableHead>
-            <TableHead className='font-semibold text-foreground'>
-              Actions
-            </TableHead>
+            {hasActions && (
+              <TableHead className='font-semibold text-foreground'>
+                Actions
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
 
@@ -92,22 +129,24 @@ export function UsersTable({
           {/* Error */}
           {!isLoading && error && (
             <TableRow>
-              <TableCell colSpan={6}>
+              <TableCell colSpan={hasActions ? 6 : 5}>
                 <div className='flex flex-col items-center gap-2 py-10 text-center'>
                   <AlertTriangle className='h-7 w-7 text-destructive' />
                   <p className='text-sm font-semibold text-foreground'>
                     Failed to load users
                   </p>
                   <p className='text-xs text-muted-foreground'>{error}</p>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    onClick={onRetry}
-                    className='mt-1 border-border text-primary hover:bg-primary/5'
-                  >
-                    <RefreshCw className='h-3.5 w-3.5' />
-                    Retry
-                  </Button>
+                  {onRetry && (
+                    <Button
+                      size='sm'
+                      variant='outline'
+                      onClick={onRetry}
+                      className='mt-1 border-border text-primary hover:bg-primary/5'
+                    >
+                      <RefreshCw className='h-3.5 w-3.5' />
+                      Retry
+                    </Button>
+                  )}
                 </div>
               </TableCell>
             </TableRow>
@@ -116,7 +155,7 @@ export function UsersTable({
           {/* Empty */}
           {!isLoading && !error && data.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6}>
+              <TableCell colSpan={hasActions ? 6 : 5}>
                 <div className='flex flex-col items-center gap-2 py-10 text-center'>
                   <InboxIcon className='h-7 w-7 text-muted-foreground' />
                   <p className='text-sm font-semibold text-foreground'>
@@ -138,11 +177,25 @@ export function UsersTable({
                 key={user.id}
                 className='cursor-pointer hover:bg-primary/5'
                 onClick={() =>
-                  navigate({ to: '/users/$id', params: { id: user.id } })
+                  navigate({
+                    to: '/users/$id',
+                    params: { id: String(user.id) },
+                  })
                 }
               >
                 <TableCell className='ps-4 font-medium text-foreground'>
-                  {user.name}
+                  <div className='flex items-center gap-3'>
+                    <Avatar className='h-8 w-8'>
+                      <AvatarImage
+                        src={user.profile_photo_url ?? undefined}
+                        alt={`${user.name} profile`}
+                      />
+                      <AvatarFallback className='bg-primary/10 text-xs text-primary'>
+                        {getInitials(user.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{user.name}</span>
+                  </div>
                 </TableCell>
                 <TableCell className='text-muted-foreground'>
                   {user.email}
@@ -156,18 +209,58 @@ export function UsersTable({
                 <TableCell>
                   <UserStatusBadge isActive={user.is_active} />
                 </TableCell>
-                <TableCell onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    size='sm'
-                    variant='ghost'
-                    className='h-7 text-xs text-primary hover:bg-primary/10'
-                    onClick={() =>
-                      navigate({ to: '/users/$id', params: { id: user.id } })
-                    }
-                  >
-                    View
-                  </Button>
-                </TableCell>
+                {hasActions && (
+                  <TableCell onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size='icon'
+                          variant='ghost'
+                          aria-label={`Actions for ${user.name}`}
+                        >
+                          <MoreHorizontal className='h-4 w-4' />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align='end'>
+                        {user.role === 'super_admin' &&
+                        !(
+                          currentUserIsSuperAdmin && currentUserId === user.id
+                        ) ? (
+                          <DropdownMenuItem disabled>
+                            <ShieldCheck className='h-4 w-4' />
+                            Protected account
+                          </DropdownMenuItem>
+                        ) : (
+                          <>
+                            {onEdit && (
+                              <DropdownMenuItem onClick={() => onEdit(user)}>
+                                <Pencil className='h-4 w-4' /> Edit
+                              </DropdownMenuItem>
+                            )}
+                            {onDelete && currentUserId !== user.id && (
+                              <DropdownMenuItem
+                                className='text-destructive'
+                                onClick={() => onDelete(user)}
+                              >
+                                <Trash2 className='h-4 w-4' /> Delete
+                              </DropdownMenuItem>
+                            )}
+                          </>
+                        )}
+                        <DropdownMenuItem
+                          onClick={() =>
+                            navigate({
+                              to: '/users/$id',
+                              params: { id: String(user.id) },
+                            })
+                          }
+                        >
+                          View details
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                )}
               </TableRow>
             ))}
         </TableBody>

@@ -1,76 +1,75 @@
 // ── Service Categories ────────────────────────────────────────────────────────
+// Shape from GET /api/admin/settings → service_categories[]
+// and POST /api/admin/settings { action: 'add_category' }
 
 export interface ServiceCategory {
   id: number
   name: string
-  description: string
-  is_active: boolean
-  created_at: string
+  icon: string
+  is_active?: boolean
+  description?: string
 }
 
-export type ServiceCategoryPayload = Pick<
-  ServiceCategory,
-  'name' | 'description' | 'is_active'
->
+export interface ServiceCategoryPayload {
+  name: string
+  description?: string
+  is_active: boolean
+  icon?: string
+}
 
 // ── Report Reasons ────────────────────────────────────────────────────────────
-//
-// The 'code' field is read-only — it is set at creation and never changed by
-// the admin panel. Only label, description, and is_active can be edited.
+// Admin-maintained master list of report reasons users can select when filing a report.
 
 export interface ReportReason {
-  id: number
+  id?: number
   code: string
+  label: string
+  description?: string
+  is_active?: boolean
+  audience: 'client' | 'worker'
+}
+
+export interface ReportReasonPayload {
+  code?: string
   label: string
   description: string
   is_active: boolean
+  audience: 'client' | 'worker'
 }
 
-export type ReportReasonPayload = Pick<
-  ReportReason,
-  'label' | 'description' | 'is_active'
->
-
 // ── Notification Templates ────────────────────────────────────────────────────
-//
-// The 'key' field is read-only — it is a system identifier set at creation and
-// never changed by the admin panel. Admins can only edit content and toggle
-// active status.
-//
-// When the real API is ready, template body changes are sent to
-// /api/admin/notification-templates/:id. The mobile app reads active templates
-// to generate push/email/sms notifications. Deactivating a template suppresses
-// that notification type platform-wide.
+// The real API currently returns a record of template keys to bodies.
+// The hook normalises that into this display shape.
 
 export type NotificationChannel = 'push' | 'email' | 'sms'
 
 export interface NotificationTemplate {
-  id: number
+  id?: number
   key: string
+  body: string
+  title: string
+  channel: NotificationChannel
+  subject?: string | null
+  is_active: boolean
+  variables: string[]
+  last_updated_at: string
+}
+
+export interface NotificationTemplatePayload {
   title: string
   channel: NotificationChannel
   subject: string | null
   body: string
-  variables: string[]
   is_active: boolean
-  last_updated_at: string
+  last_updated_at?: string
 }
 
-export type NotificationTemplatePayload = Pick<
-  NotificationTemplate,
-  'title' | 'channel' | 'subject' | 'body' | 'is_active' | 'last_updated_at'
->
+// ── Announcements ──────────────────────────────────────────────────────────────
+// Current API contract includes a single active announcement object and
+// announcement payloads for create/edit flows.
 
-// ── Announcements ─────────────────────────────────────────────────────────────
-//
-// Announcements are never deleted — archiving is the correct lifecycle action.
-//
-// When the real API is ready, published announcements are pushed to all target
-// users via /api/admin/announcements. The mobile app displays active
-// (published, not expired) announcements in the notification center.
-
-export type AnnouncementTargetAudience = 'all' | 'clients' | 'workers'
 export type AnnouncementStatus = 'draft' | 'published' | 'archived'
+export type AnnouncementTargetAudience = 'all' | 'clients' | 'workers'
 
 export interface Announcement {
   id: number
@@ -83,13 +82,29 @@ export interface Announcement {
   created_at: string
 }
 
-export type AnnouncementPayload = Pick<
-  Announcement,
-  | 'title'
-  | 'body'
-  | 'target_audience'
-  | 'status'
-  | 'published_at'
-  | 'expires_at'
-  | 'created_at'
->
+export interface AnnouncementPayload {
+  title: string
+  body: string
+  target_audience: AnnouncementTargetAudience
+  status: AnnouncementStatus
+  published_at: string | null
+  expires_at: string | null
+  created_at: string
+}
+
+export interface ActiveAnnouncement {
+  id: number
+  title: string
+  body: string
+  expires_at: string | null
+  posted_at?: string
+}
+
+// ── Settings response ─────────────────────────────────────────────────────────
+
+export interface PlatformSettings {
+  service_categories: ServiceCategory[]
+  report_reasons: ReportReason[]
+  notification_templates: NotificationTemplate[]
+  active_announcement: ActiveAnnouncement | null
+}

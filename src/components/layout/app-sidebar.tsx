@@ -1,3 +1,5 @@
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
 import { useLayout } from '@/context/layout-provider'
 import {
   Sidebar,
@@ -11,8 +13,32 @@ import { NavGroup } from './nav-group'
 import { NavUser } from './nav-user'
 import { TeamSwitcher } from './team-switcher'
 
+interface UserProfile {
+  id: number
+  name: string
+  email: string
+  profile_photo_url?: string | null
+}
+
 export function AppSidebar() {
   const { collapsible, variant } = useLayout()
+
+  const { data: profile } = useQuery({
+    queryKey: ['user_profile'],
+    queryFn: async () => {
+      const res = await api.get<{ success: boolean; data: UserProfile }>(
+        '/user'
+      )
+      return res.data.data
+    },
+  })
+
+  const sidebarUser = {
+    name: profile?.name ?? sidebarData.user.name,
+    email: profile?.email ?? sidebarData.user.email,
+    avatar: profile?.profile_photo_url ?? sidebarData.user.avatar,
+  }
+
   return (
     <Sidebar collapsible={collapsible} variant={variant}>
       <SidebarHeader>
@@ -24,7 +50,7 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={sidebarData.user} />
+        <NavUser user={sidebarUser} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

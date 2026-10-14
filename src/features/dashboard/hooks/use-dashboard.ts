@@ -1,10 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { api } from '@/lib/api'
 
 export interface RecentActivityItem {
   type: string
   description: string
   created_at: string
+}
+
+export interface ActivityTrendPoint {
+  date: string
+  label: string
+  bookings: number
+  verifications: number
+  active_jobs: number
+}
+
+export interface ServiceCategoryStat {
+  name: string
+  count: number
 }
 
 export interface DashboardStats {
@@ -15,7 +28,10 @@ export interface DashboardStats {
   active_bookings: number
   open_disputes: number
   completed_bookings_today: number
+  completed_bookings_yesterday: number
   total_active_job_posts: number
+  activity_trend?: ActivityTrendPoint[]
+  top_service_categories?: ServiceCategoryStat[]
 }
 
 // Real API response shape from GET /admin/dashboard
@@ -35,47 +51,27 @@ interface UseDashboardResult {
 }
 
 export function useDashboard(): UseDashboardResult {
-  const [data, setData] = useState<DashboardStats | null>(null)
-  const [recentActivity, setRecentActivity] = useState<RecentActivityItem[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [tick, setTick] = useState(0)
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function fetchDashboard() {
-      setIsLoading(true)
-      setError(null)
-      try {
-        const res = await api.get<DashboardApiResponse>('/admin/dashboard')
-        if (!cancelled) {
-          const { recent_activity, ...stats } = res.data.data
-          setData(stats)
-          setRecentActivity(recent_activity ?? [])
-        }
-      } catch (err) {
-        if (!cancelled) {
-          const msg =
-            err instanceof Error ? err.message : 'Failed to load dashboard data.'
-          setError(msg)
-        }
-      } finally {
-        if (!cancelled) setIsLoading(false)
-      }
-    }
-
-    fetchDashboard()
-    return () => {
-      cancelled = true
-    }
-  }, [tick])
+  const query = useQuery({
+    queryKey: ['admin', 'dashboard'],
+    queryFn: async () => {
+      const res = await api.get<DashboardApiResponse>('/admin/dashboard')
+      return res.data.data
+    },
+    staleTime: 30 * 1000,
+  })
+  const recentActivity = query.data?.recent_activity ?? []
 
   return {
-    data,
+    data: query.data ?? null,
     recentActivity,
-    isLoading,
-    error,
-    refetch: () => setTick((t) => t + 1),
+    isLoading: query.isLoading,
+    error: query.error
+      ? query.error instanceof Error
+        ? query.error.message
+        : 'Failed to load dashboard data.'
+      : null,
+    refetch: () => {
+      void query.refetch()
+    },
   }
 }

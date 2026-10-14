@@ -1,29 +1,39 @@
-import { type UserRole } from '@/features/users/types'
-
-export type ReviewStatus = 'visible' | 'flagged' | 'removed'
-
 export interface Review {
-  id: string
-  booking_id: string
-  booking_code: string
-  reviewer_name: string
-  reviewer_role: UserRole
-  reviewed_name: string
-  reviewed_role: UserRole
-  rating: number // 1–5
-  comment: string
-  status: ReviewStatus
-  is_flagged: boolean
-  flagged_reason: string | null
+  id: number
+  booking: { id: number; booking_code: string }
+  rated_by: { id: number; name: string; profile_photo_url?: string | null }
+  rated_user: { id: number; name: string; profile_photo_url?: string | null }
+  score: number // 1–5
+  comment: string | null
   created_at: string
-  flagged_at: string | null
-  flagged_by: string | null
 }
 
-export type ReviewStatusFilter = ReviewStatus | 'all'
+export interface ReviewRecipient {
+  id: number
+  name: string
+  email: string
+  role: 'client' | 'worker'
+  barangay: string | null
+  profile_photo_url?: string | null
+  is_active: boolean
+  reviews_received_count: number
+  average_rating: number
+}
+
+export type ScoreFilter = 1 | 2 | 3 | 4 | 5 | 'all'
+export type DirectionFilter = 'client_to_worker' | 'worker_to_client' | 'all'
+
+export type ReviewStatus = 'visible' | 'flagged' | 'removed'
 
 export const STATUS_LABELS: Record<ReviewStatus, string> = {
   visible: 'Visible',
   flagged: 'Flagged',
   removed: 'Removed',
+}
+
+export interface ReviewPagination {
+  current_page: number
+  per_page: number
+  total: number
+  last_page: number
 }

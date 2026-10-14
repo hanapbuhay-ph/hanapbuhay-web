@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -54,7 +55,9 @@ export function NotificationTemplateDialog({
     body: '',
     is_active: true,
   })
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof FormState, string>>
+  >({})
 
   // Pre-fill whenever the dialog opens
   useEffect(() => {
@@ -193,9 +196,7 @@ export function NotificationTemplateDialog({
               placeholder='Notification message body'
               rows={4}
               value={form.body}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, body: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
               aria-invalid={!!errors.body}
             />
             {errors.body && (

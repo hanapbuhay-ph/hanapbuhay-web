@@ -1,34 +1,46 @@
+// Real API: GET /admin/deletion-requests
+//   response: { success, data: { users: DeletionUser[], pagination } }
+//   No status filter — endpoint always returns users with pending deletion_requested_at
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { type DeletionRequest, type DeletionRequestStatus } from '../types'
+import { type DeletionUser } from '../types'
+
+interface Pagination {
+  current_page: number
+  per_page: number
+  total: number
+  last_page: number
+}
 
 interface UseDeletionRequestsResult {
-  data: DeletionRequest[]
-  pendingCount: number
+  data: DeletionUser[]
+  pagination: Pagination | null
   isLoading: boolean
   error: string | null
   refetch: () => void
 }
 
-export function useDeletionRequests(
-  statusFilter: DeletionRequestStatus | 'all' = 'all'
-): UseDeletionRequestsResult {
-  const [data, setData] = useState<DeletionRequest[]>([])
+export function useDeletionRequests(): UseDeletionRequestsResult {
+  const [data, setData] = useState<DeletionUser[]>([])
+  const [pagination, setPagination] = useState<Pagination | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true)
     setError(null)
 
-    const params =
-      statusFilter !== 'all' ? { status: statusFilter } : undefined
-
     api
-      .get<DeletionRequest[]>('/deletion_requests', { params })
-      .then((res) => { if (!cancelled) setData(res.data) })
+      .get('/admin/deletion-requests')
+      .then((res) => {
+        if (!cancelled) {
+          setData(res.data.data.users)
+          setPagination(res.data.data.pagination)
+        }
+      })
       .catch((err) => {
         if (!cancelled)
           setError(
@@ -37,12 +49,20 @@ export function useDeletionRequests(
               : 'Failed to load deletion requests.'
           )
       })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
 
-    return () => { cancelled = true }
-  }, [statusFilter, tick])
+    return () => {
+      cancelled = true
+    }
+  }, [tick])
 
-  const pendingCount = data.filter((r) => r.status === 'pending').length
-
-  return { data, pendingCount, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return {
+    data,
+    pagination,
+    isLoading,
+    error,
+    refetch: () => setTick((t) => t + 1),
+  }
 }

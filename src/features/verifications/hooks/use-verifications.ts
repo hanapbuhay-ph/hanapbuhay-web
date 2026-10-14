@@ -2,6 +2,19 @@ import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { type Verification, type VerificationStatus } from '../types'
 
+interface VerificationsApiResponse {
+  success: boolean
+  data: {
+    verifications: Verification[]
+    pagination: {
+      current_page: number
+      per_page: number
+      total: number
+      last_page: number
+    }
+  }
+}
+
 interface UseVerificationsResult {
   data: Verification[]
   isLoading: boolean
@@ -19,22 +32,25 @@ export function useVerifications(
 
   useEffect(() => {
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true)
     setError(null)
 
-    const params =
-      statusFilter !== 'all'
-        ? { verification_status: statusFilter }
-        : undefined
-
     api
-      .get<Verification[]>('/verifications', { params })
+      .get<VerificationsApiResponse>('/admin/verifications', {
+        params: statusFilter === 'all' ? undefined : { status: statusFilter },
+      })
       .then((res) => {
-        if (!cancelled) setData(res.data)
+        if (!cancelled) {
+          const list = res.data.data.verifications ?? []
+          setData(list)
+        }
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load verifications.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load verifications.'
+          )
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)

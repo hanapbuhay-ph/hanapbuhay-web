@@ -88,7 +88,7 @@ DESIGN SYSTEM (Tarsi Verdant)
 
 ADMIN PANEL RULES
 - All routes protected by auth guard (redirect to /login if no token)
-- Token stored in localStorage as hanapbuhay_admin_token
+- Token stored in localStorage as admin_token
 - Role check: only allow role === 'admin'
 - Destructive actions (suspend, reject, force-cancel)
   MUST show a shadcn/ui AlertDialog confirmation before
@@ -276,7 +276,7 @@ Tasks:
    });
 
    api.interceptors.request.use((config) => {
-     const token = localStorage.getItem('hanapbuhay_admin_token');
+     const token = localStorage.getItem('admin_token');
      if (token) {
        config.headers.Authorization = `Bearer ${token}`;
      }
@@ -320,7 +320,7 @@ Requirements:
      - If not admin: show error toast
        "Access denied. Admin accounts only."
      - If admin: store token in
-       localStorage.hanapbuhay_admin_token
+       localStorage.admin_token
        then navigate to /
    - On error: show error toast with the message
      from the API response

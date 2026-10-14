@@ -1,50 +1,74 @@
-import { useEffect, useState } from 'react'
+import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
-import { type ChatLog } from '../types'
+import {
+  type ChatMessage,
+  type ChatPagination,
+  type ThreadResponse,
+} from '../types'
 
 interface UseChatLogResult {
-  data: ChatLog | null
+  data: ChatMessage[]
+  conversation: ThreadResponse['conversation'] | null
+  pagination: ChatPagination | null
   isLoading: boolean
   error: string | null
   refetch: () => void
 }
 
-export function useChatLog(bookingId: string): UseChatLogResult {
-  const [data, setData] = useState<ChatLog | null>(null)
+export function useChatLog(
+  clientId: number,
+  workerId: number,
+  page = 1
+): UseChatLogResult {
+  const [data, setData] = useState<ChatMessage[]>([])
+  const [conversation, setConversation] = useState<
+    ThreadResponse['conversation'] | null
+  >(null)
+  const [pagination, setPagination] = useState<ChatPagination | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
+    startTransition(() => {
+      setIsLoading(true)
+      setError(null)
+    })
 
-    // When the real API is ready, replace this endpoint with
-    // GET /api/admin/chat-logs?booking_id=:bookingId
-    // The response shape may include pagination — plan to handle a
-    // paginated messages array rather than a flat list.
-    //
-    // NOTE: json-server does not reliably filter string fields via query params,
-    // so we fetch all and filter client-side.
     api
-      .get<ChatLog[]>('/chat_logs')
+      .get<{ success: boolean; data: ThreadResponse }>(
+        `/admin/chat-logs/conversations/${clientId}/${workerId}`,
+        { params: { page } }
+      )
       .then((res) => {
         if (!cancelled) {
-          const match = res.data.find(
-            (log) => String(log.booking_id) === String(bookingId)
-          )
-          setData(match ?? null)
+          setData(res.data.data.messages)
+          setConversation(res.data.data.conversation)
+          setPagination(res.data.data.pagination)
         }
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load chat log.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load chat log.'
+          )
       })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
 
-    return () => { cancelled = true }
-  }, [bookingId, tick])
+    return () => {
+      cancelled = true
+    }
+  }, [clientId, workerId, page, tick])
 
-  return { data, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return {
+    data,
+    conversation,
+    pagination,
+    isLoading,
+    error,
+    refetch: () => setTick((t) => t + 1),
+  }
 }

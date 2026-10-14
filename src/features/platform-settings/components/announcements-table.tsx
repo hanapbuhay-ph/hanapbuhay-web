@@ -78,8 +78,10 @@ interface AnnouncementsTableProps {
   isLoading: boolean
   error: string | null
   archivingId: number | null
+  deletingId: number | null
   onEdit: (announcement: Announcement) => void
   onArchive: (announcement: Announcement) => void
+  onDelete: (announcement: Announcement) => void
   onRetry: () => void
 }
 
@@ -88,8 +90,10 @@ export function AnnouncementsTable({
   isLoading,
   error,
   archivingId,
+  deletingId,
   onEdit,
   onArchive,
+  onDelete,
   onRetry,
 }: AnnouncementsTableProps) {
   if (isLoading) {
@@ -195,6 +199,17 @@ export function AnnouncementsTable({
                         Archive
                       </Button>
                     )}
+
+                    <Button
+                      size='sm'
+                      variant='ghost'
+                      className='text-destructive hover:text-destructive'
+                      onClick={() => onDelete(announcement)}
+                      disabled={deletingId === announcement.id}
+                      aria-label={`Delete ${announcement.title}`}
+                    >
+                      Delete
+                    </Button>
 
                     {/* Placeholder when archived so the row doesn't collapse */}
                     {isArchived && (

@@ -5,6 +5,10 @@ interface UserRoleBadgeProps {
 }
 
 const config: Record<UserRole, { label: string; className: string }> = {
+  super_admin: {
+    label: 'Super Admin',
+    className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300',
+  },
   admin: {
     label: 'Admin',
     className: 'bg-[#34a835]/15 text-primary',

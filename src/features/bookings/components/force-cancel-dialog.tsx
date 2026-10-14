@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -64,8 +64,7 @@ export function ForceCancelDialog({
             htmlFor='cancel-reason'
             className='text-sm font-semibold text-foreground'
           >
-            Cancellation reason{' '}
-            <span className='text-destructive'>*</span>
+            Cancellation reason <span className='text-destructive'>*</span>
           </Label>
           <Textarea
             id='cancel-reason'

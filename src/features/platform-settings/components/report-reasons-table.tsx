@@ -1,4 +1,4 @@
-import { Pencil } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -19,6 +19,7 @@ interface ReportReasonsTableProps {
   togglingId: number | null
   onEdit: (reason: ReportReason) => void
   onToggle: (reason: ReportReason) => void
+  onDelete: (reason: ReportReason) => void
   onRetry: () => void
 }
 
@@ -29,6 +30,7 @@ export function ReportReasonsTable({
   togglingId,
   onEdit,
   onToggle,
+  onDelete,
   onRetry,
 }: ReportReasonsTableProps) {
   if (isLoading) {
@@ -64,6 +66,7 @@ export function ReportReasonsTable({
           <TableRow>
             <TableHead className='w-40'>Code</TableHead>
             <TableHead className='w-44'>Label</TableHead>
+            <TableHead className='w-36'>Audience</TableHead>
             <TableHead>Description</TableHead>
             <TableHead className='w-28 text-center'>Status</TableHead>
             <TableHead className='w-32 text-center'>Active</TableHead>
@@ -79,13 +82,20 @@ export function ReportReasonsTable({
             >
               {/* Code */}
               <TableCell>
-                <code className='rounded bg-muted px-1.5 py-0.5 text-xs font-mono'>
+                <code className='rounded bg-muted px-1.5 py-0.5 font-mono text-xs'>
                   {reason.code}
                 </code>
               </TableCell>
 
               {/* Label */}
               <TableCell className='font-medium'>{reason.label}</TableCell>
+              <TableCell>
+                <Badge variant='outline'>
+                  {reason.audience === 'worker'
+                    ? 'Worker reports'
+                    : 'Client reports'}
+                </Badge>
+              </TableCell>
 
               {/* Description */}
               <TableCell className='text-sm text-muted-foreground'>
@@ -116,8 +126,8 @@ export function ReportReasonsTable({
                 />
               </TableCell>
 
-              {/* Edit */}
-              <TableCell className='text-right'>
+              {/* Actions */}
+              <TableCell className='space-x-2 text-right'>
                 <Button
                   size='sm'
                   variant='ghost'
@@ -126,6 +136,16 @@ export function ReportReasonsTable({
                 >
                   <Pencil size={14} className='mr-1' />
                   Edit
+                </Button>
+                <Button
+                  size='sm'
+                  variant='ghost'
+                  className='text-destructive hover:text-destructive'
+                  onClick={() => onDelete(reason)}
+                  aria-label={`Delete ${reason.label}`}
+                >
+                  <Trash2 size={14} className='mr-1' />
+                  Delete
                 </Button>
               </TableCell>
             </TableRow>

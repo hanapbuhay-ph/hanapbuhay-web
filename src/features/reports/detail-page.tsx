@@ -26,7 +26,6 @@ import { ThemeSwitch } from '@/components/theme-switch'
 import { DismissDialog } from './components/dismiss-dialog'
 import { EvidenceGrid } from './components/evidence-grid'
 import { ReportStatusBadge } from './components/report-status-badge'
-import { ResolutionHistory } from './components/resolution-history'
 import { ResolveDialog } from './components/resolve-dialog'
 import { useReport } from './hooks/use-report'
 import { useReportAction } from './hooks/use-report-action'
@@ -42,7 +41,7 @@ interface ReportDetailPageProps {
 
 export function ReportDetailPage({ id }: ReportDetailPageProps) {
   const navigate = useNavigate()
-  const { data, isLoading, error, refetch, setData } = useReport(id)
+  const { data, isLoading, error, refetch } = useReport(id)
   const { isSubmitting, resolve, dismiss } = useReportAction()
   const [showResolve, setShowResolve] = useState(false)
   const [showDismiss, setShowDismiss] = useState(false)
@@ -56,20 +55,32 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
     if (!data) return
     resolve(
       data.id,
-      { resolution_action: resolutionAction, admin_remarks: adminRemarks },
-      (updated) => {
-        setData(updated)
+      {
+        status: 'resolved',
+        resolution_action: resolutionAction,
+        admin_notes: adminRemarks,
+      },
+      () => {
         setShowResolve(false)
+        refetch()
       }
     )
   }
 
   function handleDismissConfirm(adminRemarks: string) {
     if (!data) return
-    dismiss(data.id, { admin_remarks: adminRemarks }, (updated) => {
-      setData(updated)
-      setShowDismiss(false)
-    })
+    dismiss(
+      data.id,
+      {
+        status: 'dismissed',
+        resolution_action: 'no_action',
+        admin_notes: adminRemarks,
+      },
+      () => {
+        setShowDismiss(false)
+        refetch()
+      }
+    )
   }
 
   return (
@@ -137,7 +148,7 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
               <CardHeader className='pb-3'>
                 <div className='flex flex-wrap items-start justify-between gap-2'>
                   <CardTitle className='font-mono text-lg text-foreground'>
-                    {data.booking_code}
+                    {data.booking?.booking_code}
                   </CardTitle>
                   <ReportStatusBadge status={data.status} />
                 </div>
@@ -146,11 +157,17 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
               <CardContent className='flex flex-col gap-2'>
                 <InfoRow
                   icon={User}
-                  label={`Reported by: ${data.reported_by}`}
+                  label={`Reported by: ${data.reporter?.name ?? '—'} (${data.reporter?.id ?? '—'})`}
                 />
+                {data.submitted_by_admin && (
+                  <InfoRow
+                    icon={ShieldAlert}
+                    label={`Submitted on behalf by admin: ${data.submitted_by_admin.name} (${data.submitted_by_admin.id})`}
+                  />
+                )}
                 <InfoRow
                   icon={UserX}
-                  label={`Reported user: ${data.reported_user}`}
+                  label={`Reported user: ${data.reported_user?.name ?? '—'} (${data.reported_user?.id ?? '—'})`}
                 />
                 <InfoRow
                   icon={Flag}
@@ -173,15 +190,15 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
                     label={`Action taken: ${RESOLUTION_ACTION_LABELS[data.resolution_action]}`}
                   />
                 )}
-                {data.admin_remarks && (
+                {data.admin_notes && (
                   <InfoRow
                     icon={FileText}
-                    label={`Admin remarks: ${data.admin_remarks}`}
+                    label={`Admin notes: ${data.admin_notes}`}
                   />
                 )}
 
                 {/* View Chat Log — links to the conversation for this booking */}
-                {data.booking_id && (
+                {data.booking?.id && (
                   <div className='mt-2'>
                     <Button
                       variant='outline'
@@ -189,7 +206,7 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
                       onClick={() =>
                         navigate({
                           to: '/chat-logs/$id',
-                          params: { id: data.booking_id },
+                          params: { id: String(data.booking.id) },
                           search: { from: `/reports/${data.id}` },
                         })
                       }
@@ -241,8 +258,7 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
               </div>
             )}
 
-            {/* Resolution History — collapsible timeline, hidden if empty */}
-            <ResolutionHistory history={data.history} />
+            {/* Resolution History — removed: not returned by real API */}
           </div>
         )}
       </Main>
@@ -252,14 +268,14 @@ export function ReportDetailPage({ id }: ReportDetailPageProps) {
         <>
           <ResolveDialog
             open={showResolve}
-            bookingCode={data.booking_code}
+            bookingCode={data.booking?.booking_code ?? ''}
             isSubmitting={isSubmitting}
             onConfirm={handleResolveConfirm}
             onCancel={() => setShowResolve(false)}
           />
           <DismissDialog
             open={showDismiss}
-            bookingCode={data.booking_code}
+            bookingCode={data.booking?.booking_code ?? ''}
             isSubmitting={isSubmitting}
             onConfirm={handleDismissConfirm}
             onCancel={() => setShowDismiss(false)}

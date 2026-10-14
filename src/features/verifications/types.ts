@@ -2,11 +2,13 @@ export type VerificationStatus =
   | 'pending'
   | 'approved'
   | 'rejected'
-  | 'resubmission_requested'
+  | 'resubmission_required'
 
 export type TrustTier = 'verified' | 'trusted' | 'flagged' | 'revoked'
 
 export type DocumentType =
+  | 'government_id_front'
+  | 'government_id_back'
   | 'government_id'
   | 'barangay_certificate'
   | 'selfie_with_id'
@@ -23,7 +25,9 @@ export interface VerificationUser {
   id: number
   name: string
   email: string
+  mobile_number?: string // present in real API (K2), absent in mock
   barangay: string
+  profile_photo_url?: string | null
 }
 
 export interface VerificationHistoryEntry {
@@ -40,12 +44,16 @@ export interface Verification {
   user: VerificationUser
   verification_status: VerificationStatus
   trust_tier?: TrustTier
-  submitted_at: string
+  remarks?: string | null
+  updated_at: string
+  submitted_at?: string // not returned by real API; kept for type compat
   documents: VerificationDocument[]
   history?: VerificationHistoryEntry[]
 }
 
 export const DOCUMENT_LABELS: Record<DocumentType, string> = {
+  government_id_front: 'Government ID (Front)',
+  government_id_back: 'Government ID (Back)',
   government_id: 'Government ID',
   barangay_certificate: 'Barangay Certificate',
   selfie_with_id: 'Selfie with ID',

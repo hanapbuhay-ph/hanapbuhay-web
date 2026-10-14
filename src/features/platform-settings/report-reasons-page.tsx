@@ -1,51 +1,98 @@
-import { useState } from 'react'
-import { ArrowLeft } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { ArrowLeft, Plus } from 'lucide-react'
+import { api } from '@/lib/api'
+import { Button } from '@/components/ui/button'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { useReportReasons } from './hooks/use-report-reasons'
-import { useReportReasonAction } from './hooks/use-report-reason-action'
-import { ReportReasonsTable } from './components/report-reasons-table'
 import { ReportReasonDialog } from './components/report-reason-dialog'
+import { ReportReasonsTable } from './components/report-reasons-table'
+import { useReportReasonAction } from './hooks/use-report-reason-action'
 import { type ReportReason, type ReportReasonPayload } from './types'
 
 export function ReportReasonsPage() {
-  const { data, isLoading, error, refetch } = useReportReasons()
-  const { isSubmitting, edit, toggle } = useReportReasonAction()
-
-  // Dialog state — always editing (no add flow)
+  const { isSubmitting, add, update, toggle, remove } = useReportReasonAction()
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editing, setEditing] = useState<ReportReason | null>(null)
-
-  // Per-row toggle loading
+  const [editingReason, setEditingReason] = useState<ReportReason | null>(null)
   const [togglingId, setTogglingId] = useState<number | null>(null)
+  const [reasons, setReasons] = useState<ReportReason[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Optimistic local overrides so rows update instantly
-  const [localOverrides, setLocalOverrides] = useState<Map<number, ReportReason>>(new Map())
+  const [audience, setAudience] = useState<'client' | 'worker'>('client')
 
-  const displayed = data.map((r) => localOverrides.get(r.id) ?? r)
+  const loadReasons = useCallback(() => {
+    setIsLoading(true)
+    setError(null)
 
-  function openEdit(reason: ReportReason) {
-    setEditing(reason)
+    api
+      .get<{ success: boolean; data: ReportReason[] }>(
+        `/admin/settings/report-reasons?audience=${audience}`
+      )
+      .then((res) => {
+        setReasons(res.data.data ?? [])
+      })
+      .catch((err) => {
+        setError(
+          err instanceof Error ? err.message : 'Failed to load report reasons.'
+        )
+      })
+      .finally(() => {
+        setIsLoading(false)
+      })
+  }, [audience])
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadReasons()
+  }, [loadReasons])
+
+  function resetDialog() {
+    setDialogOpen(false)
+    setEditingReason(null)
+  }
+
+  function openAddDialog() {
+    resetDialog()
     setDialogOpen(true)
   }
 
-  function handleConfirm(payload: ReportReasonPayload) {
-    if (!editing) return
-    edit(editing.id, payload, (updated) => {
-      setLocalOverrides((m) => new Map(m).set(updated.id, updated))
-      setDialogOpen(false)
+  function openEditDialog(reason: ReportReason) {
+    setEditingReason(reason)
+    setDialogOpen(true)
+  }
+
+  function handleSave(payload: ReportReasonPayload) {
+    if (editingReason?.id === undefined) {
+      add(payload, () => {
+        resetDialog()
+        loadReasons()
+      })
+      return
+    }
+
+    update(editingReason.id, payload, () => {
+      resetDialog()
+      loadReasons()
     })
   }
 
   function handleToggle(reason: ReportReason) {
+    if (reason.id === undefined) return
     setTogglingId(reason.id)
-    toggle(reason, (updated) => {
-      setLocalOverrides((m) => new Map(m).set(updated.id, updated))
+    toggle(reason.id, !(reason.is_active ?? true), () => {
       setTogglingId(null)
-    }).finally(() => setTogglingId(null))
+      loadReasons()
+    })
+  }
+
+  function handleDelete(reason: ReportReason) {
+    if (reason.id === undefined) return
+    remove(reason.id, () => {
+      loadReasons()
+    })
   }
 
   return (
@@ -58,45 +105,87 @@ export function ReportReasonsPage() {
       </Header>
 
       <Main>
-        {/* Back link */}
         <Link
           to='/platform-settings'
-          className='mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors'
+          className='mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground'
         >
           <ArrowLeft size={14} />
           Platform Settings
         </Link>
 
-        {/* Page header */}
-        <div className='mb-6'>
-          <h1 className='text-2xl font-bold tracking-tight text-foreground'>
-            Report Reason Categories
-          </h1>
-          <p className='mt-1 text-sm text-muted-foreground'>
-            Edit labels, descriptions, and visibility of report reasons.
-            Codes are read-only and set by the API contract.
-          </p>
+        <div className='mb-6 flex items-start justify-between gap-4'>
+          <div>
+            <h1 className='text-2xl font-bold tracking-tight text-foreground'>
+              Report Reason Categories
+            </h1>
+            <p className='mt-1 text-sm text-muted-foreground'>
+              Manage the predefined reasons users can select when filing a
+              report.
+            </p>
+            <div className='mt-4 flex gap-2'>
+              <Button
+                variant={audience === 'client' ? 'default' : 'outline'}
+                onClick={() => setAudience('client')}
+              >
+                Client Reports
+              </Button>
+              <Button
+                variant={audience === 'worker' ? 'default' : 'outline'}
+                onClick={() => setAudience('worker')}
+              >
+                Worker Reports
+              </Button>
+            </div>
+          </div>
+
+          <Button
+            onClick={openAddDialog}
+            className='shrink-0 bg-green-600 text-white hover:bg-green-700'
+          >
+            <Plus size={16} className='mr-1.5' />
+            Add Reason
+          </Button>
         </div>
 
         <ReportReasonsTable
-          data={displayed}
+          data={reasons}
           isLoading={isLoading}
           error={error}
           togglingId={togglingId}
-          onEdit={openEdit}
+          onEdit={openEditDialog}
           onToggle={handleToggle}
-          onRetry={refetch}
+          onDelete={handleDelete}
+          onRetry={loadReasons}
         />
       </Main>
 
-      {/* Edit dialog — only rendered when editing is set */}
-      {editing && (
+      {editingReason ? (
         <ReportReasonDialog
           open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          reason={editing}
+          onOpenChange={(open) => {
+            if (!open) resetDialog()
+            else setDialogOpen(true)
+          }}
+          reason={editingReason}
           isSubmitting={isSubmitting}
-          onConfirm={handleConfirm}
+          onConfirm={handleSave}
+        />
+      ) : (
+        <ReportReasonDialog
+          open={dialogOpen}
+          onOpenChange={(open) => {
+            if (!open) resetDialog()
+            else setDialogOpen(true)
+          }}
+          reason={{
+            code: '',
+            label: '',
+            description: '',
+            is_active: true,
+            audience,
+          }}
+          isSubmitting={isSubmitting}
+          onConfirm={handleSave}
         />
       )}
     </>

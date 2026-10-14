@@ -1,36 +1,15 @@
-﻿import { type LucideIcon } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+﻿import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-export type StatVariant = 'default' | 'alert-green' | 'alert-red'
-
 export interface StatCardProps {
   label: string
   value: number
-  icon: LucideIcon
-  variant?: StatVariant
-}
-
-// ── Variant maps ──────────────────────────────────────────────────────────────
-
-const borderColor: Record<StatVariant, string> = {
-  default: 'border-l-border',
-  'alert-green': 'border-l-primary',
-  'alert-red': 'border-l-destructive',
-}
-
-const valueColor: Record<StatVariant, string> = {
-  default: 'text-foreground',
-  'alert-green': 'text-primary',
-  'alert-red': 'text-destructive',
-}
-
-const iconBg: Record<StatVariant, string> = {
-  default: 'bg-primary/10 text-primary',
-  'alert-green': 'bg-primary/10 text-primary',
-  'alert-red': 'bg-destructive/10 text-destructive',
+  featured?: boolean
+  className?: string
+  contextLabel: string
+  sparklineData?: number[]
 }
 
 // ── StatCard ──────────────────────────────────────────────────────────────────
@@ -38,38 +17,52 @@ const iconBg: Record<StatVariant, string> = {
 export function StatCard({
   label,
   value,
-  icon: Icon,
-  variant = 'default',
+  featured = false,
+  className,
+  contextLabel,
+  sparklineData = [],
 }: StatCardProps) {
   return (
     <Card
       className={[
-        'rounded-2xl border border-l-4 border-border bg-card',
-        borderColor[variant],
-      ].join(' ')}
-      style={{ boxShadow: '0 2px 12px rgba(52,168,53,0.08)' }}
+        'h-full rounded-lg border border-border bg-card transition-colors duration-200',
+        featured ? 'border-primary/40 bg-primary/[0.03]' : '',
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
-      <CardContent className='flex items-center justify-between p-5'>
-        <div className='flex flex-col gap-1'>
-          <span className='text-sm font-semibold text-muted-foreground'>
+      <CardContent className='flex h-full flex-col justify-between p-4 sm:p-5'>
+        <div className='flex flex-col gap-2'>
+          <span className='text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase'>
             {label}
           </span>
           <span
-            className={[
-              'text-[32px] leading-none font-bold',
-              valueColor[variant],
-            ].join(' ')}
+            className={`leading-none font-bold tracking-tight text-foreground tabular-nums ${featured ? 'text-4xl sm:text-5xl' : 'text-3xl'}`}
           >
             {value.toLocaleString()}
           </span>
         </div>
-        <div
-          className={[
-            'flex h-11 w-11 items-center justify-center rounded-xl',
-            iconBg[variant],
-          ].join(' ')}
-        >
-          <Icon className='h-5 w-5' aria-hidden='true' />
+        <div className='mt-5 flex items-end justify-between gap-4 border-t border-border/80 pt-3'>
+          <span className='text-xs text-muted-foreground'>{contextLabel}</span>
+          {sparklineData.length > 1 && (
+            <div
+              className='flex h-7 items-end gap-0.5'
+              aria-label={`${label} trend over the last 7 days`}
+            >
+              {sparklineData.map((point, index) => {
+                const maximum = Math.max(...sparklineData, 1)
+                const height = Math.max(18, Math.round((point / maximum) * 100))
+                return (
+                  <span
+                    key={`${point}-${index}`}
+                    className='w-1.5 rounded-sm bg-primary/70'
+                    style={{ height: `${height}%` }}
+                  />
+                )
+              })}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -80,16 +73,13 @@ export function StatCard({
 
 export function StatCardSkeleton() {
   return (
-    <Card
-      className='rounded-2xl border border-l-4 border-border border-l-border bg-card'
-      style={{ boxShadow: '0 2px 12px rgba(52,168,53,0.08)' }}
-    >
-      <CardContent className='flex items-center justify-between p-5'>
+    <Card className='rounded-lg border border-border bg-card'>
+      <CardContent className='flex items-center justify-between p-4 sm:p-5'>
         <div className='flex flex-col gap-2'>
-          <Skeleton className='h-4 w-28' />
+          <Skeleton className='h-3.5 w-24' />
           <Skeleton className='h-8 w-16' />
         </div>
-        <Skeleton className='h-11 w-11 rounded-xl' />
+        <Skeleton className='h-7 w-12 rounded-sm' />
       </CardContent>
     </Card>
   )

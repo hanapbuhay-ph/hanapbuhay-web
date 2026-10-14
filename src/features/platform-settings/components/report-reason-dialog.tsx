@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,6 +22,14 @@ interface ReportReasonDialogProps {
   onConfirm: (payload: ReportReasonPayload) => void
 }
 
+type ReportReasonForm = Omit<
+  ReportReasonPayload,
+  'description' | 'is_active'
+> & {
+  description: string
+  is_active: boolean
+}
+
 export function ReportReasonDialog({
   open,
   onOpenChange,
@@ -28,29 +37,38 @@ export function ReportReasonDialog({
   isSubmitting,
   onConfirm,
 }: ReportReasonDialogProps) {
-  const [form, setForm] = useState<ReportReasonPayload>({
+  const [form, setForm] = useState<ReportReasonForm>({
     label: '',
     description: '',
     is_active: true,
+    audience: 'client',
   })
   const [errors, setErrors] = useState<
     Partial<Record<keyof ReportReasonPayload, string>>
   >({})
+
+  const generatedCode =
+    form.label
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'other'
 
   // Pre-fill whenever the dialog opens
   useEffect(() => {
     if (open) {
       setForm({
         label: reason.label,
-        description: reason.description,
-        is_active: reason.is_active,
+        description: reason.description ?? '',
+        is_active: reason.is_active ?? true,
+        audience: reason.audience,
       })
       setErrors({})
     }
   }, [open, reason])
 
   function validate(): boolean {
-    const next: typeof errors = {}
+    const next: Partial<Record<keyof ReportReasonForm, string>> = {}
     if (!form.label.trim()) next.label = 'Label is required.'
     if (!form.description.trim()) next.description = 'Description is required.'
     setErrors(next)
@@ -60,9 +78,11 @@ export function ReportReasonDialog({
   function handleSubmit() {
     if (!validate()) return
     onConfirm({
+      code: generatedCode,
       label: form.label.trim(),
       description: form.description.trim(),
       is_active: form.is_active,
+      audience: form.audience,
     })
   }
 
@@ -74,19 +94,36 @@ export function ReportReasonDialog({
         </DialogHeader>
 
         <div className='space-y-4 py-2'>
-          {/* Code — read-only display */}
+          {/* Code — auto-generated */}
           <div className='space-y-1.5'>
             <Label htmlFor='rr-code'>Code</Label>
             <Input
               id='rr-code'
-              value={reason.code}
+              value={generatedCode}
               disabled
               className='bg-muted text-muted-foreground'
-              aria-label='Code (read-only)'
+              aria-label='Generated code'
             />
             <p className='text-xs text-muted-foreground'>
-              The code is set by the API and cannot be changed here.
+              Auto-generated from the label. Admins do not need to type it.
             </p>
+          </div>
+
+          {/* Label */}
+          <div className='space-y-1.5'>
+            <Label>Applies to</Label>
+            <div className='flex gap-2'>
+              {(['client', 'worker'] as const).map((value) => (
+                <Button
+                  key={value}
+                  type='button'
+                  variant={form.audience === value ? 'default' : 'outline'}
+                  onClick={() => setForm((f) => ({ ...f, audience: value }))}
+                >
+                  {value === 'client' ? 'Client reports' : 'Worker reports'}
+                </Button>
+              ))}
+            </div>
           </div>
 
           {/* Label */}

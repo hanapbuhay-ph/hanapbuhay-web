@@ -32,6 +32,8 @@ import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedReviewsIndexRouteImport } from './routes/_authenticated/reviews/index'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
 import { Route as AuthenticatedPlatformSettingsIndexRouteImport } from './routes/_authenticated/platform-settings/index'
+import { Route as AuthenticatedNotificationsIndexRouteImport } from './routes/_authenticated/notifications/index'
+import { Route as AuthenticatedJobPostsIndexRouteImport } from './routes/_authenticated/job-posts/index'
 import { Route as AuthenticatedHelpCenterIndexRouteImport } from './routes/_authenticated/help-center/index'
 import { Route as AuthenticatedChatsIndexRouteImport } from './routes/_authenticated/chats/index'
 import { Route as AuthenticatedChatLogsIndexRouteImport } from './routes/_authenticated/chat-logs/index'
@@ -54,6 +56,7 @@ import { Route as AuthenticatedPlatformSettingsServiceCategoriesRouteImport } fr
 import { Route as AuthenticatedPlatformSettingsReportReasonsRouteImport } from './routes/_authenticated/platform-settings/report-reasons'
 import { Route as AuthenticatedPlatformSettingsNotificationTemplatesRouteImport } from './routes/_authenticated/platform-settings/notification-templates'
 import { Route as AuthenticatedPlatformSettingsAnnouncementsRouteImport } from './routes/_authenticated/platform-settings/announcements'
+import { Route as AuthenticatedJobPostsIdRouteImport } from './routes/_authenticated/job-posts/$id'
 import { Route as AuthenticatedErrorsErrorRouteImport } from './routes/_authenticated/errors/$error'
 import { Route as AuthenticatedChatLogsIdRouteImport } from './routes/_authenticated/chat-logs/$id'
 import { Route as AuthenticatedBookingsIdRouteImport } from './routes/_authenticated/bookings/$id'
@@ -177,6 +180,18 @@ const AuthenticatedPlatformSettingsIndexRoute =
   AuthenticatedPlatformSettingsIndexRouteImport.update({
     id: '/platform-settings/',
     path: '/platform-settings/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedNotificationsIndexRoute =
+  AuthenticatedNotificationsIndexRouteImport.update({
+    id: '/notifications/',
+    path: '/notifications/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedJobPostsIndexRoute =
+  AuthenticatedJobPostsIndexRouteImport.update({
+    id: '/job-posts/',
+    path: '/job-posts/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedHelpCenterIndexRoute =
@@ -304,6 +319,11 @@ const AuthenticatedPlatformSettingsAnnouncementsRoute =
     path: '/platform-settings/announcements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedJobPostsIdRoute = AuthenticatedJobPostsIdRouteImport.update({
+  id: '/job-posts/$id',
+  path: '/job-posts/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedErrorsErrorRoute =
   AuthenticatedErrorsErrorRouteImport.update({
     id: '/errors/$error',
@@ -352,6 +372,7 @@ export interface FileRoutesByFullPath {
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/chat-logs/$id': typeof AuthenticatedChatLogsIdRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/job-posts/$id': typeof AuthenticatedJobPostsIdRoute
   '/platform-settings/announcements': typeof AuthenticatedPlatformSettingsAnnouncementsRoute
   '/platform-settings/notification-templates': typeof AuthenticatedPlatformSettingsNotificationTemplatesRoute
   '/platform-settings/report-reasons': typeof AuthenticatedPlatformSettingsReportReasonsRoute
@@ -374,6 +395,8 @@ export interface FileRoutesByFullPath {
   '/chat-logs/': typeof AuthenticatedChatLogsIndexRoute
   '/chats/': typeof AuthenticatedChatsIndexRoute
   '/help-center/': typeof AuthenticatedHelpCenterIndexRoute
+  '/job-posts/': typeof AuthenticatedJobPostsIndexRoute
+  '/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/platform-settings/': typeof AuthenticatedPlatformSettingsIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/reviews/': typeof AuthenticatedReviewsIndexRoute
@@ -399,6 +422,7 @@ export interface FileRoutesByTo {
   '/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/chat-logs/$id': typeof AuthenticatedChatLogsIdRoute
   '/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/job-posts/$id': typeof AuthenticatedJobPostsIdRoute
   '/platform-settings/announcements': typeof AuthenticatedPlatformSettingsAnnouncementsRoute
   '/platform-settings/notification-templates': typeof AuthenticatedPlatformSettingsNotificationTemplatesRoute
   '/platform-settings/report-reasons': typeof AuthenticatedPlatformSettingsReportReasonsRoute
@@ -421,6 +445,8 @@ export interface FileRoutesByTo {
   '/chat-logs': typeof AuthenticatedChatLogsIndexRoute
   '/chats': typeof AuthenticatedChatsIndexRoute
   '/help-center': typeof AuthenticatedHelpCenterIndexRoute
+  '/job-posts': typeof AuthenticatedJobPostsIndexRoute
+  '/notifications': typeof AuthenticatedNotificationsIndexRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/reviews': typeof AuthenticatedReviewsIndexRoute
@@ -452,6 +478,7 @@ export interface FileRoutesById {
   '/_authenticated/bookings/$id': typeof AuthenticatedBookingsIdRoute
   '/_authenticated/chat-logs/$id': typeof AuthenticatedChatLogsIdRoute
   '/_authenticated/errors/$error': typeof AuthenticatedErrorsErrorRoute
+  '/_authenticated/job-posts/$id': typeof AuthenticatedJobPostsIdRoute
   '/_authenticated/platform-settings/announcements': typeof AuthenticatedPlatformSettingsAnnouncementsRoute
   '/_authenticated/platform-settings/notification-templates': typeof AuthenticatedPlatformSettingsNotificationTemplatesRoute
   '/_authenticated/platform-settings/report-reasons': typeof AuthenticatedPlatformSettingsReportReasonsRoute
@@ -474,6 +501,8 @@ export interface FileRoutesById {
   '/_authenticated/chat-logs/': typeof AuthenticatedChatLogsIndexRoute
   '/_authenticated/chats/': typeof AuthenticatedChatsIndexRoute
   '/_authenticated/help-center/': typeof AuthenticatedHelpCenterIndexRoute
+  '/_authenticated/job-posts/': typeof AuthenticatedJobPostsIndexRoute
+  '/_authenticated/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/_authenticated/platform-settings/': typeof AuthenticatedPlatformSettingsIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/reviews/': typeof AuthenticatedReviewsIndexRoute
@@ -503,6 +532,7 @@ export interface FileRouteTypes {
     | '/bookings/$id'
     | '/chat-logs/$id'
     | '/errors/$error'
+    | '/job-posts/$id'
     | '/platform-settings/announcements'
     | '/platform-settings/notification-templates'
     | '/platform-settings/report-reasons'
@@ -525,6 +555,8 @@ export interface FileRouteTypes {
     | '/chat-logs/'
     | '/chats/'
     | '/help-center/'
+    | '/job-posts/'
+    | '/notifications/'
     | '/platform-settings/'
     | '/reports/'
     | '/reviews/'
@@ -550,6 +582,7 @@ export interface FileRouteTypes {
     | '/bookings/$id'
     | '/chat-logs/$id'
     | '/errors/$error'
+    | '/job-posts/$id'
     | '/platform-settings/announcements'
     | '/platform-settings/notification-templates'
     | '/platform-settings/report-reasons'
@@ -572,6 +605,8 @@ export interface FileRouteTypes {
     | '/chat-logs'
     | '/chats'
     | '/help-center'
+    | '/job-posts'
+    | '/notifications'
     | '/platform-settings'
     | '/reports'
     | '/reviews'
@@ -602,6 +637,7 @@ export interface FileRouteTypes {
     | '/_authenticated/bookings/$id'
     | '/_authenticated/chat-logs/$id'
     | '/_authenticated/errors/$error'
+    | '/_authenticated/job-posts/$id'
     | '/_authenticated/platform-settings/announcements'
     | '/_authenticated/platform-settings/notification-templates'
     | '/_authenticated/platform-settings/report-reasons'
@@ -624,6 +660,8 @@ export interface FileRouteTypes {
     | '/_authenticated/chat-logs/'
     | '/_authenticated/chats/'
     | '/_authenticated/help-center/'
+    | '/_authenticated/job-posts/'
+    | '/_authenticated/notifications/'
     | '/_authenticated/platform-settings/'
     | '/_authenticated/reports/'
     | '/_authenticated/reviews/'
@@ -810,6 +848,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformSettingsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/notifications/': {
+      id: '/_authenticated/notifications/'
+      path: '/notifications'
+      fullPath: '/notifications/'
+      preLoaderRoute: typeof AuthenticatedNotificationsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/job-posts/': {
+      id: '/_authenticated/job-posts/'
+      path: '/job-posts'
+      fullPath: '/job-posts/'
+      preLoaderRoute: typeof AuthenticatedJobPostsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/help-center/': {
       id: '/_authenticated/help-center/'
       path: '/help-center'
@@ -964,6 +1016,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformSettingsAnnouncementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/job-posts/$id': {
+      id: '/_authenticated/job-posts/$id'
+      path: '/job-posts/$id'
+      fullPath: '/job-posts/$id'
+      preLoaderRoute: typeof AuthenticatedJobPostsIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/errors/$error': {
       id: '/_authenticated/errors/$error'
       path: '/errors/$error'
@@ -1051,6 +1110,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBookingsIdRoute: typeof AuthenticatedBookingsIdRoute
   AuthenticatedChatLogsIdRoute: typeof AuthenticatedChatLogsIdRoute
   AuthenticatedErrorsErrorRoute: typeof AuthenticatedErrorsErrorRoute
+  AuthenticatedJobPostsIdRoute: typeof AuthenticatedJobPostsIdRoute
   AuthenticatedPlatformSettingsAnnouncementsRoute: typeof AuthenticatedPlatformSettingsAnnouncementsRoute
   AuthenticatedPlatformSettingsNotificationTemplatesRoute: typeof AuthenticatedPlatformSettingsNotificationTemplatesRoute
   AuthenticatedPlatformSettingsReportReasonsRoute: typeof AuthenticatedPlatformSettingsReportReasonsRoute
@@ -1065,6 +1125,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatLogsIndexRoute: typeof AuthenticatedChatLogsIndexRoute
   AuthenticatedChatsIndexRoute: typeof AuthenticatedChatsIndexRoute
   AuthenticatedHelpCenterIndexRoute: typeof AuthenticatedHelpCenterIndexRoute
+  AuthenticatedJobPostsIndexRoute: typeof AuthenticatedJobPostsIndexRoute
+  AuthenticatedNotificationsIndexRoute: typeof AuthenticatedNotificationsIndexRoute
   AuthenticatedPlatformSettingsIndexRoute: typeof AuthenticatedPlatformSettingsIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedReviewsIndexRoute: typeof AuthenticatedReviewsIndexRoute
@@ -1080,6 +1142,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBookingsIdRoute: AuthenticatedBookingsIdRoute,
   AuthenticatedChatLogsIdRoute: AuthenticatedChatLogsIdRoute,
   AuthenticatedErrorsErrorRoute: AuthenticatedErrorsErrorRoute,
+  AuthenticatedJobPostsIdRoute: AuthenticatedJobPostsIdRoute,
   AuthenticatedPlatformSettingsAnnouncementsRoute:
     AuthenticatedPlatformSettingsAnnouncementsRoute,
   AuthenticatedPlatformSettingsNotificationTemplatesRoute:
@@ -1098,6 +1161,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatLogsIndexRoute: AuthenticatedChatLogsIndexRoute,
   AuthenticatedChatsIndexRoute: AuthenticatedChatsIndexRoute,
   AuthenticatedHelpCenterIndexRoute: AuthenticatedHelpCenterIndexRoute,
+  AuthenticatedJobPostsIndexRoute: AuthenticatedJobPostsIndexRoute,
+  AuthenticatedNotificationsIndexRoute: AuthenticatedNotificationsIndexRoute,
   AuthenticatedPlatformSettingsIndexRoute:
     AuthenticatedPlatformSettingsIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
