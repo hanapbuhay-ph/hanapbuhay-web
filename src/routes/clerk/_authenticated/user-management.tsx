@@ -16,6 +16,9 @@ import { Main } from '@/components/layout/main'
 import { LearnMore } from '@/components/learn-more'
 import { Search } from '@/components/search'
 import { ThemeSwitch } from '@/components/theme-switch'
+import { UsersDialogs } from '@/features/users/components/users-dialogs'
+import { UsersPrimaryButtons } from '@/features/users/components/users-primary-buttons'
+import { UsersProvider } from '@/features/users/components/users-provider'
 import { UsersTable } from '@/features/users/components/users-table'
 import { users } from '@/features/users/data/users'
 
@@ -24,6 +27,9 @@ export const Route = createFileRoute('/clerk/_authenticated/user-management')({
 })
 
 function UserManagement() {
+  const search = Route.useSearch()
+  const navigate = Route.useNavigate()
+
   const [opened, setOpened] = useState(true)
   const { isLoaded, isSignedIn } = useAuth()
 
@@ -40,7 +46,7 @@ function UserManagement() {
   }
 
   return (
-    <>
+    <UsersProvider>
       <Header fixed>
         <Search className='me-auto' />
         <ThemeSwitch />
@@ -79,10 +85,13 @@ function UserManagement() {
               </LearnMore>
             </div>
           </div>
+          <UsersPrimaryButtons />
         </div>
-        <UsersTable data={users} isLoading={false} error={null} />
+        <UsersTable data={users} navigate={navigate} search={search} />
       </Main>
-    </>
+
+      <UsersDialogs />
+    </UsersProvider>
   )
 }
 

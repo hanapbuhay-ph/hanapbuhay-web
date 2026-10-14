@@ -22,14 +22,6 @@ interface ReportReasonDialogProps {
   onConfirm: (payload: ReportReasonPayload) => void
 }
 
-type ReportReasonForm = Omit<
-  ReportReasonPayload,
-  'description' | 'is_active'
-> & {
-  description: string
-  is_active: boolean
-}
-
 export function ReportReasonDialog({
   open,
   onOpenChange,
@@ -37,7 +29,7 @@ export function ReportReasonDialog({
   isSubmitting,
   onConfirm,
 }: ReportReasonDialogProps) {
-  const [form, setForm] = useState<ReportReasonForm>({
+  const [form, setForm] = useState<ReportReasonPayload>({
     label: '',
     description: '',
     is_active: true,
@@ -58,8 +50,8 @@ export function ReportReasonDialog({
     if (open) {
       setForm({
         label: reason.label,
-        description: reason.description ?? '',
-        is_active: reason.is_active ?? true,
+        description: reason.description,
+        is_active: reason.is_active,
         audience: reason.audience,
       })
       setErrors({})
@@ -67,7 +59,7 @@ export function ReportReasonDialog({
   }, [open, reason])
 
   function validate(): boolean {
-    const next: Partial<Record<keyof ReportReasonForm, string>> = {}
+    const next: typeof errors = {}
     if (!form.label.trim()) next.label = 'Label is required.'
     if (!form.description.trim()) next.description = 'Description is required.'
     setErrors(next)
@@ -81,7 +73,6 @@ export function ReportReasonDialog({
       label: form.label.trim(),
       description: form.description.trim(),
       is_active: form.is_active,
-      audience: form.audience,
     })
   }
 

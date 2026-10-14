@@ -111,13 +111,13 @@ export function NotificationTemplatesTable({
 
               {/* Channel badge */}
               <TableCell>
-                <ChannelBadge channel={template.channel ?? 'push'} />
+                <ChannelBadge channel={template.channel} />
               </TableCell>
 
               {/* Variables — small chips */}
               <TableCell>
                 <div className='flex flex-wrap gap-1'>
-                  {(template.variables ?? []).map((v) => (
+                  {template.variables.map((v) => (
                     <span
                       key={v}
                       className='inline-flex items-center rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground'
@@ -138,14 +138,14 @@ export function NotificationTemplatesTable({
                       : ''
                   }
                 >
-                  {template.is_active ?? true ? 'Active' : 'Inactive'}
+                  {template.is_active ? 'Active' : 'Inactive'}
                 </Badge>
               </TableCell>
 
               {/* Active toggle */}
               <TableCell className='text-center'>
                 <Switch
-                  checked={template.is_active ?? true}
+                  checked={template.is_active}
                   onCheckedChange={() => onToggle(template)}
                   disabled={togglingId === template.id}
                   aria-label={`Toggle ${template.title}`}
@@ -154,12 +154,10 @@ export function NotificationTemplatesTable({
 
               {/* Last updated */}
               <TableCell className='text-right text-xs text-muted-foreground'>
-                {template.last_updated_at
-                  ? new Date(template.last_updated_at).toLocaleDateString(
-                      'en-PH',
-                      { year: 'numeric', month: 'short', day: 'numeric' }
-                    )
-                  : '—'}
+                {new Date(template.last_updated_at).toLocaleDateString(
+                  'en-PH',
+                  { year: 'numeric', month: 'short', day: 'numeric' }
+                )}
               </TableCell>
 
               {/* Edit */}

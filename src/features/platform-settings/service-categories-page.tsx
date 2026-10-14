@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 import * as LucideIcons from 'lucide-react'
 import {
   ArrowLeft,
@@ -115,6 +115,10 @@ export function ServiceCategoriesPage() {
   const categories = data?.service_categories ?? []
   const selectedIconOption =
     SERVICE_CATEGORY_ICON_OPTIONS.find((option) => option.key === icon) ?? null
+
+  useEffect(() => {
+    setIconScrollTop(0)
+  }, [deferredIconQuery])
 
   const filteredIconOptions = useMemo(() => {
     const query = deferredIconQuery.trim().toLowerCase()
@@ -447,10 +451,7 @@ export function ServiceCategoriesPage() {
                   <div className='flex flex-col gap-3'>
                     <Input
                       value={iconQuery}
-                      onChange={(e) => {
-                        setIconQuery(e.target.value)
-                        setIconScrollTop(0)
-                      }}
+                      onChange={(e) => setIconQuery(e.target.value)}
                       placeholder='Search icon by keyword...'
                     />
 

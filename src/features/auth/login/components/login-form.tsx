@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
@@ -55,26 +55,6 @@ interface LoginApiResponse {
 
 const OTP_VALIDITY_SECONDS = 5 * 60
 
-function getRedirectTarget(redirect?: string): string {
-  return redirect && redirect !== '/' ? redirect : '/'
-}
-
-function getDeviceName(): string {
-  const ua = navigator.userAgent
-  const platform =
-    (navigator as Navigator & { userAgentData?: { platform?: string } })
-      .userAgentData?.platform ??
-    navigator.platform ??
-    'Web'
-
-  if (ua.includes('Edg/')) return `${platform} • Edge`
-  if (ua.includes('Chrome/')) return `${platform} • Chrome`
-  if (ua.includes('Firefox/')) return `${platform} • Firefox`
-  if (ua.includes('Safari/')) return `${platform} • Safari`
-
-  return `${platform} • Browser`
-}
-
 // ── Validation schema ─────────────────────────────────────────────────────────
 
 const formSchema = z.object({
@@ -121,6 +101,26 @@ export function LoginForm() {
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
+  function getRedirectTarget(): string {
+    return redirect && redirect !== '/' ? redirect : '/'
+  }
+
+  function getDeviceName(): string {
+    const ua = navigator.userAgent
+    const platform =
+      (navigator as Navigator & { userAgentData?: { platform?: string } })
+        .userAgentData?.platform ??
+      navigator.platform ??
+      'Web'
+
+    if (ua.includes('Edg/')) return `${platform} • Edge`
+    if (ua.includes('Chrome/')) return `${platform} • Chrome`
+    if (ua.includes('Firefox/')) return `${platform} • Firefox`
+    if (ua.includes('Safari/')) return `${platform} • Safari`
+
+    return `${platform} • Browser`
+  }
+
   function startOtpExpiryWindow(validitySeconds = OTP_VALIDITY_SECONDS) {
     setOtpSecondsRemaining(validitySeconds)
   }
@@ -139,142 +139,6 @@ export function LoginForm() {
 
     return () => window.clearInterval(intervalId)
   }, [otpDialogOpen, otpSecondsRemaining])
-
-  // ── Real login ─────────────────────────────────────────────────────────────
-
-  async function onSubmit(data: FormValues) {
-    setLoginError('')
-    setIsLoading(true)
-    try {
-      const res = await api.post<LoginApiResponse>('/auth/admin/login', {
-        email: data.email,
-        password: data.password,
-        device_name: getDeviceName(),
-      })
-
-      if (res.data.data.requiresOtp) {
-        setOtpEmail(data.email)
-        setOtpCode('')
-        startOtpExpiryWindow(res.data.data.otp_expires_in_seconds)
-        setOtpDialogOpen(true)
-        toast.info('A verification code has been sent to your email.')
-        return
-      }
-
-      const token = res.data.data.token
-      const user = res.data.data.user
-
-      if (!token || !user) {
-        throw new Error('Invalid login response.')
-      }
-
-      if (user.role !== 'admin' && user.role !== 'super_admin') {
-        toast.error('Access denied. Admin accounts only.')
-        return
-      }
-
-      setToken(token)
-      setUser(user)
-      toast.success(`Welcome back, ${user.name}!`)
-      navigate({ to: getRedirectTarget(redirect), replace: true })
-    } catch (err) {
-      const axiosErr = err instanceof AxiosError ? err : null
-      const status = axiosErr?.response?.status
-
-      if (status === 429) {
-        const retryAfter = Number(
-          axiosErr?.response?.data?.data?.retry_after_seconds
-        )
-        if (Number.isFinite(retryAfter) && retryAfter > 0) {
-          setLoginLockoutSeconds(retryAfter)
-        }
-        const message =
-          axiosErr?.response?.data?.message ??
-          'Too many failed login attempts. Please wait before trying again.'
-        setLoginError(message)
-        toast.error(message)
-      } else if (status === 401) {
-        setLoginError('Invalid email or password.')
-        toast.error('Invalid email or password.')
-      } else if (status === 403) {
-        const message = axiosErr?.response?.data?.message ?? 'Access denied.'
-        setLoginError(message)
-        toast.error(message)
-      } else {
-        const message =
-          axiosErr?.response?.data?.message ??
-          axiosErr?.message ??
-          'Something went wrong. Please try again.'
-        setLoginError(message)
-        toast.error(message)
-      }
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleGoogleCredential = useCallback(
-    async (response: GoogleCredentialResponse) => {
-      setIsGoogleLoading(true)
-
-      try {
-        const res = await api.post<LoginApiResponse>('/auth/admin/google', {
-          google_token: response.credential,
-          device_name: getDeviceName(),
-        })
-
-        if (res.data.data.requiresOtp) {
-          const email = res.data.data.user?.email
-          if (!email) {
-            throw new Error('Google login did not return an email address.')
-          }
-
-          setOtpEmail(email)
-          setOtpCode('')
-          setOtpSecondsRemaining(
-            res.data.data.otp_expires_in_seconds ?? OTP_VALIDITY_SECONDS
-          )
-          setOtpDialogOpen(true)
-          toast.info('A verification code has been sent to your admin email.')
-          return
-        }
-
-        const token = res.data.data.token
-        const user = res.data.data.user
-
-        if (
-          !token ||
-          !user ||
-          (user.role !== 'admin' && user.role !== 'super_admin')
-        ) {
-          throw new Error('This Google account is not configured as an admin.')
-        }
-
-        setToken(token)
-        setUser(user)
-        toast.success(`Welcome back, ${user.name}!`)
-        navigate({ to: getRedirectTarget(redirect), replace: true })
-      } catch (err) {
-        const axiosErr = err instanceof AxiosError ? err : null
-        if (axiosErr?.response?.status === 429) {
-          const retryAfter = Number(
-            axiosErr.response.data?.data?.retry_after_seconds
-          )
-          if (Number.isFinite(retryAfter) && retryAfter > 0) {
-            setLoginLockoutSeconds(retryAfter)
-          }
-        }
-        const message =
-          axiosErr?.response?.data?.message ??
-          axiosErr?.message ??
-          'Google sign-in failed. Please try again.'
-        toast.error(message)
-      } finally {
-        setIsGoogleLoading(false)
-      }
-    },
-    [navigate, redirect]
-  )
 
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
@@ -319,7 +183,138 @@ export function LoginForm() {
       }
       window.google?.accounts.id.cancel()
     }
-  }, [handleGoogleCredential])
+  }, [])
+
+  // ── Real login ─────────────────────────────────────────────────────────────
+
+  async function onSubmit(data: FormValues) {
+    setLoginError('')
+    setIsLoading(true)
+    try {
+      const res = await api.post<LoginApiResponse>('/auth/admin/login', {
+        email: data.email,
+        password: data.password,
+        device_name: getDeviceName(),
+      })
+
+      if (res.data.data.requiresOtp) {
+        setOtpEmail(data.email)
+        setOtpCode('')
+        startOtpExpiryWindow(res.data.data.otp_expires_in_seconds)
+        setOtpDialogOpen(true)
+        toast.info('A verification code has been sent to your email.')
+        return
+      }
+
+      const token = res.data.data.token
+      const user = res.data.data.user
+
+      if (!token || !user) {
+        throw new Error('Invalid login response.')
+      }
+
+      if (user.role !== 'admin' && user.role !== 'super_admin') {
+        toast.error('Access denied. Admin accounts only.')
+        return
+      }
+
+      setToken(token)
+      setUser(user)
+      toast.success(`Welcome back, ${user.name}!`)
+      navigate({ to: getRedirectTarget(), replace: true })
+    } catch (err) {
+      const axiosErr = err instanceof AxiosError ? err : null
+      const status = axiosErr?.response?.status
+
+      if (status === 429) {
+        const retryAfter = Number(
+          axiosErr?.response?.data?.data?.retry_after_seconds
+        )
+        if (Number.isFinite(retryAfter) && retryAfter > 0) {
+          setLoginLockoutSeconds(retryAfter)
+        }
+        const message =
+          axiosErr?.response?.data?.message ??
+          'Too many failed login attempts. Please wait before trying again.'
+        setLoginError(message)
+        toast.error(message)
+      } else if (status === 401) {
+        setLoginError('Invalid email or password.')
+        toast.error('Invalid email or password.')
+      } else if (status === 403) {
+        const message = axiosErr?.response?.data?.message ?? 'Access denied.'
+        setLoginError(message)
+        toast.error(message)
+      } else {
+        const message =
+          axiosErr?.response?.data?.message ??
+          axiosErr?.message ??
+          'Something went wrong. Please try again.'
+        setLoginError(message)
+        toast.error(message)
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function handleGoogleCredential(response: GoogleCredentialResponse) {
+    setIsGoogleLoading(true)
+
+    try {
+      const res = await api.post<LoginApiResponse>('/auth/admin/google', {
+        google_token: response.credential,
+        device_name: getDeviceName(),
+      })
+
+      if (res.data.data.requiresOtp) {
+        const email = res.data.data.user?.email
+        if (!email) {
+          throw new Error('Google login did not return an email address.')
+        }
+
+        setOtpEmail(email)
+        setOtpCode('')
+        startOtpExpiryWindow(res.data.data.otp_expires_in_seconds)
+        setOtpDialogOpen(true)
+        toast.info('A verification code has been sent to your admin email.')
+        return
+      }
+
+      const token = res.data.data.token
+      const user = res.data.data.user
+
+      if (
+        !token ||
+        !user ||
+        (user.role !== 'admin' && user.role !== 'super_admin')
+      ) {
+        throw new Error('This Google account is not configured as an admin.')
+      }
+
+      setToken(token)
+      setUser(user)
+      toast.success(`Welcome back, ${user.name}!`)
+      navigate({ to: getRedirectTarget(), replace: true })
+    } catch (err) {
+      const axiosErr = err instanceof AxiosError ? err : null
+      if (axiosErr?.response?.status === 429) {
+        const retryAfter = Number(
+          axiosErr.response.data?.data?.retry_after_seconds
+        )
+        if (Number.isFinite(retryAfter) && retryAfter > 0) {
+          setLoginLockoutSeconds(retryAfter)
+        }
+      }
+      const message =
+        axiosErr?.response?.data?.message ??
+        axiosErr?.message ??
+        'Google sign-in failed. Please try again.'
+      toast.error(message)
+    } finally {
+      setIsGoogleLoading(false)
+    }
+  }
 
   async function verifyOtp() {
     if (!otpEmail) {
@@ -355,7 +350,7 @@ export function LoginForm() {
       setOtpDialogOpen(false)
       setOtpCode('')
       toast.success(`Welcome back, ${user.name}!`)
-      navigate({ to: getRedirectTarget(redirect), replace: true })
+      navigate({ to: getRedirectTarget(), replace: true })
     } catch (err) {
       const axiosErr = err instanceof AxiosError ? err : null
       const message =

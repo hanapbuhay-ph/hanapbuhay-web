@@ -1,5 +1,5 @@
-import { useState, type FormEvent } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -48,57 +48,44 @@ const emptyForm: UserInput = {
 export function UserCrudDialog({
   open,
   user,
-  ...props
-}: UserCrudDialogProps) {
-  const formKey = `${open}-${user?.id ?? 'new'}`
-  return (
-    <UserCrudDialogForm
-      key={formKey}
-      open={open}
-      user={user}
-      {...props}
-    />
-  )
-}
-
-function UserCrudDialogForm({
-  open,
-  user,
   isSubmitting,
   onOpenChange,
   onSubmit,
 }: UserCrudDialogProps) {
-  const [form, setForm] = useState<UserInput>(() =>
-    user
-      ? {
-          name: user.name,
-          email: user.email,
-          mobile_number: user.mobile_number ?? '',
-          role: user.role,
-          barangay_id: user.barangay_id,
-          is_active: user.is_active,
-          password: '',
-          password_confirmation: '',
-        }
-      : emptyForm
-  )
-  const {
-    data: barangays = [],
-    isLoading: barangaysLoading,
-    error: barangayLoadError,
-  } = useQuery({
-    queryKey: ['barangays'],
-    queryFn: async () => {
-      const response = await api.get<{ data: Barangay[] }>('/barangays')
-      return response.data.data ?? []
-    },
-    enabled: open,
-  })
-  const barangayError = barangayLoadError
-    ? 'Unable to load barangays.'
-    : null
+  const [form, setForm] = useState<UserInput>(emptyForm)
+  const [barangays, setBarangays] = useState<Barangay[]>([])
+  const [barangaysLoading, setBarangaysLoading] = useState(false)
+  const [barangayError, setBarangayError] = useState<string | null>(null)
   const isEdit = user !== null
   const canAssignAdminRole = !isEdit || user.role === 'admin' || user.role === 'super_admin'
+
+  useEffect(() => {
+    if (!open || barangays.length > 0) return
+
+    setBarangaysLoading(true)
+    api
+      .get('/barangays')
+      .then((response) => setBarangays(response.data.data ?? []))
+      .catch(() => setBarangayError('Unable to load barangays.'))
+      .finally(() => setBarangaysLoading(false))
+  }, [open, barangays.length])
+
+  useEffect(() => {
+    setForm(
+      user
+        ? {
+            name: user.name,
+            email: user.email,
+            mobile_number: user.mobile_number ?? '',
+            role: user.role,
+            barangay_id: user.barangay_id,
+            is_active: user.is_active,
+            password: '',
+            password_confirmation: '',
+          }
+        : emptyForm
+    )
+  }, [user, open])
 
   function updateField<K extends keyof UserInput>(field: K, value: UserInput[K]) {
     setForm((current) => ({ ...current, [field]: value }))

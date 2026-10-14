@@ -33,11 +33,11 @@ interface UsersTableProps {
   data: User[]
   isLoading: boolean
   error: string | null
-  onRetry?: () => void
-  onEdit?: (user: User) => void
-  onDelete?: (user: User) => void
-  currentUserId?: number
-  currentUserIsSuperAdmin?: boolean
+  onRetry: () => void
+  onEdit: (user: User) => void
+  onDelete: (user: User) => void
+  currentUserId: number | undefined
+  currentUserIsSuperAdmin: boolean
 }
 
 function getInitials(name: string): string {
@@ -49,7 +49,7 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
-function TableSkeleton({ hasActions }: { hasActions: boolean }) {
+function TableSkeleton() {
   return (
     <>
       {Array.from({ length: 5 }).map((_, i) => (
@@ -69,11 +69,9 @@ function TableSkeleton({ hasActions }: { hasActions: boolean }) {
           <TableCell>
             <Skeleton className='h-5 w-16 rounded-full' />
           </TableCell>
-          {hasActions && (
-            <TableCell>
-              <Skeleton className='h-4 w-12' />
-            </TableCell>
-          )}
+          <TableCell>
+            <Skeleton className='h-4 w-12' />
+          </TableCell>
         </TableRow>
       ))}
     </>
@@ -91,7 +89,6 @@ export function UsersTable({
   currentUserIsSuperAdmin,
 }: UsersTableProps) {
   const navigate = useNavigate()
-  const hasActions = onEdit !== undefined || onDelete !== undefined
 
   return (
     <div
@@ -116,39 +113,35 @@ export function UsersTable({
             <TableHead className='font-semibold text-foreground'>
               Status
             </TableHead>
-            {hasActions && (
-              <TableHead className='font-semibold text-foreground'>
-                Actions
-              </TableHead>
-            )}
+            <TableHead className='font-semibold text-foreground'>
+              Actions
+            </TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
           {/* Loading */}
-          {isLoading && <TableSkeleton hasActions={hasActions} />}
+          {isLoading && <TableSkeleton />}
 
           {/* Error */}
           {!isLoading && error && (
             <TableRow>
-              <TableCell colSpan={hasActions ? 6 : 5}>
+              <TableCell colSpan={6}>
                 <div className='flex flex-col items-center gap-2 py-10 text-center'>
                   <AlertTriangle className='h-7 w-7 text-destructive' />
                   <p className='text-sm font-semibold text-foreground'>
                     Failed to load users
                   </p>
                   <p className='text-xs text-muted-foreground'>{error}</p>
-                  {onRetry && (
-                    <Button
-                      size='sm'
-                      variant='outline'
-                      onClick={onRetry}
-                      className='mt-1 border-border text-primary hover:bg-primary/5'
-                    >
-                      <RefreshCw className='h-3.5 w-3.5' />
-                      Retry
-                    </Button>
-                  )}
+                  <Button
+                    size='sm'
+                    variant='outline'
+                    onClick={onRetry}
+                    className='mt-1 border-border text-primary hover:bg-primary/5'
+                  >
+                    <RefreshCw className='h-3.5 w-3.5' />
+                    Retry
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>
@@ -157,7 +150,7 @@ export function UsersTable({
           {/* Empty */}
           {!isLoading && !error && data.length === 0 && (
             <TableRow>
-              <TableCell colSpan={hasActions ? 6 : 5}>
+              <TableCell colSpan={6}>
                 <div className='flex flex-col items-center gap-2 py-10 text-center'>
                   <InboxIcon className='h-7 w-7 text-muted-foreground' />
                   <p className='text-sm font-semibold text-foreground'>
@@ -179,10 +172,7 @@ export function UsersTable({
                 key={user.id}
                 className='cursor-pointer hover:bg-primary/5'
                 onClick={() =>
-                  navigate({
-                    to: '/users/$id',
-                    params: { id: String(user.id) },
-                  })
+                  navigate({ to: '/users/$id', params: { id: user.id } })
                 }
               >
                 <TableCell className='ps-4 font-medium text-foreground'>
@@ -211,58 +201,54 @@ export function UsersTable({
                 <TableCell>
                   <UserStatusBadge isActive={user.is_active} />
                 </TableCell>
-                {hasActions && (
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          size='icon'
-                          variant='ghost'
-                          aria-label={`Actions for ${user.name}`}
-                        >
-                          <MoreHorizontal className='h-4 w-4' />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align='end'>
-                        {user.role === 'super_admin' &&
-                        !(
-                          currentUserIsSuperAdmin && currentUserId === user.id
-                        ) ? (
-                          <DropdownMenuItem disabled>
-                            <ShieldCheck className='h-4 w-4' />
-                            Protected account
-                          </DropdownMenuItem>
-                        ) : (
-                          <>
-                            {onEdit && (
-                              <DropdownMenuItem onClick={() => onEdit(user)}>
-                                <Pencil className='h-4 w-4' /> Edit
-                              </DropdownMenuItem>
-                            )}
-                            {onDelete && currentUserId !== user.id && (
-                              <DropdownMenuItem
-                                className='text-destructive'
-                                onClick={() => onDelete(user)}
-                              >
-                                <Trash2 className='h-4 w-4' /> Delete
-                              </DropdownMenuItem>
-                            )}
-                          </>
-                        )}
-                        <DropdownMenuItem
-                          onClick={() =>
-                            navigate({
-                              to: '/users/$id',
-                              params: { id: String(user.id) },
-                            })
-                          }
-                        >
-                          View details
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size='icon'
+                        variant='ghost'
+                        aria-label={`Actions for ${user.name}`}
+                      >
+                        <MoreHorizontal className='h-4 w-4' />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end'>
+                      {user.role === 'super_admin' &&
+                      !(
+                        currentUserIsSuperAdmin && currentUserId === user.id
+                      ) ? (
+                        <DropdownMenuItem disabled>
+                          <ShieldCheck className='h-4 w-4' />
+                          Protected account
                         </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                )}
+                      ) : (
+                        <>
+                          <DropdownMenuItem onClick={() => onEdit(user)}>
+                            <Pencil className='h-4 w-4' /> Edit
+                          </DropdownMenuItem>
+                          {currentUserId !== user.id && (
+                            <DropdownMenuItem
+                              className='text-destructive'
+                              onClick={() => onDelete(user)}
+                            >
+                              <Trash2 className='h-4 w-4' /> Delete
+                            </DropdownMenuItem>
+                          )}
+                        </>
+                      )}
+                      <DropdownMenuItem
+                        onClick={() =>
+                          navigate({
+                            to: '/users/$id',
+                            params: { id: user.id },
+                          })
+                        }
+                      >
+                        View details
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
               </TableRow>
             ))}
         </TableBody>

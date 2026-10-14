@@ -26,16 +26,14 @@ export function useVerifications(
   statusFilter: VerificationStatus | 'all' = 'all'
 ): UseVerificationsResult {
   const [data, setData] = useState<Verification[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
-  const requestKey = `${statusFilter}:${tick}`
-  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null)
-  const [requestError, setRequestError] = useState<{
-    key: string
-    message: string
-  } | null>(null)
 
   useEffect(() => {
     let cancelled = false
+    setIsLoading(true)
+    setError(null)
 
     api
       .get<VerificationsApiResponse>('/admin/verifications', {
@@ -45,32 +43,20 @@ export function useVerifications(
         if (!cancelled) {
           const list = res.data.data.verifications ?? []
           setData(list)
-          setRequestError(null)
         }
       })
       .catch((err) => {
         if (!cancelled)
-          setRequestError({
-            key: requestKey,
-            message:
-              err instanceof Error
-                ? err.message
-                : 'Failed to load verifications.',
-          })
+          setError(err instanceof Error ? err.message : 'Failed to load verifications.')
       })
       .finally(() => {
-        if (!cancelled) setLoadedRequestKey(requestKey)
+        if (!cancelled) setIsLoading(false)
       })
 
     return () => {
       cancelled = true
     }
-  }, [statusFilter, requestKey])
+  }, [statusFilter, tick])
 
-  return {
-    data,
-    isLoading: loadedRequestKey !== requestKey,
-    error: requestError?.key === requestKey ? requestError.message : null,
-    refetch: () => setTick((t) => t + 1),
-  }
+  return { data, isLoading, error, refetch: () => setTick((t) => t + 1) }
 }

@@ -1,5 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, Megaphone } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { format } from 'date-fns'
@@ -22,31 +21,14 @@ type AnnouncementFilter = 'all' | 'published' | 'archived' | 'draft'
 export function AnnouncementsPage() {
   const { data, isLoading, error, refetch } = useSettings()
   const { isSubmitting, save, archive, remove } = useAnnouncementAction()
-  const {
-    data: announcements = [],
-    isFetching: loadingList,
-    error: listLoadError,
-    refetch: refetchAnnouncements,
-  } = useQuery({
-    queryKey: ['admin-settings-announcements'],
-    queryFn: async () => {
-      const response = await api.get<{ data: Announcement[] }>(
-        '/admin/settings/announcements'
-      )
-      return response.data.data
-    },
-  })
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | undefined>(undefined)
+  const [loadingList, setLoadingList] = useState(false)
+  const [listError, setListError] = useState<string | null>(null)
   const [archivingId, setArchivingId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [filter, setFilter] = useState<AnnouncementFilter>('all')
-  const listError =
-    listLoadError instanceof Error
-      ? listLoadError.message
-      : listLoadError
-        ? 'Failed to load announcements.'
-        : null
 
   const active = data?.active_announcement ?? null
   const filteredAnnouncements = announcements.filter((announcement) => {
@@ -54,11 +36,29 @@ export function AnnouncementsPage() {
     return announcement.status === filter
   })
 
+  async function loadAnnouncements() {
+    setLoadingList(true)
+    setListError(null)
+
+    try {
+      const response = await api.get<{ data: Announcement[] }>('/admin/settings/announcements')
+      setAnnouncements(response.data.data)
+    } catch (err) {
+      setListError(err instanceof Error ? err.message : 'Failed to load announcements.')
+    } finally {
+      setLoadingList(false)
+    }
+  }
+
+  useEffect(() => {
+    void loadAnnouncements()
+  }, [])
+
   async function handleSaveAnnouncement(payload: AnnouncementPayload) {
     const done = async () => {
       setDialogOpen(false)
       setSelectedAnnouncement(undefined)
-      await refetchAnnouncements()
+      await loadAnnouncements()
       void refetch()
     }
 
@@ -74,7 +74,7 @@ export function AnnouncementsPage() {
     setArchivingId(announcement.id)
     await archive(announcement.id, async () => {
       setArchivingId(null)
-      await refetchAnnouncements()
+      await loadAnnouncements()
       void refetch()
     })
     setArchivingId(null)
@@ -88,7 +88,7 @@ export function AnnouncementsPage() {
     setDeletingId(announcement.id)
     await remove(announcement.id, async () => {
       setDeletingId(null)
-      await refetchAnnouncements()
+      await loadAnnouncements()
       void refetch()
     })
     setDeletingId(null)
@@ -222,7 +222,7 @@ export function AnnouncementsPage() {
                 }}
                 onArchive={handleArchive}
                 onDelete={handleDelete}
-                onRetry={() => void refetchAnnouncements()}
+                onRetry={loadAnnouncements}
               />
             </div>
           </>

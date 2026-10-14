@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { AlertTriangle, InboxIcon, Loader2, RefreshCw } from 'lucide-react'
+import { AlertTriangle, RefreshCw, InboxIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -21,6 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Loader2 } from 'lucide-react'
 import { type DeletionUser } from '../types'
 import { UserRoleBadge } from './user-role-badge'
 import { useDeletionRequestAction } from '../hooks/use-deletion-request-action'

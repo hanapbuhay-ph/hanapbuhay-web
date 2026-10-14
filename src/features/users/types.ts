@@ -107,7 +107,6 @@ export interface ActivityPage<T> {
 
 export type RoleFilter = UserRole | 'all'
 export type StatusFilter = 'active' | 'suspended' | 'all'
-export type DeletionRequestStatus = 'pending' | 'approved' | 'denied'
 
 export interface UserPagination {
   current_page: number

@@ -23,15 +23,7 @@ interface ServiceCategoryDialogProps {
   onConfirm: (payload: ServiceCategoryPayload) => void
 }
 
-type ServiceCategoryForm = Omit<
-  ServiceCategoryPayload,
-  'description' | 'is_active'
-> & {
-  description: string
-  is_active: boolean
-}
-
-const EMPTY: ServiceCategoryForm = {
+const EMPTY: ServiceCategoryPayload = {
   name: '',
   description: '',
   is_active: true,
@@ -44,10 +36,8 @@ export function ServiceCategoryDialog({
   isSubmitting,
   onConfirm,
 }: ServiceCategoryDialogProps) {
-  const [form, setForm] = useState<ServiceCategoryForm>(EMPTY)
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof ServiceCategoryForm, string>>
-  >({})
+  const [form, setForm] = useState<ServiceCategoryPayload>(EMPTY)
+  const [errors, setErrors] = useState<Partial<Record<keyof ServiceCategoryPayload, string>>>({})
 
   const isEditing = !!category
 
@@ -56,11 +46,7 @@ export function ServiceCategoryDialog({
     if (open) {
       setForm(
         category
-          ? {
-              name: category.name,
-              description: category.description ?? '',
-              is_active: category.is_active ?? true,
-            }
+          ? { name: category.name, description: category.description, is_active: category.is_active }
           : EMPTY
       )
       setErrors({})

@@ -432,16 +432,16 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
                           <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
                             <DetailValue
                               label='Verification'
-                              value={data.worker_profile.verification_status.replace(
-                                /_/g,
+                              value={data.worker_profile.verification_status.replaceAll(
+                                '_',
                                 ' '
                               )}
                             />
                             <DetailValue
                               label='Trust tier'
                               value={
-                                data.worker_profile.trust_tier?.replace(
-                                  /_/g,
+                                data.worker_profile.trust_tier?.replaceAll(
+                                  '_',
                                   ' '
                                 ) ?? 'Not assigned'
                               }
@@ -639,7 +639,7 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
                               className='flex items-center justify-between gap-3 rounded-lg bg-muted/40 px-3 py-2'
                             >
                               <span className='text-sm text-muted-foreground capitalize'>
-                                {key.replace(/_/g, ' ')}
+                                {key.replaceAll('_', ' ')}
                               </span>
                               <span
                                 className={
@@ -894,7 +894,7 @@ function BookingActivity({
               key={status}
               className='rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground capitalize'
             >
-              {status.replace(/_/g, ' ')}: {count}
+              {status.replaceAll('_', ' ')}: {count}
             </span>
           ))}
           {total === 0 && (
