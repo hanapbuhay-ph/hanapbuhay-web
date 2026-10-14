@@ -23,7 +23,7 @@ const CHANNEL_CLASSES: Record<NotificationChannel, string> = {
 function ChannelBadge({ channel }: { channel: NotificationChannel }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium uppercase tracking-wide ${CHANNEL_CLASSES[channel]}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-medium tracking-wide uppercase ${CHANNEL_CLASSES[channel]}`}
     >
       {channel}
     </span>
@@ -101,7 +101,7 @@ export function NotificationTemplatesTable({
             >
               {/* Key — read-only monospace */}
               <TableCell>
-                <code className='rounded bg-muted px-1.5 py-0.5 text-xs font-mono'>
+                <code className='rounded bg-muted px-1.5 py-0.5 font-mono text-xs'>
                   {template.key}
                 </code>
               </TableCell>
@@ -111,13 +111,13 @@ export function NotificationTemplatesTable({
 
               {/* Channel badge */}
               <TableCell>
-                <ChannelBadge channel={template.channel} />
+                <ChannelBadge channel={template.channel ?? 'push'} />
               </TableCell>
 
               {/* Variables — small chips */}
               <TableCell>
                 <div className='flex flex-wrap gap-1'>
-                  {template.variables.map((v) => (
+                  {(template.variables ?? []).map((v) => (
                     <span
                       key={v}
                       className='inline-flex items-center rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground'
@@ -138,14 +138,14 @@ export function NotificationTemplatesTable({
                       : ''
                   }
                 >
-                  {template.is_active ? 'Active' : 'Inactive'}
+                  {(template.is_active ?? true) ? 'Active' : 'Inactive'}
                 </Badge>
               </TableCell>
 
               {/* Active toggle */}
               <TableCell className='text-center'>
                 <Switch
-                  checked={template.is_active}
+                  checked={template.is_active ?? true}
                   onCheckedChange={() => onToggle(template)}
                   disabled={togglingId === template.id}
                   aria-label={`Toggle ${template.title}`}
@@ -154,10 +154,12 @@ export function NotificationTemplatesTable({
 
               {/* Last updated */}
               <TableCell className='text-right text-xs text-muted-foreground'>
-                {new Date(template.last_updated_at).toLocaleDateString(
-                  'en-PH',
-                  { year: 'numeric', month: 'short', day: 'numeric' }
-                )}
+                {template.last_updated_at
+                  ? new Date(template.last_updated_at).toLocaleDateString(
+                      'en-PH',
+                      { year: 'numeric', month: 'short', day: 'numeric' }
+                    )
+                  : '—'}
               </TableCell>
 
               {/* Edit */}

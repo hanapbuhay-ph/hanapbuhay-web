@@ -5,19 +5,16 @@ import { type ReportReasonPayload } from '../types'
 
 interface UseReportReasonActionResult {
   isSubmitting: boolean
-  add: (
-    payload: ReportReasonPayload,
-    onSuccess: () => void,
-  ) => Promise<void>
+  add: (payload: ReportReasonPayload, onSuccess: () => void) => Promise<void>
   update: (
     id: number,
     payload: ReportReasonPayload,
-    onSuccess: () => void,
+    onSuccess: () => void
   ) => Promise<void>
   toggle: (
     id: number,
     isActive: boolean,
-    onSuccess: () => void,
+    onSuccess: () => void
   ) => Promise<void>
   remove: (id: number, onSuccess: () => void) => Promise<void>
 }
@@ -39,7 +36,10 @@ export function useReportReasonAction(): UseReportReasonActionResult {
   return {
     isSubmitting,
 
-    add: async ({ code, label, description, is_active = true, audience }, onSuccess) => {
+    add: async (
+      { code, label, description, is_active = true, audience },
+      onSuccess
+    ) => {
       setIsSubmitting(true)
       try {
         await api.post('/admin/settings/report-reasons', {
@@ -58,7 +58,11 @@ export function useReportReasonAction(): UseReportReasonActionResult {
       }
     },
 
-    update: async (id, { code, label, description, is_active, audience }, onSuccess) => {
+    update: async (
+      id,
+      { code, label, description, is_active, audience },
+      onSuccess
+    ) => {
       setIsSubmitting(true)
       try {
         await api.patch(`/admin/settings/report-reasons/${id}`, {
@@ -83,10 +87,14 @@ export function useReportReasonAction(): UseReportReasonActionResult {
         await api.patch(`/admin/settings/report-reasons/${id}`, {
           is_active: isActive,
         })
-        toast.success(isActive ? 'Report reason enabled.' : 'Report reason disabled.')
+        toast.success(
+          isActive ? 'Report reason enabled.' : 'Report reason disabled.'
+        )
         onSuccess()
       } catch (err) {
-        toast.error(getErrorMessage(err, 'Failed to update report reason status.'))
+        toast.error(
+          getErrorMessage(err, 'Failed to update report reason status.')
+        )
       } finally {
         setIsSubmitting(false)
       }

@@ -1,5 +1,13 @@
 import { startTransition, useEffect, useState } from 'react'
-import { AlertTriangle, ChevronLeft, ChevronRight, InboxIcon, RefreshCw, Search, Star } from 'lucide-react'
+import {
+  AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  InboxIcon,
+  RefreshCw,
+  Search,
+  Star,
+} from 'lucide-react'
 import { api } from '@/lib/api'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -81,7 +89,11 @@ export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load review recipients.')
+          setError(
+            err instanceof Error
+              ? err.message
+              : 'Failed to load review recipients.'
+          )
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)
@@ -140,8 +152,12 @@ export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
             <SelectContent>
               <SelectItem value='name:asc'>Name: A to Z</SelectItem>
               <SelectItem value='name:desc'>Name: Z to A</SelectItem>
-              <SelectItem value='average_rating:desc'>Average rating: High to low</SelectItem>
-              <SelectItem value='average_rating:asc'>Average rating: Low to high</SelectItem>
+              <SelectItem value='average_rating:desc'>
+                Average rating: High to low
+              </SelectItem>
+              <SelectItem value='average_rating:asc'>
+                Average rating: Low to high
+              </SelectItem>
             </SelectContent>
           </Select>
           <div className='relative w-full sm:max-w-xs'>
@@ -158,16 +174,31 @@ export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
           </div>
         </div>
 
-        <div className='overflow-x-auto rounded-2xl border border-border bg-card' style={{ boxShadow: '0 2px 12px rgba(52,168,53,0.08)' }}>
+        <div
+          className='overflow-x-auto rounded-2xl border border-border bg-card'
+          style={{ boxShadow: '0 2px 12px rgba(52,168,53,0.08)' }}
+        >
           <Table className='min-w-[850px]'>
             <TableHeader>
               <TableRow className='bg-background hover:bg-background'>
-                <TableHead className='ps-4 font-semibold text-foreground'>User</TableHead>
-                <TableHead className='font-semibold text-foreground'>Role</TableHead>
-                <TableHead className='font-semibold text-foreground'>Email</TableHead>
-                <TableHead className='font-semibold text-foreground'>Barangay</TableHead>
-                <TableHead className='font-semibold text-foreground'>Reviews Received</TableHead>
-                <TableHead className='font-semibold text-foreground'>Average Rating</TableHead>
+                <TableHead className='ps-4 font-semibold text-foreground'>
+                  User
+                </TableHead>
+                <TableHead className='font-semibold text-foreground'>
+                  Role
+                </TableHead>
+                <TableHead className='font-semibold text-foreground'>
+                  Email
+                </TableHead>
+                <TableHead className='font-semibold text-foreground'>
+                  Barangay
+                </TableHead>
+                <TableHead className='font-semibold text-foreground'>
+                  Reviews Received
+                </TableHead>
+                <TableHead className='font-semibold text-foreground'>
+                  Average Rating
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -175,7 +206,10 @@ export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
                 Array.from({ length: 4 }).map((_, index) => (
                   <TableRow key={index}>
                     {Array.from({ length: 6 }).map((__, column) => (
-                      <TableCell key={column} className={column === 0 ? 'ps-4' : undefined}>
+                      <TableCell
+                        key={column}
+                        className={column === 0 ? 'ps-4' : undefined}
+                      >
                         <Skeleton className='h-4 w-24' />
                       </TableCell>
                     ))}
@@ -186,9 +220,15 @@ export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
                   <TableCell colSpan={6}>
                     <div className='flex flex-col items-center gap-2 py-12 text-center'>
                       <AlertTriangle className='h-7 w-7 text-destructive' />
-                      <p className='text-sm font-semibold text-foreground'>Failed to load users</p>
+                      <p className='text-sm font-semibold text-foreground'>
+                        Failed to load users
+                      </p>
                       <p className='text-xs text-muted-foreground'>{error}</p>
-                      <Button size='sm' variant='outline' onClick={() => setTick((value) => value + 1)}>
+                      <Button
+                        size='sm'
+                        variant='outline'
+                        onClick={() => setTick((value) => value + 1)}
+                      >
                         <RefreshCw className='h-3.5 w-3.5' />
                         Retry
                       </Button>
@@ -201,57 +241,97 @@ export function ReviewRecipients({ onSelect }: ReviewRecipientsProps) {
                   <TableCell colSpan={6}>
                     <div className='flex flex-col items-center gap-2 py-12 text-center'>
                       <InboxIcon className='h-7 w-7 text-muted-foreground' />
-                      <p className='text-sm font-semibold text-foreground'>No users found</p>
-                      <p className='text-xs text-muted-foreground'>Try adjusting the filters.</p>
+                      <p className='text-sm font-semibold text-foreground'>
+                        No users found
+                      </p>
+                      <p className='text-xs text-muted-foreground'>
+                        Try adjusting the filters.
+                      </p>
                     </div>
                   </TableCell>
                 </TableRow>
               )}
-              {!isLoading && !error && users.map((user) => (
-                <TableRow
-                  key={user.id}
-                  className='cursor-pointer hover:bg-primary/5'
-                  onClick={() => onSelect(user)}
-                >
-                  <TableCell className='ps-4'>
-                    <Button variant='link' className='h-auto justify-start gap-3 p-0 text-foreground' onClick={() => onSelect(user)}>
-                      <Avatar className='h-8 w-8'>
-                        <AvatarImage src={user.profile_photo_url ?? undefined} alt={`${user.name} profile`} />
-                        <AvatarFallback className='bg-primary/10 text-xs text-primary'>{getInitials(user.name)}</AvatarFallback>
-                      </Avatar>
-                      <span>{user.name}</span>
-                    </Button>
-                  </TableCell>
-                  <TableCell className='capitalize text-sm text-muted-foreground'>{user.role}</TableCell>
-                  <TableCell className='text-sm text-muted-foreground'>{user.email}</TableCell>
-                  <TableCell className='text-sm text-muted-foreground'>{user.barangay ?? '—'}</TableCell>
-                  <TableCell className='text-sm text-foreground'>
-                    {user.reviews_received_count === 0 ? 'No reviews' : user.reviews_received_count}
-                  </TableCell>
-                  <TableCell>
-                    {user.reviews_received_count === 0 ? (
-                      <span className='text-sm text-muted-foreground'>—</span>
-                    ) : (
-                      <span className='inline-flex items-center gap-1 text-sm text-foreground'>
-                        <Star className='h-4 w-4 fill-amber-400 text-amber-400' />
-                        {user.average_rating.toFixed(2)}
-                      </span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+              {!isLoading &&
+                !error &&
+                users.map((user) => (
+                  <TableRow
+                    key={user.id}
+                    className='cursor-pointer hover:bg-primary/5'
+                    onClick={() => onSelect(user)}
+                  >
+                    <TableCell className='ps-4'>
+                      <Button
+                        variant='link'
+                        className='h-auto justify-start gap-3 p-0 text-foreground'
+                        onClick={() => onSelect(user)}
+                      >
+                        <Avatar className='h-8 w-8'>
+                          <AvatarImage
+                            src={user.profile_photo_url ?? undefined}
+                            alt={`${user.name} profile`}
+                          />
+                          <AvatarFallback className='bg-primary/10 text-xs text-primary'>
+                            {getInitials(user.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{user.name}</span>
+                      </Button>
+                    </TableCell>
+                    <TableCell className='text-sm text-muted-foreground capitalize'>
+                      {user.role}
+                    </TableCell>
+                    <TableCell className='text-sm text-muted-foreground'>
+                      {user.email}
+                    </TableCell>
+                    <TableCell className='text-sm text-muted-foreground'>
+                      {user.barangay ?? '—'}
+                    </TableCell>
+                    <TableCell className='text-sm text-foreground'>
+                      {user.reviews_received_count === 0
+                        ? 'No reviews'
+                        : user.reviews_received_count}
+                    </TableCell>
+                    <TableCell>
+                      {user.reviews_received_count === 0 ? (
+                        <span className='text-sm text-muted-foreground'>—</span>
+                      ) : (
+                        <span className='inline-flex items-center gap-1 text-sm text-foreground'>
+                          <Star className='h-4 w-4 fill-amber-400 text-amber-400' />
+                          {user.average_rating.toFixed(2)}
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>
 
         {pagination && pagination.last_page > 1 && (
           <div className='mt-4 flex items-center justify-between text-sm text-muted-foreground'>
-            <span>Page {pagination.current_page} of {pagination.last_page} ({pagination.total} users)</span>
+            <span>
+              Page {pagination.current_page} of {pagination.last_page} (
+              {pagination.total} users)
+            </span>
             <div className='flex gap-1'>
-              <Button variant='outline' size='icon' title='Previous page' aria-label='Previous page' disabled={pagination.current_page <= 1} onClick={() => setPage(pagination.current_page - 1)}>
+              <Button
+                variant='outline'
+                size='icon'
+                title='Previous page'
+                aria-label='Previous page'
+                disabled={pagination.current_page <= 1}
+                onClick={() => setPage(pagination.current_page - 1)}
+              >
                 <ChevronLeft className='h-4 w-4' />
               </Button>
-              <Button variant='outline' size='icon' title='Next page' aria-label='Next page' disabled={pagination.current_page >= pagination.last_page} onClick={() => setPage(pagination.current_page + 1)}>
+              <Button
+                variant='outline'
+                size='icon'
+                title='Next page'
+                aria-label='Next page'
+                disabled={pagination.current_page >= pagination.last_page}
+                onClick={() => setPage(pagination.current_page + 1)}
+              >
                 <ChevronRight className='h-4 w-4' />
               </Button>
             </div>

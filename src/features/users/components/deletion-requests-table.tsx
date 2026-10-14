@@ -1,16 +1,6 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { AlertTriangle, RefreshCw, InboxIcon } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+import { AlertTriangle, InboxIcon, Loader2, RefreshCw } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,10 +11,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Loader2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { useDeletionRequestAction } from '../hooks/use-deletion-request-action'
 import { type DeletionUser } from '../types'
 import { UserRoleBadge } from './user-role-badge'
-import { useDeletionRequestAction } from '../hooks/use-deletion-request-action'
 
 interface DeletionRequestsTableProps {
   data: DeletionUser[]
@@ -39,12 +38,24 @@ function TableSkeleton() {
     <>
       {Array.from({ length: 3 }).map((_, i) => (
         <TableRow key={i}>
-          <TableCell><Skeleton className='h-4 w-28' /></TableCell>
-          <TableCell><Skeleton className='h-4 w-36' /></TableCell>
-          <TableCell><Skeleton className='h-5 w-14 rounded-full' /></TableCell>
-          <TableCell><Skeleton className='h-4 w-24' /></TableCell>
-          <TableCell><Skeleton className='h-4 w-24' /></TableCell>
-          <TableCell><Skeleton className='h-7 w-20' /></TableCell>
+          <TableCell>
+            <Skeleton className='h-4 w-28' />
+          </TableCell>
+          <TableCell>
+            <Skeleton className='h-4 w-36' />
+          </TableCell>
+          <TableCell>
+            <Skeleton className='h-5 w-14 rounded-full' />
+          </TableCell>
+          <TableCell>
+            <Skeleton className='h-4 w-24' />
+          </TableCell>
+          <TableCell>
+            <Skeleton className='h-4 w-24' />
+          </TableCell>
+          <TableCell>
+            <Skeleton className='h-7 w-20' />
+          </TableCell>
         </TableRow>
       ))}
     </>
@@ -59,7 +70,9 @@ export function DeletionRequestsTable({
   onProcessed,
 }: DeletionRequestsTableProps) {
   const { isSubmitting, processDeletion } = useDeletionRequestAction()
-  const [confirmingUser, setConfirmingUser] = useState<DeletionUser | null>(null)
+  const [confirmingUser, setConfirmingUser] = useState<DeletionUser | null>(
+    null
+  )
 
   return (
     <>
@@ -70,12 +83,24 @@ export function DeletionRequestsTable({
         <Table className='min-w-[640px]'>
           <TableHeader>
             <TableRow className='bg-background hover:bg-background'>
-              <TableHead className='ps-4 font-semibold text-foreground'>Name</TableHead>
-              <TableHead className='font-semibold text-foreground'>Email</TableHead>
-              <TableHead className='font-semibold text-foreground'>Role</TableHead>
-              <TableHead className='font-semibold text-foreground'>Barangay</TableHead>
-              <TableHead className='font-semibold text-foreground'>Requested</TableHead>
-              <TableHead className='font-semibold text-foreground'>Actions</TableHead>
+              <TableHead className='ps-4 font-semibold text-foreground'>
+                Name
+              </TableHead>
+              <TableHead className='font-semibold text-foreground'>
+                Email
+              </TableHead>
+              <TableHead className='font-semibold text-foreground'>
+                Role
+              </TableHead>
+              <TableHead className='font-semibold text-foreground'>
+                Barangay
+              </TableHead>
+              <TableHead className='font-semibold text-foreground'>
+                Requested
+              </TableHead>
+              <TableHead className='font-semibold text-foreground'>
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
 
@@ -121,32 +146,41 @@ export function DeletionRequestsTable({
               </TableRow>
             )}
 
-            {!isLoading && !error && data.map((user) => (
-              <TableRow key={user.id} className='hover:bg-primary/5'>
-                <TableCell className='ps-4 font-medium text-foreground'>
-                  {user.name}
-                </TableCell>
-                <TableCell className='text-muted-foreground'>{user.email}</TableCell>
-                <TableCell><UserRoleBadge role={user.role} /></TableCell>
-                <TableCell className='text-muted-foreground'>
-                  {user.barangay ?? '—'}
-                </TableCell>
-                <TableCell className='text-muted-foreground'>
-                  {format(new Date(user.deletion_requested_at), 'MMM d, yyyy')}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    size='sm'
-                    variant='outline'
-                    disabled={isSubmitting}
-                    onClick={() => setConfirmingUser(user)}
-                    className='h-7 border-destructive text-xs text-destructive hover:bg-destructive/5'
-                  >
-                    Process Deletion
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+            {!isLoading &&
+              !error &&
+              data.map((user) => (
+                <TableRow key={user.id} className='hover:bg-primary/5'>
+                  <TableCell className='ps-4 font-medium text-foreground'>
+                    {user.name}
+                  </TableCell>
+                  <TableCell className='text-muted-foreground'>
+                    {user.email}
+                  </TableCell>
+                  <TableCell>
+                    <UserRoleBadge role={user.role} />
+                  </TableCell>
+                  <TableCell className='text-muted-foreground'>
+                    {user.barangay ?? '—'}
+                  </TableCell>
+                  <TableCell className='text-muted-foreground'>
+                    {format(
+                      new Date(user.deletion_requested_at),
+                      'MMM d, yyyy'
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size='sm'
+                      variant='outline'
+                      disabled={isSubmitting}
+                      onClick={() => setConfirmingUser(user)}
+                      className='h-7 border-destructive text-xs text-destructive hover:bg-destructive/5'
+                    >
+                      Process Deletion
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </div>
@@ -154,7 +188,9 @@ export function DeletionRequestsTable({
       {/* Confirm dialog */}
       <AlertDialog
         open={!!confirmingUser}
-        onOpenChange={(o) => { if (!o) setConfirmingUser(null) }}
+        onOpenChange={(o) => {
+          if (!o) setConfirmingUser(null)
+        }}
       >
         <AlertDialogContent className='rounded-2xl border-border bg-card'>
           <AlertDialogHeader>
@@ -167,7 +203,8 @@ export function DeletionRequestsTable({
                 You are permanently deleting the account of{' '}
                 <span className='font-semibold text-foreground'>
                   {confirmingUser?.name}
-                </span>.
+                </span>
+                .
               </span>
               <span className='block font-medium text-destructive'>
                 All personal data will be anonymised. This cannot be undone.

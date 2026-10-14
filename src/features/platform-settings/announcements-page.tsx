@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react'
-import { ArrowLeft, Megaphone } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { useState } from 'react'
 import { format } from 'date-fns'
+import { useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
+import { ArrowLeft, Megaphone } from 'lucide-react'
+import { api } from '@/lib/api'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { api } from '@/lib/api'
 import { AnnouncementDialog } from './components/announcement-dialog'
 import { AnnouncementsTable } from './components/announcements-table'
 import { useAnnouncementAction } from './hooks/use-announcement-action'
@@ -21,14 +22,33 @@ type AnnouncementFilter = 'all' | 'published' | 'archived' | 'draft'
 export function AnnouncementsPage() {
   const { data, isLoading, error, refetch } = useSettings()
   const { isSubmitting, save, archive, remove } = useAnnouncementAction()
-  const [announcements, setAnnouncements] = useState<Announcement[]>([])
+  const {
+    data: announcements = [],
+    isFetching: loadingList,
+    error: listLoadError,
+    refetch: refetchAnnouncements,
+  } = useQuery({
+    queryKey: ['admin-settings-announcements'],
+    queryFn: async () => {
+      const response = await api.get<{ data: Announcement[] }>(
+        '/admin/settings/announcements'
+      )
+      return response.data.data
+    },
+  })
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | undefined>(undefined)
-  const [loadingList, setLoadingList] = useState(false)
-  const [listError, setListError] = useState<string | null>(null)
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<
+    Announcement | undefined
+  >(undefined)
   const [archivingId, setArchivingId] = useState<number | null>(null)
   const [deletingId, setDeletingId] = useState<number | null>(null)
   const [filter, setFilter] = useState<AnnouncementFilter>('all')
+  const listError =
+    listLoadError instanceof Error
+      ? listLoadError.message
+      : listLoadError
+        ? 'Failed to load announcements.'
+        : null
 
   const active = data?.active_announcement ?? null
   const filteredAnnouncements = announcements.filter((announcement) => {
@@ -36,29 +56,11 @@ export function AnnouncementsPage() {
     return announcement.status === filter
   })
 
-  async function loadAnnouncements() {
-    setLoadingList(true)
-    setListError(null)
-
-    try {
-      const response = await api.get<{ data: Announcement[] }>('/admin/settings/announcements')
-      setAnnouncements(response.data.data)
-    } catch (err) {
-      setListError(err instanceof Error ? err.message : 'Failed to load announcements.')
-    } finally {
-      setLoadingList(false)
-    }
-  }
-
-  useEffect(() => {
-    void loadAnnouncements()
-  }, [])
-
   async function handleSaveAnnouncement(payload: AnnouncementPayload) {
     const done = async () => {
       setDialogOpen(false)
       setSelectedAnnouncement(undefined)
-      await loadAnnouncements()
+      await refetchAnnouncements()
       void refetch()
     }
 
@@ -74,21 +76,23 @@ export function AnnouncementsPage() {
     setArchivingId(announcement.id)
     await archive(announcement.id, async () => {
       setArchivingId(null)
-      await loadAnnouncements()
+      await refetchAnnouncements()
       void refetch()
     })
     setArchivingId(null)
   }
 
   async function handleDelete(announcement: Announcement) {
-    if (!window.confirm(`Delete "${announcement.title}"? This cannot be undone.`)) {
+    if (
+      !window.confirm(`Delete "${announcement.title}"? This cannot be undone.`)
+    ) {
       return
     }
 
     setDeletingId(announcement.id)
     await remove(announcement.id, async () => {
       setDeletingId(null)
-      await loadAnnouncements()
+      await refetchAnnouncements()
       void refetch()
     })
     setDeletingId(null)
@@ -106,7 +110,7 @@ export function AnnouncementsPage() {
       <Main>
         <Link
           to='/platform-settings'
-          className='mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors'
+          className='mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground'
         >
           <ArrowLeft size={14} />
           Platform Settings
@@ -118,7 +122,8 @@ export function AnnouncementsPage() {
               Announcements
             </h1>
             <p className='mt-1 text-sm text-muted-foreground'>
-              Manage platform-wide announcements shown in the notification center.
+              Manage platform-wide announcements shown in the notification
+              center.
             </p>
           </div>
           <Button
@@ -126,7 +131,7 @@ export function AnnouncementsPage() {
               setSelectedAnnouncement(undefined)
               setDialogOpen(true)
             }}
-            className='shrink-0 bg-green-600 hover:bg-green-700 text-white'
+            className='shrink-0 bg-green-600 text-white hover:bg-green-700'
           >
             <Megaphone size={16} className='mr-1.5' />
             New Announcement
@@ -153,7 +158,7 @@ export function AnnouncementsPage() {
           <>
             {active ? (
               <Card
-                className='rounded-2xl border-border bg-card mb-6'
+                className='mb-6 rounded-2xl border-border bg-card'
                 style={{ boxShadow: '0 2px 12px rgba(52,168,53,0.08)' }}
               >
                 <CardHeader className='pb-2'>
@@ -186,9 +191,18 @@ export function AnnouncementsPage() {
 
             <div className='space-y-4'>
               <div className='flex items-center justify-between gap-3'>
-                <h2 className='text-lg font-semibold text-foreground'>Announcement History</h2>
+                <h2 className='text-lg font-semibold text-foreground'>
+                  Announcement History
+                </h2>
                 <div className='flex flex-wrap items-center gap-2'>
-                  {(['all', 'published', 'archived', 'draft'] as AnnouncementFilter[]).map((option) => {
+                  {(
+                    [
+                      'all',
+                      'published',
+                      'archived',
+                      'draft',
+                    ] as AnnouncementFilter[]
+                  ).map((option) => {
                     const isActive = filter === option
                     const label =
                       option === 'all'
@@ -201,7 +215,9 @@ export function AnnouncementsPage() {
                         type='button'
                         size='sm'
                         variant={isActive ? 'default' : 'outline'}
-                        className={isActive ? 'bg-green-600 hover:bg-green-700' : ''}
+                        className={
+                          isActive ? 'bg-green-600 hover:bg-green-700' : ''
+                        }
                         onClick={() => setFilter(option)}
                       >
                         {label}
@@ -222,7 +238,7 @@ export function AnnouncementsPage() {
                 }}
                 onArchive={handleArchive}
                 onDelete={handleDelete}
-                onRetry={loadAnnouncements}
+                onRetry={() => void refetchAnnouncements()}
               />
             </div>
           </>

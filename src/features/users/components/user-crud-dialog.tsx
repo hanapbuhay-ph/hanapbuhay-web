@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -17,9 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { api } from '@/lib/api'
-import type { User } from '../types'
 import type { UserInput } from '../hooks/use-user-crud'
+import type { User } from '../types'
 
 interface UserCrudDialogProps {
   open: boolean
@@ -45,49 +45,53 @@ const emptyForm: UserInput = {
   is_active: true,
 }
 
-export function UserCrudDialog({
+export function UserCrudDialog({ open, user, ...props }: UserCrudDialogProps) {
+  const formKey = `${open}-${user?.id ?? 'new'}`
+  return <UserCrudDialogForm key={formKey} open={open} user={user} {...props} />
+}
+
+function UserCrudDialogForm({
   open,
   user,
   isSubmitting,
   onOpenChange,
   onSubmit,
 }: UserCrudDialogProps) {
-  const [form, setForm] = useState<UserInput>(emptyForm)
-  const [barangays, setBarangays] = useState<Barangay[]>([])
-  const [barangaysLoading, setBarangaysLoading] = useState(false)
-  const [barangayError, setBarangayError] = useState<string | null>(null)
+  const [form, setForm] = useState<UserInput>(() =>
+    user
+      ? {
+          name: user.name,
+          email: user.email,
+          mobile_number: user.mobile_number ?? '',
+          role: user.role,
+          barangay_id: user.barangay_id,
+          is_active: user.is_active,
+          password: '',
+          password_confirmation: '',
+        }
+      : emptyForm
+  )
+  const {
+    data: barangays = [],
+    isLoading: barangaysLoading,
+    error: barangayLoadError,
+  } = useQuery({
+    queryKey: ['barangays'],
+    queryFn: async () => {
+      const response = await api.get<{ data: Barangay[] }>('/barangays')
+      return response.data.data ?? []
+    },
+    enabled: open,
+  })
+  const barangayError = barangayLoadError ? 'Unable to load barangays.' : null
   const isEdit = user !== null
-  const canAssignAdminRole = !isEdit || user.role === 'admin' || user.role === 'super_admin'
+  const canAssignAdminRole =
+    !isEdit || user.role === 'admin' || user.role === 'super_admin'
 
-  useEffect(() => {
-    if (!open || barangays.length > 0) return
-
-    setBarangaysLoading(true)
-    api
-      .get('/barangays')
-      .then((response) => setBarangays(response.data.data ?? []))
-      .catch(() => setBarangayError('Unable to load barangays.'))
-      .finally(() => setBarangaysLoading(false))
-  }, [open, barangays.length])
-
-  useEffect(() => {
-    setForm(
-      user
-        ? {
-            name: user.name,
-            email: user.email,
-            mobile_number: user.mobile_number ?? '',
-            role: user.role,
-            barangay_id: user.barangay_id,
-            is_active: user.is_active,
-            password: '',
-            password_confirmation: '',
-          }
-        : emptyForm
-    )
-  }, [user, open])
-
-  function updateField<K extends keyof UserInput>(field: K, value: UserInput[K]) {
+  function updateField<K extends keyof UserInput>(
+    field: K,
+    value: UserInput[K]
+  ) {
     setForm((current) => ({ ...current, [field]: value }))
   }
 
@@ -111,11 +115,22 @@ export function UserCrudDialog({
         <form onSubmit={handleSubmit} className='grid gap-4'>
           <div className='grid gap-2'>
             <Label htmlFor='user-name'>Full name</Label>
-            <Input id='user-name' required value={form.name} onChange={(event) => updateField('name', event.target.value)} />
+            <Input
+              id='user-name'
+              required
+              value={form.name}
+              onChange={(event) => updateField('name', event.target.value)}
+            />
           </div>
           <div className='grid gap-2'>
             <Label htmlFor='user-email'>Email</Label>
-            <Input id='user-email' type='email' required value={form.email} onChange={(event) => updateField('email', event.target.value)} />
+            <Input
+              id='user-email'
+              type='email'
+              required
+              value={form.email}
+              onChange={(event) => updateField('email', event.target.value)}
+            />
           </div>
           <div className='grid gap-2 sm:grid-cols-2 sm:gap-3'>
             <div className='grid gap-2'>
@@ -129,7 +144,9 @@ export function UserCrudDialog({
                 title='Enter a Philippine mobile number, e.g. 0917 123 4567.'
                 required={!isEdit}
                 value={form.mobile_number ?? ''}
-                onChange={(event) => updateField('mobile_number', event.target.value)}
+                onChange={(event) =>
+                  updateField('mobile_number', event.target.value)
+                }
               />
               <p className='text-xs text-muted-foreground'>
                 Enter an 11-digit Philippine mobile number starting with 09.
@@ -137,10 +154,19 @@ export function UserCrudDialog({
             </div>
             <div className='grid gap-2'>
               <Label htmlFor='user-role'>Role</Label>
-              <select id='user-role' className='h-10 rounded-md border border-input bg-background px-3 text-sm' value={form.role} onChange={(event) => updateField('role', event.target.value as User['role'])}>
+              <select
+                id='user-role'
+                className='h-10 rounded-md border border-input bg-background px-3 text-sm'
+                value={form.role}
+                onChange={(event) =>
+                  updateField('role', event.target.value as User['role'])
+                }
+              >
                 <option value='client'>Client</option>
                 <option value='worker'>Worker</option>
-                <option value='admin' disabled={!canAssignAdminRole}>Admin</option>
+                <option value='admin' disabled={!canAssignAdminRole}>
+                  Admin
+                </option>
               </select>
               {isEdit && !canAssignAdminRole && (
                 <p className='text-xs text-muted-foreground'>
@@ -153,11 +179,19 @@ export function UserCrudDialog({
             <Label htmlFor='user-barangay'>Barangay</Label>
             <Select
               value={form.barangay_id ? String(form.barangay_id) : undefined}
-              onValueChange={(value) => updateField('barangay_id', Number(value))}
+              onValueChange={(value) =>
+                updateField('barangay_id', Number(value))
+              }
               disabled={barangaysLoading || !!barangayError}
             >
               <SelectTrigger id='user-barangay' className='w-full'>
-                <SelectValue placeholder={barangaysLoading ? 'Loading barangays...' : 'Select a barangay'} />
+                <SelectValue
+                  placeholder={
+                    barangaysLoading
+                      ? 'Loading barangays...'
+                      : 'Select a barangay'
+                  }
+                />
               </SelectTrigger>
               <SelectContent>
                 {barangays.map((barangay) => (
@@ -167,21 +201,58 @@ export function UserCrudDialog({
                 ))}
               </SelectContent>
             </Select>
-            {barangayError && <p className='text-sm text-destructive'>{barangayError}</p>}
+            {barangayError && (
+              <p className='text-sm text-destructive'>{barangayError}</p>
+            )}
           </div>
           <div className='grid gap-2 sm:grid-cols-2 sm:gap-3'>
             <div className='grid gap-2'>
-              <Label htmlFor='user-password'>{isEdit ? 'New password (optional)' : 'Password'}</Label>
-              <Input id='user-password' type='password' required={!isEdit} minLength={8} value={form.password ?? ''} onChange={(event) => updateField('password', event.target.value)} />
+              <Label htmlFor='user-password'>
+                {isEdit ? 'New password (optional)' : 'Password'}
+              </Label>
+              <Input
+                id='user-password'
+                type='password'
+                required={!isEdit}
+                minLength={8}
+                value={form.password ?? ''}
+                onChange={(event) =>
+                  updateField('password', event.target.value)
+                }
+              />
             </div>
             <div className='grid gap-2'>
-              <Label htmlFor='user-password-confirmation'>Confirm password</Label>
-              <Input id='user-password-confirmation' type='password' required={!isEdit || !!form.password} value={form.password_confirmation ?? ''} onChange={(event) => updateField('password_confirmation', event.target.value)} />
+              <Label htmlFor='user-password-confirmation'>
+                Confirm password
+              </Label>
+              <Input
+                id='user-password-confirmation'
+                type='password'
+                required={!isEdit || !!form.password}
+                value={form.password_confirmation ?? ''}
+                onChange={(event) =>
+                  updateField('password_confirmation', event.target.value)
+                }
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button type='button' variant='outline' onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type='submit' disabled={isSubmitting || barangaysLoading || !!barangayError || !form.barangay_id}>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type='submit'
+              disabled={
+                isSubmitting ||
+                barangaysLoading ||
+                !!barangayError ||
+                !form.barangay_id
+              }
+            >
               {isSubmitting ? 'Saving...' : 'Save user'}
             </Button>
           </DialogFooter>

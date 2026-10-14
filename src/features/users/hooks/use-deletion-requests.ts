@@ -1,7 +1,6 @@
 // Real API: GET /admin/deletion-requests
 //   response: { success, data: { users: DeletionUser[], pagination } }
 //   No status filter — endpoint always returns users with pending deletion_requested_at
-
 import { useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { type DeletionUser } from '../types'
@@ -24,14 +23,15 @@ interface UseDeletionRequestsResult {
 export function useDeletionRequests(): UseDeletionRequestsResult {
   const [data, setData] = useState<DeletionUser[]>([])
   const [pagination, setPagination] = useState<Pagination | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
+  const [loadedTick, setLoadedTick] = useState<number | null>(null)
+  const [requestError, setRequestError] = useState<{
+    tick: number
+    message: string
+  } | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
 
     api
       .get('/admin/deletion-requests')
@@ -39,16 +39,33 @@ export function useDeletionRequests(): UseDeletionRequestsResult {
         if (!cancelled) {
           setData(res.data.data.users)
           setPagination(res.data.data.pagination)
+          setRequestError(null)
         }
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load deletion requests.')
+          setRequestError({
+            tick,
+            message:
+              err instanceof Error
+                ? err.message
+                : 'Failed to load deletion requests.',
+          })
       })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      .finally(() => {
+        if (!cancelled) setLoadedTick(tick)
+      })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [tick])
 
-  return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return {
+    data,
+    pagination,
+    isLoading: loadedTick !== tick,
+    error: requestError?.tick === tick ? requestError.message : null,
+    refetch: () => setTick((t) => t + 1),
+  }
 }

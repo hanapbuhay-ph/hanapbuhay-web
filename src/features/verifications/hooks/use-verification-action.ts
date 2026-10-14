@@ -4,16 +4,18 @@
 //   POST /admin/workers/{workerProfileId}/trust-tier    → K4
 //     body: { trust_tier, remarks }
 // The id passed to these actions is worker_profile_id, not the record id.
-
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { AxiosError } from 'axios'
+import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { type TrustTier } from '../types'
 
 interface UseVerificationActionResult {
   isSubmitting: boolean
-  approve: (workerProfileId: number | string, onSuccess: () => void) => Promise<void>
+  approve: (
+    workerProfileId: number | string,
+    onSuccess: () => void
+  ) => Promise<void>
   reject: (
     workerProfileId: number | string,
     remarks: string,

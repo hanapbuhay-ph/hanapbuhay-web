@@ -5,6 +5,7 @@ interface GoogleCredentialResponse {
 }
 
 interface Window {
+  Pusher?: typeof import('pusher-js').default
   google?: {
     accounts: {
       id: {

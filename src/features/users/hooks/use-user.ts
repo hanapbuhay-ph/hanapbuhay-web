@@ -12,26 +12,47 @@ interface UseUserResult {
 
 export function useUser(id: string): UseUserResult {
   const [data, setData] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
+  const requestKey = `${id}:${tick}`
+  const [loadedRequestKey, setLoadedRequestKey] = useState<string | null>(null)
+  const [requestError, setRequestError] = useState<{
+    key: string
+    message: string
+  } | null>(null)
 
   useEffect(() => {
     let cancelled = false
-    setIsLoading(true)
-    setError(null)
 
     api
       .get(`/admin/users/${id}`)
-      .then((res) => { if (!cancelled) setData(res.data.data) })
+      .then((res) => {
+        if (!cancelled) {
+          setData(res.data.data)
+          setRequestError(null)
+        }
+      })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load user.')
+          setRequestError({
+            key: requestKey,
+            message:
+              err instanceof Error ? err.message : 'Failed to load user.',
+          })
       })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      .finally(() => {
+        if (!cancelled) setLoadedRequestKey(requestKey)
+      })
 
-    return () => { cancelled = true }
-  }, [id, tick])
+    return () => {
+      cancelled = true
+    }
+  }, [id, requestKey])
 
-  return { data, isLoading, error, refetch: () => setTick((t) => t + 1), setData }
+  return {
+    data,
+    isLoading: loadedRequestKey !== requestKey,
+    error: requestError?.key === requestKey ? requestError.message : null,
+    refetch: () => setTick((t) => t + 1),
+    setData,
+  }
 }

@@ -22,6 +22,14 @@ interface ReportReasonDialogProps {
   onConfirm: (payload: ReportReasonPayload) => void
 }
 
+type ReportReasonForm = Omit<
+  ReportReasonPayload,
+  'description' | 'is_active'
+> & {
+  description: string
+  is_active: boolean
+}
+
 export function ReportReasonDialog({
   open,
   onOpenChange,
@@ -29,7 +37,7 @@ export function ReportReasonDialog({
   isSubmitting,
   onConfirm,
 }: ReportReasonDialogProps) {
-  const [form, setForm] = useState<ReportReasonPayload>({
+  const [form, setForm] = useState<ReportReasonForm>({
     label: '',
     description: '',
     is_active: true,
@@ -39,19 +47,20 @@ export function ReportReasonDialog({
     Partial<Record<keyof ReportReasonPayload, string>>
   >({})
 
-  const generatedCode = form.label
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '') || 'other'
+  const generatedCode =
+    form.label
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '_')
+      .replace(/^_+|_+$/g, '') || 'other'
 
   // Pre-fill whenever the dialog opens
   useEffect(() => {
     if (open) {
       setForm({
         label: reason.label,
-        description: reason.description,
-        is_active: reason.is_active,
+        description: reason.description ?? '',
+        is_active: reason.is_active ?? true,
         audience: reason.audience,
       })
       setErrors({})
@@ -59,7 +68,7 @@ export function ReportReasonDialog({
   }, [open, reason])
 
   function validate(): boolean {
-    const next: typeof errors = {}
+    const next: Partial<Record<keyof ReportReasonForm, string>> = {}
     if (!form.label.trim()) next.label = 'Label is required.'
     if (!form.description.trim()) next.description = 'Description is required.'
     setErrors(next)
@@ -73,6 +82,7 @@ export function ReportReasonDialog({
       label: form.label.trim(),
       description: form.description.trim(),
       is_active: form.is_active,
+      audience: form.audience,
     })
   }
 
@@ -104,7 +114,12 @@ export function ReportReasonDialog({
             <Label>Applies to</Label>
             <div className='flex gap-2'>
               {(['client', 'worker'] as const).map((value) => (
-                <Button key={value} type='button' variant={form.audience === value ? 'default' : 'outline'} onClick={() => setForm((f) => ({ ...f, audience: value }))}>
+                <Button
+                  key={value}
+                  type='button'
+                  variant={form.audience === value ? 'default' : 'outline'}
+                  onClick={() => setForm((f) => ({ ...f, audience: value }))}
+                >
                   {value === 'client' ? 'Client reports' : 'Worker reports'}
                 </Button>
               ))}

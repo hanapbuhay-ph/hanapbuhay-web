@@ -13,7 +13,11 @@ interface AnnouncementPayload {
 interface UseAnnouncementActionResult {
   isSubmitting: boolean
   post: (payload: AnnouncementPayload, onSuccess: () => void) => Promise<void>
-  save: (payload: AnnouncementPayload, onSuccess: () => void, id?: number) => Promise<void>
+  save: (
+    payload: AnnouncementPayload,
+    onSuccess: () => void,
+    id?: number
+  ) => Promise<void>
   archive: (id: number, onSuccess: () => void) => Promise<void>
   remove: (id: number, onSuccess: () => void) => Promise<void>
 }
@@ -24,7 +28,7 @@ export function useAnnouncementAction(): UseAnnouncementActionResult {
   async function runMutation(
     request: () => Promise<unknown>,
     successMessage: string,
-    onSuccess: () => void,
+    onSuccess: () => void
   ) {
     setIsSubmitting(true)
     try {
@@ -51,7 +55,7 @@ export function useAnnouncementAction(): UseAnnouncementActionResult {
             target_audience: payload.target_audience ?? 'all',
           }),
         'Announcement posted.',
-        onSuccess,
+        onSuccess
       )
     },
 
@@ -69,15 +73,18 @@ export function useAnnouncementAction(): UseAnnouncementActionResult {
           })
         },
         id ? 'Announcement updated.' : 'Announcement created.',
-        onSuccess,
+        onSuccess
       )
     },
 
     archive: async (id, onSuccess) => {
       await runMutation(
-        () => api.patch(`/admin/settings/announcements/${id}`, { status: 'archived' }),
+        () =>
+          api.patch(`/admin/settings/announcements/${id}`, {
+            status: 'archived',
+          }),
         'Announcement archived.',
-        onSuccess,
+        onSuccess
       )
     },
 
@@ -85,7 +92,7 @@ export function useAnnouncementAction(): UseAnnouncementActionResult {
       await runMutation(
         () => api.delete(`/admin/settings/announcements/${id}`),
         'Announcement deleted.',
-        onSuccess,
+        onSuccess
       )
     },
   }

@@ -25,7 +25,10 @@ export function useChatLogs(page = 1, search = ''): UseChatLogsResult {
     })
 
     api
-      .get<{ success: boolean; data: { conversations: Conversation[]; pagination: ChatPagination } }>('/admin/chat-logs', {
+      .get<{
+        success: boolean
+        data: { conversations: Conversation[]; pagination: ChatPagination }
+      }>('/admin/chat-logs', {
         params: { page, ...(search.trim() ? { search: search.trim() } : {}) },
       })
       .then((res) => {
@@ -36,12 +39,24 @@ export function useChatLogs(page = 1, search = ''): UseChatLogsResult {
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load chat logs.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load chat logs.'
+          )
       })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [page, search, tick])
 
-  return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return {
+    data,
+    pagination,
+    isLoading,
+    error,
+    refetch: () => setTick((t) => t + 1),
+  }
 }

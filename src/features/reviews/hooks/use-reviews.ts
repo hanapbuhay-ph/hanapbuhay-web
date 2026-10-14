@@ -1,7 +1,12 @@
 import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
-import { type Review, type ReviewPagination, type ScoreFilter, type DirectionFilter } from '../types'
+import {
+  type Review,
+  type ReviewPagination,
+  type ScoreFilter,
+  type DirectionFilter,
+} from '../types'
 
 interface UseReviewsResult {
   data: Review[]
@@ -18,7 +23,7 @@ export function useReviews(
   clientId: number | null = null,
   search = '',
   page = 1,
-  ratedUserId: number | null = null,
+  ratedUserId: number | null = null
 ): UseReviewsResult {
   const debouncedSearch = useDebouncedValue(search)
   const [data, setData] = useState<Review[]>([])
@@ -36,7 +41,9 @@ export function useReviews(
         setIsLoading(false)
         setError(null)
       })
-      return () => { cancelled = true }
+      return () => {
+        cancelled = true
+      }
     }
 
     startTransition(() => {
@@ -54,7 +61,10 @@ export function useReviews(
     params.page = page
 
     api
-      .get<{ success: boolean; data: { ratings: Review[]; pagination: ReviewPagination } }>('/admin/ratings', {
+      .get<{
+        success: boolean
+        data: { ratings: Review[]; pagination: ReviewPagination }
+      }>('/admin/ratings', {
         params: Object.keys(params).length ? params : undefined,
       })
       .then((res) => {
@@ -65,12 +75,33 @@ export function useReviews(
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load ratings.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load ratings.'
+          )
       })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
 
-    return () => { cancelled = true }
-  }, [scoreFilter, directionFilter, workerId, clientId, debouncedSearch, page, ratedUserId, tick])
+    return () => {
+      cancelled = true
+    }
+  }, [
+    scoreFilter,
+    directionFilter,
+    workerId,
+    clientId,
+    debouncedSearch,
+    page,
+    ratedUserId,
+    tick,
+  ])
 
-  return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return {
+    data,
+    pagination,
+    isLoading,
+    error,
+    refetch: () => setTick((t) => t + 1),
+  }
 }

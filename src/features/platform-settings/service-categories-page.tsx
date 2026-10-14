@@ -1,4 +1,5 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
+import { Link } from '@tanstack/react-router'
 import * as LucideIcons from 'lucide-react'
 import {
   ArrowLeft,
@@ -9,14 +10,7 @@ import {
   Trash2,
   type LucideIcon,
 } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
-import { ConfirmDialog } from '@/components/confirm-dialog'
-import { Header } from '@/components/layout/header'
-import { Main } from '@/components/layout/main'
-import { ProfileDropdown } from '@/components/profile-dropdown'
-import { ThemeSwitch } from '@/components/theme-switch'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import {
   Dialog,
   DialogContent,
@@ -26,11 +20,21 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
-import { type ServiceCategory } from './types'
-import { useSettings } from './hooks/use-settings'
+import { ConfirmDialog } from '@/components/confirm-dialog'
+import { Header } from '@/components/layout/header'
+import { Main } from '@/components/layout/main'
+import { ProfileDropdown } from '@/components/profile-dropdown'
+import { ThemeSwitch } from '@/components/theme-switch'
 import { useServiceCategoryAction } from './hooks/use-service-category-action'
+import { useSettings } from './hooks/use-settings'
+import { type ServiceCategory } from './types'
 
 interface ServiceCategoryIconOption {
   key: string
@@ -38,37 +42,37 @@ interface ServiceCategoryIconOption {
   Icon: LucideIcon
 }
 
-const SERVICE_CATEGORY_ICON_OPTIONS: ServiceCategoryIconOption[] = Object.entries(
-  LucideIcons
-)
-  .filter(([name, value]) => {
-    const isLucideIconExport =
-      typeof value === 'function' ||
-      (typeof value === 'object' &&
-        value !== null &&
-        '$$typeof' in value &&
-        typeof (value as { render?: unknown }).render === 'function')
+const SERVICE_CATEGORY_ICON_OPTIONS: ServiceCategoryIconOption[] =
+  Object.entries(LucideIcons)
+    .filter(([name, value]) => {
+      const isLucideIconExport =
+        typeof value === 'function' ||
+        (typeof value === 'object' &&
+          value !== null &&
+          '$$typeof' in value &&
+          typeof (value as { render?: unknown }).render === 'function')
 
-    return (
-      isLucideIconExport &&
-      /^[A-Z]/.test(name) &&
-      !name.endsWith('Icon') &&
-      ![
-        'Icon',
-        'LucideIcon',
-        'createLucideIcon',
-        'getDefaultAttributes',
-      ].includes(name)
-    )
-  })
-  .map(([key, value]) => ({
-    key,
-    label: key.replace(/([a-z0-9])([A-Z])/g, '$1 $2'),
-    Icon: value as LucideIcon,
-  }))
-  .sort((a, b) => a.label.localeCompare(b.label))
+      return (
+        isLucideIconExport &&
+        /^[A-Z]/.test(name) &&
+        !name.endsWith('Icon') &&
+        ![
+          'Icon',
+          'LucideIcon',
+          'createLucideIcon',
+          'getDefaultAttributes',
+        ].includes(name)
+      )
+    })
+    .map(([key, value]) => ({
+      key,
+      label: key.replace(/([a-z0-9])([A-Z])/g, '$1 $2'),
+      Icon: value as LucideIcon,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label))
 
-const DEFAULT_CATEGORY_ICON = SERVICE_CATEGORY_ICON_OPTIONS[0]?.key ?? 'Sparkles'
+const DEFAULT_CATEGORY_ICON =
+  SERVICE_CATEGORY_ICON_OPTIONS[0]?.key ?? 'Sparkles'
 const ICON_ROW_HEIGHT = 48
 const ICON_OVERSCAN_ROWS = 2
 const ICON_POPOVER_HEIGHT = 260
@@ -93,8 +97,8 @@ function getIconSearchScore(
 
 function getCategoryIcon(iconKey?: string | null): LucideIcon {
   return (
-    SERVICE_CATEGORY_ICON_OPTIONS.find((option) => option.key === iconKey)?.Icon ??
-    Sparkles
+    SERVICE_CATEGORY_ICON_OPTIONS.find((option) => option.key === iconKey)
+      ?.Icon ?? Sparkles
   )
 }
 
@@ -103,8 +107,10 @@ export function ServiceCategoriesPage() {
   const { isSubmitting, add, update, remove } = useServiceCategoryAction()
 
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingCategory, setEditingCategory] = useState<ServiceCategory | null>(null)
-  const [deletingCategory, setDeletingCategory] = useState<ServiceCategory | null>(null)
+  const [editingCategory, setEditingCategory] =
+    useState<ServiceCategory | null>(null)
+  const [deletingCategory, setDeletingCategory] =
+    useState<ServiceCategory | null>(null)
   const [name, setName] = useState('')
   const [icon, setIcon] = useState(DEFAULT_CATEGORY_ICON)
   const [isActive, setIsActive] = useState(true)
@@ -115,10 +121,6 @@ export function ServiceCategoriesPage() {
   const categories = data?.service_categories ?? []
   const selectedIconOption =
     SERVICE_CATEGORY_ICON_OPTIONS.find((option) => option.key === icon) ?? null
-
-  useEffect(() => {
-    setIconScrollTop(0)
-  }, [deferredIconQuery])
 
   const filteredIconOptions = useMemo(() => {
     const query = deferredIconQuery.trim().toLowerCase()
@@ -142,7 +144,8 @@ export function ServiceCategoriesPage() {
 
     return matches
       .sort(
-        (a, b) => a.score - b.score || a.option.label.localeCompare(b.option.label)
+        (a, b) =>
+          a.score - b.score || a.option.label.localeCompare(b.option.label)
       )
       .map(({ option }) => option)
   }, [deferredIconQuery])
@@ -330,9 +333,13 @@ export function ServiceCategoriesPage() {
                         <Icon className='h-5 w-5' />
                       </div>
                       <div className='min-w-0'>
-                        <p className='font-medium text-foreground'>{category.name}</p>
+                        <p className='font-medium text-foreground'>
+                          {category.name}
+                        </p>
                         <p className='mt-0.5 text-xs text-muted-foreground'>
-                          {category.icon ? `Icon key: ${category.icon}` : 'No icon key set'}
+                          {category.icon
+                            ? `Icon key: ${category.icon}`
+                            : 'No icon key set'}
                         </p>
                       </div>
                     </div>
@@ -395,17 +402,22 @@ export function ServiceCategoriesPage() {
         handleConfirm={handleDeleteConfirm}
       />
 
-      <Dialog open={dialogOpen} onOpenChange={(nextOpen) => {
-        if (!nextOpen) {
-          resetDialogState()
-        } else {
-          setDialogOpen(true)
-        }
-      }}>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) {
+            resetDialogState()
+          } else {
+            setDialogOpen(true)
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingCategory ? 'Edit Service Category' : 'Add Service Category'}
+              {editingCategory
+                ? 'Edit Service Category'
+                : 'Add Service Category'}
             </DialogTitle>
           </DialogHeader>
 
@@ -443,7 +455,9 @@ export function ServiceCategoriesPage() {
                         </>
                       )}
                     </span>
-                    <span className='text-xs text-muted-foreground'>{icon}</span>
+                    <span className='text-xs text-muted-foreground'>
+                      {icon}
+                    </span>
                   </Button>
                 </PopoverTrigger>
 
@@ -451,13 +465,18 @@ export function ServiceCategoriesPage() {
                   <div className='flex flex-col gap-3'>
                     <Input
                       value={iconQuery}
-                      onChange={(e) => setIconQuery(e.target.value)}
+                      onChange={(e) => {
+                        setIconQuery(e.target.value)
+                        setIconScrollTop(0)
+                      }}
                       placeholder='Search icon by keyword...'
                     />
 
                     <div
                       className='max-h-[260px] overflow-y-auto pr-1'
-                      onScroll={(e) => setIconScrollTop(e.currentTarget.scrollTop)}
+                      onScroll={(e) =>
+                        setIconScrollTop(e.currentTarget.scrollTop)
+                      }
                     >
                       <div className='grid grid-cols-2 gap-2'>
                         {filteredIconOptions.length === 0 ? (
@@ -468,7 +487,9 @@ export function ServiceCategoriesPage() {
                           <>
                             <div
                               className='col-span-2'
-                              style={{ height: virtualizedIconState.topPadding }}
+                              style={{
+                                height: virtualizedIconState.topPadding,
+                              }}
                             />
 
                             {visibleIconOptions.map((option) => {
@@ -502,7 +523,9 @@ export function ServiceCategoriesPage() {
 
                             <div
                               className='col-span-2'
-                              style={{ height: virtualizedIconState.bottomPadding }}
+                              style={{
+                                height: virtualizedIconState.bottomPadding,
+                              }}
                             />
                           </>
                         )}

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { useLayout } from '@/context/layout-provider'
 import { api } from '@/lib/api'
+import { useLayout } from '@/context/layout-provider'
 import {
   Sidebar,
   SidebarContent,
@@ -26,7 +26,9 @@ export function AppSidebar() {
   const { data: profile } = useQuery({
     queryKey: ['user_profile'],
     queryFn: async () => {
-      const res = await api.get<{ success: boolean; data: UserProfile }>('/user')
+      const res = await api.get<{ success: boolean; data: UserProfile }>(
+        '/user'
+      )
       return res.data.data
     },
   })

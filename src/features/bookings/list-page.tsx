@@ -1,18 +1,24 @@
 ﻿import { useEffect, useState } from 'react'
 import { ChevronLeft, ChevronRight, Plus, SearchIcon } from 'lucide-react'
+import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { api } from '@/lib/api'
-import { BookingsTable } from './components/bookings-table'
-import { useBookings } from './hooks/use-bookings'
-import { useBookingAction } from './hooks/use-booking-action'
 import { AdminBookingDialog } from './components/admin-booking-dialog'
+import { BookingsTable } from './components/bookings-table'
+import { useBookingAction } from './hooks/use-booking-action'
+import { useBookings } from './hooks/use-bookings'
 import { type BookingStatusFilter } from './types'
 
 // ── Filter tab definitions ────────────────────────────────────────────────────
@@ -36,7 +42,9 @@ export function BookingsListPage() {
   const [dateTo, setDateTo] = useState('')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>([])
+  const [categories, setCategories] = useState<{ id: number; name: string }[]>(
+    []
+  )
   const [showCreateBooking, setShowCreateBooking] = useState(false)
   const { isSubmitting, createForClient } = useBookingAction()
   const { data, pagination, isLoading, error, refetch } = useBookings(
@@ -45,14 +53,17 @@ export function BookingsListPage() {
     dateFrom,
     dateTo,
     search,
-    page,
+    page
   )
 
   useEffect(() => {
-    api.get('/service-categories').then((response) => {
-      const categoriesData = response.data?.data
-      setCategories(Array.isArray(categoriesData) ? categoriesData : [])
-    }).catch(() => {})
+    api
+      .get('/service-categories')
+      .then((response) => {
+        const categoriesData = response.data?.data
+        setCategories(Array.isArray(categoriesData) ? categoriesData : [])
+      })
+      .catch(() => {})
   }, [])
 
   return (
@@ -113,15 +124,45 @@ export function BookingsListPage() {
               className='border-border pl-9'
             />
           </div>
-          <Select value={categoryId === null ? 'all' : String(categoryId)} onValueChange={(value) => { setCategoryId(value === 'all' ? null : Number(value)); setPage(1) }}>
-            <SelectTrigger className='border-border lg:w-48'><SelectValue placeholder='All Categories' /></SelectTrigger>
+          <Select
+            value={categoryId === null ? 'all' : String(categoryId)}
+            onValueChange={(value) => {
+              setCategoryId(value === 'all' ? null : Number(value))
+              setPage(1)
+            }}
+          >
+            <SelectTrigger className='border-border lg:w-48'>
+              <SelectValue placeholder='All Categories' />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value='all'>All Categories</SelectItem>
-              {categories.map((category) => <SelectItem key={category.id} value={String(category.id)}>{category.name}</SelectItem>)}
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={String(category.id)}>
+                  {category.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Input type='date' value={dateFrom} aria-label='From date' onChange={(event) => { setDateFrom(event.target.value); setPage(1) }} className='border-border lg:w-40' />
-          <Input type='date' value={dateTo} aria-label='To date' onChange={(event) => { setDateTo(event.target.value); setPage(1) }} className='border-border lg:w-40' />
+          <Input
+            type='date'
+            value={dateFrom}
+            aria-label='From date'
+            onChange={(event) => {
+              setDateFrom(event.target.value)
+              setPage(1)
+            }}
+            className='border-border lg:w-40'
+          />
+          <Input
+            type='date'
+            value={dateTo}
+            aria-label='To date'
+            onChange={(event) => {
+              setDateTo(event.target.value)
+              setPage(1)
+            }}
+            className='border-border lg:w-40'
+          />
         </div>
 
         {/* Table */}
@@ -133,10 +174,31 @@ export function BookingsListPage() {
         />
         {pagination && pagination.last_page > 1 && (
           <div className='mt-4 flex items-center justify-between text-sm text-muted-foreground'>
-            <span>Page {pagination.current_page} of {pagination.last_page} ({pagination.total} bookings)</span>
+            <span>
+              Page {pagination.current_page} of {pagination.last_page} (
+              {pagination.total} bookings)
+            </span>
             <div className='flex items-center gap-1'>
-              <Button variant='outline' size='icon' title='Previous page' aria-label='Previous page' disabled={pagination.current_page <= 1} onClick={() => setPage(pagination.current_page - 1)}><ChevronLeft className='h-4 w-4' /></Button>
-              <Button variant='outline' size='icon' title='Next page' aria-label='Next page' disabled={pagination.current_page >= pagination.last_page} onClick={() => setPage(pagination.current_page + 1)}><ChevronRight className='h-4 w-4' /></Button>
+              <Button
+                variant='outline'
+                size='icon'
+                title='Previous page'
+                aria-label='Previous page'
+                disabled={pagination.current_page <= 1}
+                onClick={() => setPage(pagination.current_page - 1)}
+              >
+                <ChevronLeft className='h-4 w-4' />
+              </Button>
+              <Button
+                variant='outline'
+                size='icon'
+                title='Next page'
+                aria-label='Next page'
+                disabled={pagination.current_page >= pagination.last_page}
+                onClick={() => setPage(pagination.current_page + 1)}
+              >
+                <ChevronRight className='h-4 w-4' />
+              </Button>
             </div>
           </div>
         )}

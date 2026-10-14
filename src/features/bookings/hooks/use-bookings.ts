@@ -1,7 +1,11 @@
 import { startTransition, useEffect, useState } from 'react'
 import { api } from '@/lib/api'
 import { useDebouncedValue } from '@/hooks/use-debounced-value'
-import { type Booking, type BookingPagination, type BookingStatusFilter } from '../types'
+import {
+  type Booking,
+  type BookingPagination,
+  type BookingStatusFilter,
+} from '../types'
 
 interface UseBookingsResult {
   data: Booking[]
@@ -17,7 +21,7 @@ export function useBookings(
   dateFrom = '',
   dateTo = '',
   search = '',
-  page = 1,
+  page = 1
 ): UseBookingsResult {
   const debouncedSearch = useDebouncedValue(search)
   const [data, setData] = useState<Booking[]>([])
@@ -50,12 +54,24 @@ export function useBookings(
       })
       .catch((err) => {
         if (!cancelled)
-          setError(err instanceof Error ? err.message : 'Failed to load bookings.')
+          setError(
+            err instanceof Error ? err.message : 'Failed to load bookings.'
+          )
       })
-      .finally(() => { if (!cancelled) setIsLoading(false) })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [statusFilter, categoryId, dateFrom, dateTo, debouncedSearch, page, tick])
 
-  return { data, pagination, isLoading, error, refetch: () => setTick((t) => t + 1) }
+  return {
+    data,
+    pagination,
+    isLoading,
+    error,
+    refetch: () => setTick((t) => t + 1),
+  }
 }

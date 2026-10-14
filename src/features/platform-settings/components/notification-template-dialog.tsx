@@ -55,17 +55,19 @@ export function NotificationTemplateDialog({
     body: '',
     is_active: true,
   })
-  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({})
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof FormState, string>>
+  >({})
 
   // Pre-fill whenever the dialog opens
   useEffect(() => {
     if (open) {
       setForm({
-        title: template.title,
-        channel: template.channel,
+        title: template.title ?? template.key,
+        channel: template.channel ?? 'push',
         subject: template.subject ?? '',
         body: template.body,
-        is_active: template.is_active,
+        is_active: template.is_active ?? true,
       })
       setErrors({})
     }
@@ -194,9 +196,7 @@ export function NotificationTemplateDialog({
               placeholder='Notification message body'
               rows={4}
               value={form.body}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, body: e.target.value }))
-              }
+              onChange={(e) => setForm((f) => ({ ...f, body: e.target.value }))}
               aria-invalid={!!errors.body}
             />
             {errors.body && (
@@ -204,13 +204,13 @@ export function NotificationTemplateDialog({
             )}
 
             {/* Available variables — read-only chip list */}
-            {template.variables.length > 0 && (
+            {(template.variables ?? []).length > 0 && (
               <div className='mt-1.5 rounded-md bg-muted/50 px-3 py-2'>
                 <p className='mb-1.5 text-xs font-medium text-muted-foreground'>
                   Available variables:
                 </p>
                 <div className='flex flex-wrap gap-1.5'>
-                  {template.variables.map((v) => (
+                  {(template.variables ?? []).map((v) => (
                     <span
                       key={v}
                       className='inline-flex items-center rounded bg-background px-1.5 py-0.5 font-mono text-xs text-foreground ring-1 ring-border'

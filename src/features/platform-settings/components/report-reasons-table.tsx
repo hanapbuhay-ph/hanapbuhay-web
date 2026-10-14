@@ -82,14 +82,20 @@ export function ReportReasonsTable({
             >
               {/* Code */}
               <TableCell>
-                <code className='rounded bg-muted px-1.5 py-0.5 text-xs font-mono'>
+                <code className='rounded bg-muted px-1.5 py-0.5 font-mono text-xs'>
                   {reason.code}
                 </code>
               </TableCell>
 
               {/* Label */}
               <TableCell className='font-medium'>{reason.label}</TableCell>
-              <TableCell><Badge variant='outline'>{reason.audience === 'worker' ? 'Worker reports' : 'Client reports'}</Badge></TableCell>
+              <TableCell>
+                <Badge variant='outline'>
+                  {reason.audience === 'worker'
+                    ? 'Worker reports'
+                    : 'Client reports'}
+                </Badge>
+              </TableCell>
 
               {/* Description */}
               <TableCell className='text-sm text-muted-foreground'>

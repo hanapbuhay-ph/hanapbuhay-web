@@ -3,12 +3,11 @@
 import { AlertTriangle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ConfirmDialog } from '@/components/confirm-dialog'
-import type { User } from '../types'
 
 type UserDeleteDialogProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
-  user: User | null
+  user: { name: string } | null
   onConfirm: () => void
   isSubmitting?: boolean
 }
@@ -41,8 +40,8 @@ export function UsersDeleteDialog({
             Are you sure you want to delete{' '}
             <span className='font-semibold'>{user.name}</span>?
             <br />
-            This will permanently remove this account and related access from the
-            system. This action cannot be undone.
+            This will permanently remove this account and related access from
+            the system. This action cannot be undone.
           </p>
 
           <Alert variant='destructive'>
