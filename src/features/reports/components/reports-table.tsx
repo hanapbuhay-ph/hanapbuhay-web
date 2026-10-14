@@ -81,9 +81,7 @@ export function ReportsTable({
             <TableHead className='font-semibold text-foreground'>
               Status
             </TableHead>
-            <TableHead className='font-semibold text-foreground'>
-              Date
-            </TableHead>
+            <TableHead className='font-semibold text-foreground'>Date</TableHead>
           </TableRow>
         </TableHeader>
 

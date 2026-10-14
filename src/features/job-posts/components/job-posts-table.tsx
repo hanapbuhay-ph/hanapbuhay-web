@@ -1,24 +1,9 @@
 import { useState } from 'react'
-import { format } from 'date-fns'
 import { useNavigate } from '@tanstack/react-router'
-import {
-  AlertTriangle,
-  RefreshCw,
-  InboxIcon,
-  MoreVertical,
-  Pencil,
-  Trash2,
-  Eye,
-  ListChecks,
-} from 'lucide-react'
+import { format } from 'date-fns'
+import { AlertTriangle, RefreshCw, InboxIcon, MoreVertical, Pencil, Trash2, Eye, ListChecks } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
@@ -28,10 +13,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useJobPostAction } from '../hooks/use-job-post-action'
-import { type JobPostsSearch } from '../route-search'
 import { type JobPost } from '../types'
+import { type JobPostsSearch } from '../route-search'
+import { useJobPostAction } from '../hooks/use-job-post-action'
 import { DeletePostDialog } from './delete-post-dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface JobPostsTableProps {
   data: JobPost[]
@@ -53,35 +44,15 @@ function TableSkeleton({ isSelecting }: { isSelecting: boolean }) {
     <>
       {Array.from({ length: 5 }).map((_, i) => (
         <TableRow key={i}>
-          {isSelecting && (
-            <TableCell>
-              <Skeleton className='h-4 w-4' />
-            </TableCell>
-          )}
-          <TableCell>
-            <Skeleton className='h-4 w-40' />
-          </TableCell>
-          <TableCell>
-            <Skeleton className='h-4 w-28' />
-          </TableCell>
-          <TableCell>
-            <Skeleton className='h-4 w-24' />
-          </TableCell>
-          <TableCell>
-            <Skeleton className='h-4 w-24' />
-          </TableCell>
-          <TableCell>
-            <Skeleton className='h-4 w-20' />
-          </TableCell>
-          <TableCell>
-            <Skeleton className='h-5 w-14 rounded-full' />
-          </TableCell>
-          <TableCell>
-            <Skeleton className='h-4 w-24' />
-          </TableCell>
-          <TableCell>
-            <Skeleton className='h-7 w-8' />
-          </TableCell>
+          {isSelecting && <TableCell><Skeleton className='h-4 w-4' /></TableCell>}
+          <TableCell><Skeleton className='h-4 w-40' /></TableCell>
+          <TableCell><Skeleton className='h-4 w-28' /></TableCell>
+          <TableCell><Skeleton className='h-4 w-24' /></TableCell>
+          <TableCell><Skeleton className='h-4 w-24' /></TableCell>
+          <TableCell><Skeleton className='h-4 w-20' /></TableCell>
+          <TableCell><Skeleton className='h-5 w-14 rounded-full' /></TableCell>
+          <TableCell><Skeleton className='h-4 w-24' /></TableCell>
+          <TableCell><Skeleton className='h-7 w-8' /></TableCell>
         </TableRow>
       ))}
     </>
@@ -106,11 +77,8 @@ export function JobPostsTable({
   const { isSubmitting, deletePost } = useJobPostAction()
   const [deletingPost, setDeletingPost] = useState<JobPost | null>(null)
   const pageIds = data.map((post) => post.id)
-  const selectedPageCount = pageIds.filter((id) =>
-    selectedIds.includes(id)
-  ).length
-  const allPageSelected =
-    pageIds.length > 0 && selectedPageCount === pageIds.length
+  const selectedPageCount = pageIds.filter((id) => selectedIds.includes(id)).length
+  const allPageSelected = pageIds.length > 0 && selectedPageCount === pageIds.length
   const somePageSelected = selectedPageCount > 0 && !allPageSelected
 
   function viewPost(post: JobPost) {
@@ -133,41 +101,19 @@ export function JobPostsTable({
               {isSelecting && (
                 <TableHead className='w-12 ps-4'>
                   <Checkbox
-                    checked={
-                      allPageSelected
-                        ? true
-                        : somePageSelected
-                          ? 'indeterminate'
-                          : false
-                    }
+                    checked={allPageSelected ? true : somePageSelected ? 'indeterminate' : false}
                     aria-label='Select all job posts on this page'
-                    onCheckedChange={(checked) =>
-                      onSelectPage(pageIds, !!checked)
-                    }
+                    onCheckedChange={(checked) => onSelectPage(pageIds, !!checked)}
                   />
                 </TableHead>
               )}
-              <TableHead className='ps-4 font-semibold text-foreground'>
-                Title
-              </TableHead>
-              <TableHead className='font-semibold text-foreground'>
-                Worker
-              </TableHead>
-              <TableHead className='font-semibold text-foreground'>
-                Barangay
-              </TableHead>
-              <TableHead className='font-semibold text-foreground'>
-                Category
-              </TableHead>
-              <TableHead className='font-semibold text-foreground'>
-                Rate
-              </TableHead>
-              <TableHead className='font-semibold text-foreground'>
-                Status
-              </TableHead>
-              <TableHead className='font-semibold text-foreground'>
-                Created
-              </TableHead>
+              <TableHead className='ps-4 font-semibold text-foreground'>Title</TableHead>
+              <TableHead className='font-semibold text-foreground'>Worker</TableHead>
+              <TableHead className='font-semibold text-foreground'>Barangay</TableHead>
+              <TableHead className='font-semibold text-foreground'>Category</TableHead>
+              <TableHead className='font-semibold text-foreground'>Rate</TableHead>
+              <TableHead className='font-semibold text-foreground'>Status</TableHead>
+              <TableHead className='font-semibold text-foreground'>Created</TableHead>
               <TableHead className='font-semibold text-foreground'></TableHead>
             </TableRow>
           </TableHeader>
@@ -214,112 +160,92 @@ export function JobPostsTable({
               </TableRow>
             )}
 
-            {!isLoading &&
-              !error &&
-              data.map((post) => (
-                <TableRow
-                  key={post.id}
-                  className={
-                    isSelecting
-                      ? 'cursor-default hover:bg-primary/5'
-                      : 'cursor-pointer hover:bg-primary/5'
-                  }
-                  onClick={() => {
-                    if (isSelecting) onToggleSelection(post.id)
-                    else viewPost(post)
-                  }}
-                >
-                  {isSelecting && (
-                    <TableCell
-                      className='ps-4'
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      <Checkbox
-                        checked={selectedIds.includes(post.id)}
-                        aria-label={`Select ${post.title}`}
-                        onCheckedChange={() => onToggleSelection(post.id)}
-                      />
-                    </TableCell>
+            {!isLoading && !error && data.map((post) => (
+              <TableRow
+                key={post.id}
+                className={isSelecting ? 'cursor-default hover:bg-primary/5' : 'cursor-pointer hover:bg-primary/5'}
+                onClick={() => {
+                  if (isSelecting) onToggleSelection(post.id)
+                  else viewPost(post)
+                }}
+              >
+                {isSelecting && (
+                  <TableCell
+                    className='ps-4'
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <Checkbox
+                      checked={selectedIds.includes(post.id)}
+                      aria-label={`Select ${post.title}`}
+                      onCheckedChange={() => onToggleSelection(post.id)}
+                    />
+                  </TableCell>
+                )}
+                <TableCell className='ps-4 font-medium text-foreground'>
+                  {post.title}
+                  {post.deleted_at && (
+                    <span className='ml-2 text-xs text-muted-foreground'>(deleted)</span>
                   )}
-                  <TableCell className='ps-4 font-medium text-foreground'>
-                    {post.title}
-                    {post.deleted_at && (
-                      <span className='ml-2 text-xs text-muted-foreground'>
-                        (deleted)
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell className='text-muted-foreground'>
-                    {post.worker.name}
-                  </TableCell>
-                  <TableCell className='text-muted-foreground'>
-                    {post.worker.barangay ?? '—'}
-                  </TableCell>
-                  <TableCell className='text-muted-foreground'>
-                    {post.category.name}
-                  </TableCell>
-                  <TableCell className='text-muted-foreground'>
-                    {post.rate_display}
-                  </TableCell>
-                  <TableCell onClick={(event) => event.stopPropagation()}>
-                    <span
-                      className={[
-                        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
-                        post.is_active && !post.deleted_at
-                          ? 'bg-primary/10 text-primary'
-                          : 'bg-muted text-muted-foreground',
-                      ].join(' ')}
-                    >
-                      {post.deleted_at
-                        ? 'Deleted'
-                        : post.is_active
-                          ? 'Active'
-                          : 'Inactive'}
-                    </span>
-                  </TableCell>
-                  <TableCell className='text-muted-foreground'>
-                    {format(new Date(post.created_at), 'MMM d, yyyy')}
-                  </TableCell>
-                  <TableCell onClick={(event) => event.stopPropagation()}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          size='icon'
-                          variant='ghost'
-                          disabled={isSubmitting}
-                          aria-label={`Actions for ${post.title}`}
-                          className='h-7 w-7'
-                        >
-                          <MoreVertical className='h-4 w-4' />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align='end'>
-                        <DropdownMenuItem onClick={() => viewPost(post)}>
-                          <Eye className='h-4 w-4' />
-                          View
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit(post)}>
-                          <Pencil className='h-4 w-4' />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => onStartSelection(post.id)}
-                        >
-                          <ListChecks className='h-4 w-4' />
-                          Select
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className='text-destructive focus:text-destructive'
-                          onClick={() => setDeletingPost(post)}
-                        >
-                          <Trash2 className='h-4 w-4' />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+                </TableCell>
+                <TableCell className='text-muted-foreground'>
+                  {post.worker.name}
+                </TableCell>
+                <TableCell className='text-muted-foreground'>
+                  {post.worker.barangay ?? '—'}
+                </TableCell>
+                <TableCell className='text-muted-foreground'>{post.category.name}</TableCell>
+                <TableCell className='text-muted-foreground'>{post.rate_display}</TableCell>
+                <TableCell onClick={(event) => event.stopPropagation()}>
+                  <span className={[
+                    'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+                    post.is_active && !post.deleted_at
+                      ? 'bg-primary/10 text-primary'
+                      : 'bg-muted text-muted-foreground',
+                  ].join(' ')}>
+                    {post.deleted_at ? 'Deleted' : post.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                </TableCell>
+                <TableCell className='text-muted-foreground'>
+                  {format(new Date(post.created_at), 'MMM d, yyyy')}
+                </TableCell>
+                <TableCell onClick={(event) => event.stopPropagation()}>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size='icon'
+                        variant='ghost'
+                        disabled={isSubmitting}
+                        aria-label={`Actions for ${post.title}`}
+                        className='h-7 w-7'
+                      >
+                        <MoreVertical className='h-4 w-4' />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end'>
+                      <DropdownMenuItem onClick={() => viewPost(post)}>
+                        <Eye className='h-4 w-4' />
+                        View
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onEdit(post)}>
+                        <Pencil className='h-4 w-4' />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onStartSelection(post.id)}>
+                        <ListChecks className='h-4 w-4' />
+                        Select
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className='text-destructive focus:text-destructive'
+                        onClick={() => setDeletingPost(post)}
+                      >
+                        <Trash2 className='h-4 w-4' />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </div>

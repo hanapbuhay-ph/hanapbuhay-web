@@ -137,7 +137,7 @@ export function ProfileForm() {
 
   useEffect(() => {
     if (!selectedFile) {
-      setPhotoPreview(null) // eslint-disable-line react-hooks/set-state-in-effect
+      setPhotoPreview(null)
       return
     }
 

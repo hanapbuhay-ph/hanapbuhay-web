@@ -14,19 +14,16 @@ export function TwoFactorSection() {
 
     async function loadPreference() {
       try {
-        const res = await api.get<{
-          success: boolean
-          data: { enabled: boolean }
-        }>('/user/two-factor')
+        const res = await api.get<{ success: boolean; data: { enabled: boolean } }>(
+          '/user/two-factor'
+        )
 
         if (isMounted) {
           setEnabled(Boolean(res.data.data.enabled))
         }
       } catch {
         if (isMounted) {
-          toast.error(
-            'Unable to load your two-factor authentication preference.'
-          )
+          toast.error('Unable to load your two-factor authentication preference.')
         }
       } finally {
         if (isMounted) {
@@ -48,10 +45,10 @@ export function TwoFactorSection() {
     setIsUpdating(true)
 
     try {
-      const res = await api.post<{
-        success: boolean
-        data: { enabled: boolean }
-      }>('/user/two-factor', { enabled: checked })
+      const res = await api.post<{ success: boolean; data: { enabled: boolean } }>(
+        '/user/two-factor',
+        { enabled: checked }
+      )
 
       setEnabled(Boolean(res.data.data.enabled))
       toast.success(

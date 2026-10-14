@@ -51,21 +51,9 @@ export function DeletePostDialog({
           </AlertDialogTitle>
           <AlertDialogDescription>
             {postCount ? (
-              <>
-                You are permanently deleting{' '}
-                <span className='font-semibold text-foreground'>
-                  {postCount} selected job posts
-                </span>
-                .
-              </>
+              <>You are permanently deleting <span className='font-semibold text-foreground'>{postCount} selected job posts</span>.</>
             ) : (
-              <>
-                You are permanently deleting{' '}
-                <span className='font-semibold text-foreground'>
-                  {postTitle}
-                </span>
-                .
-              </>
+              <>You are permanently deleting <span className='font-semibold text-foreground'>{postTitle}</span>.</>
             )}
             This cannot be undone.
           </AlertDialogDescription>

@@ -10,8 +10,8 @@ import {
   InboxIcon,
   RefreshCw,
 } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Header } from '@/components/layout/header'
@@ -45,15 +45,11 @@ function getInitials(name: string): string {
 
 // ── Page ──────────────────────────────────────────────────────────────────────
 
-export function ChatLogDetailPage({
-  clientId,
-  workerId,
-}: ChatLogDetailPageProps) {
+export function ChatLogDetailPage({ clientId, workerId }: ChatLogDetailPageProps) {
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const search = useSearch({ strict: false }) as SearchParams
-  const { data, conversation, pagination, isLoading, error, refetch } =
-    useChatLog(clientId, workerId, page)
+  const { data, conversation, pagination, isLoading, error, refetch } = useChatLog(clientId, workerId, page)
 
   function handleBack() {
     if (search.from) {
@@ -93,8 +89,7 @@ export function ChatLogDetailPage({
                   : 'Chat Conversation'}
             </h1>
             <p className='text-sm text-muted-foreground'>
-              Read-only message history across{' '}
-              {conversation?.bookings_count ?? 'their'} booking(s).
+              Read-only message history across {conversation?.bookings_count ?? 'their'} booking(s).
             </p>
           </div>
         </div>
@@ -152,25 +147,14 @@ export function ChatLogDetailPage({
               <CardContent className='flex flex-wrap gap-4 pb-4'>
                 {(() => {
                   const participants = [
-                    {
-                      name: conversation?.client.name ?? 'Client',
-                      label: 'Client',
-                    },
-                    {
-                      name: conversation?.worker.name ?? 'Worker',
-                      label: 'Worker',
-                    },
+                    { name: conversation?.client.name ?? 'Client', label: 'Client' },
+                    { name: conversation?.worker.name ?? 'Worker', label: 'Worker' },
                   ]
                   return participants.map(({ name, label }, idx) => (
                     <div key={idx} className='flex items-center gap-2'>
                       <Avatar className='h-9 w-9'>
                         <AvatarImage
-                          src={
-                            (idx === 0
-                              ? conversation?.client.profile_photo_url
-                              : conversation?.worker.profile_photo_url) ??
-                            undefined
-                          }
+                          src={(idx === 0 ? conversation?.client.profile_photo_url : conversation?.worker.profile_photo_url) ?? undefined}
                           alt={`${name} profile`}
                         />
                         <AvatarFallback className='bg-primary/10 text-xs text-primary'>
@@ -198,30 +182,10 @@ export function ChatLogDetailPage({
             </Card>
             {pagination && pagination.last_page > 1 && (
               <div className='flex items-center justify-between text-sm text-muted-foreground'>
-                <span>
-                  Page {pagination.current_page} of {pagination.last_page}
-                </span>
+                <span>Page {pagination.current_page} of {pagination.last_page}</span>
                 <div className='flex gap-1'>
-                  <Button
-                    variant='outline'
-                    size='icon'
-                    title='Previous page'
-                    aria-label='Previous page'
-                    disabled={pagination.current_page <= 1}
-                    onClick={() => setPage(pagination.current_page - 1)}
-                  >
-                    <ChevronLeft className='h-4 w-4' />
-                  </Button>
-                  <Button
-                    variant='outline'
-                    size='icon'
-                    title='Next page'
-                    aria-label='Next page'
-                    disabled={pagination.current_page >= pagination.last_page}
-                    onClick={() => setPage(pagination.current_page + 1)}
-                  >
-                    <ChevronRight className='h-4 w-4' />
-                  </Button>
+                  <Button variant='outline' size='icon' title='Previous page' aria-label='Previous page' disabled={pagination.current_page <= 1} onClick={() => setPage(pagination.current_page - 1)}><ChevronLeft className='h-4 w-4' /></Button>
+                  <Button variant='outline' size='icon' title='Next page' aria-label='Next page' disabled={pagination.current_page >= pagination.last_page} onClick={() => setPage(pagination.current_page + 1)}><ChevronRight className='h-4 w-4' /></Button>
                 </div>
               </div>
             )}
@@ -240,12 +204,8 @@ export function ChatLogDetailPage({
                   <MessageList
                     messages={data}
                     clientId={clientId}
-                    clientPhotoUrl={
-                      conversation?.client.profile_photo_url ?? null
-                    }
-                    workerPhotoUrl={
-                      conversation?.worker.profile_photo_url ?? null
-                    }
+                    clientPhotoUrl={conversation?.client.profile_photo_url ?? null}
+                    workerPhotoUrl={conversation?.worker.profile_photo_url ?? null}
                   />
                 )}
               </CardContent>
@@ -284,8 +244,7 @@ function MessageList({
       {messages.map((msg, idx) => {
         const prev = messages[idx - 1]
         const showDateSeparator =
-          !prev ||
-          !isSameDay(new Date(prev.created_at), new Date(msg.created_at))
+          !prev || !isSameDay(new Date(prev.created_at), new Date(msg.created_at))
 
         return (
           <div key={msg.id}>
@@ -294,9 +253,7 @@ function MessageList({
             )}
             <MessageBubble
               message={msg}
-              profilePhotoUrl={
-                msg.sender_id === clientId ? clientPhotoUrl : workerPhotoUrl
-              }
+              profilePhotoUrl={msg.sender_id === clientId ? clientPhotoUrl : workerPhotoUrl}
             />
           </div>
         )
@@ -330,8 +287,7 @@ function MessageBubble({
 }) {
   const isWorker = message.sender_role === 'worker'
   const initials = getInitials(message.sender_name)
-  const avatarUrl =
-    profilePhotoUrl ?? message.sender_profile_photo_url ?? undefined
+  const avatarUrl = profilePhotoUrl ?? message.sender_profile_photo_url ?? undefined
 
   return (
     <div
@@ -343,20 +299,12 @@ function MessageBubble({
       {!isWorker && (
         <Avatar className='h-8 w-8 shrink-0'>
           <AvatarImage src={avatarUrl} alt={`${message.sender_name} profile`} />
-          <AvatarFallback className='bg-primary/10 text-xs text-primary'>
-            {initials}
-          </AvatarFallback>
+          <AvatarFallback className='bg-primary/10 text-xs text-primary'>{initials}</AvatarFallback>
         </Avatar>
       )}
-      <div
-        className={[
-          'flex max-w-[75%] flex-col',
-          isWorker ? 'items-end' : 'items-start',
-        ].join(' ')}
-      >
+      <div className={['flex max-w-[75%] flex-col', isWorker ? 'items-end' : 'items-start'].join(' ')}>
         <span className='mb-1 px-1 text-[11px] font-semibold text-muted-foreground'>
-          {message.sender_name}
-          {message.booking_code ? ` · ${message.booking_code}` : ''}
+          {message.sender_name}{message.booking_code ? ` · ${message.booking_code}` : ''}
         </span>
         <div
           className={[
@@ -373,21 +321,11 @@ function MessageBubble({
         >
           <p className='text-sm leading-relaxed'>{message.content}</p>
           {message.attachment_url && (
-            <a
-              href={message.attachment_url}
-              target='_blank'
-              rel='noreferrer'
-              className='mt-2 block text-xs underline'
-            >
+            <a href={message.attachment_url} target='_blank' rel='noreferrer' className='mt-2 block text-xs underline'>
               View attachment
             </a>
           )}
-          <div
-            className={[
-              'mt-1 flex items-center gap-2',
-              isWorker ? 'justify-end' : 'justify-start',
-            ].join(' ')}
-          >
+          <div className={['mt-1 flex items-center gap-2', isWorker ? 'justify-end' : 'justify-start'].join(' ')}>
             <span
               className={[
                 'text-[10px]',
@@ -408,9 +346,7 @@ function MessageBubble({
       {isWorker && (
         <Avatar className='h-8 w-8 shrink-0'>
           <AvatarImage src={avatarUrl} alt={`${message.sender_name} profile`} />
-          <AvatarFallback className='bg-primary/10 text-xs text-primary'>
-            {initials}
-          </AvatarFallback>
+          <AvatarFallback className='bg-primary/10 text-xs text-primary'>{initials}</AvatarFallback>
         </Avatar>
       )}
     </div>

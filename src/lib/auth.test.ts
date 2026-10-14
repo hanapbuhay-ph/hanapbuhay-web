@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+
 import { TOKEN_KEY, clearToken, getToken } from './auth'
 
 const LEGACY_TOKEN_KEY = 'hanapbuhay_admin_token'

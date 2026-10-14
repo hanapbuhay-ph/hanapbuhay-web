@@ -23,14 +23,6 @@ export interface ReviewRecipient {
 export type ScoreFilter = 1 | 2 | 3 | 4 | 5 | 'all'
 export type DirectionFilter = 'client_to_worker' | 'worker_to_client' | 'all'
 
-export type ReviewStatus = 'visible' | 'flagged' | 'removed'
-
-export const STATUS_LABELS: Record<ReviewStatus, string> = {
-  visible: 'Visible',
-  flagged: 'Flagged',
-  removed: 'Removed',
-}
-
 export interface ReviewPagination {
   current_page: number
   per_page: number

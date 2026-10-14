@@ -1,12 +1,6 @@
 import Echo from 'laravel-echo'
 import Pusher from 'pusher-js'
 
-declare global {
-  interface Window {
-    Pusher: typeof Pusher
-  }
-}
-
 const pushKey = import.meta.env.VITE_PUSHER_KEY || 'hanapbuhay-key'
 const pushHost = import.meta.env.VITE_PUSHER_HOST || '127.0.0.1'
 const pushPort = Number(import.meta.env.VITE_PUSHER_PORT || 6001)

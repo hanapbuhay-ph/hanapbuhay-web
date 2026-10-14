@@ -32,7 +32,7 @@ export function useJobPost(id: string): UseJobPostResult {
           setError(
             requestError instanceof Error
               ? requestError.message
-              : 'Failed to load job post.'
+              : 'Failed to load job post.',
           )
         }
       })
@@ -45,10 +45,5 @@ export function useJobPost(id: string): UseJobPostResult {
     }
   }, [id, tick])
 
-  return {
-    data,
-    isLoading,
-    error,
-    refetch: () => setTick((value) => value + 1),
-  }
+  return { data, isLoading, error, refetch: () => setTick((value) => value + 1) }
 }

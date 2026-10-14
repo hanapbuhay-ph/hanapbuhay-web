@@ -10,7 +10,10 @@ interface ServiceCategoryPayload {
 
 interface UseServiceCategoryActionResult {
   isSubmitting: boolean
-  add: (payload: ServiceCategoryPayload, onSuccess: () => void) => Promise<void>
+  add: (
+    payload: ServiceCategoryPayload,
+    onSuccess: () => void
+  ) => Promise<void>
   update: (
     id: number,
     payload: ServiceCategoryPayload,

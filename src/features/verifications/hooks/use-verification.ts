@@ -24,7 +24,6 @@ export function useVerification(id: string | number): UseVerificationResult {
 
   useEffect(() => {
     let cancelled = false
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true)
     setError(null)
 
@@ -37,9 +36,7 @@ export function useVerification(id: string | number): UseVerificationResult {
       })
       .catch((err) => {
         if (!cancelled)
-          setError(
-            err instanceof Error ? err.message : 'Failed to load verification.'
-          )
+          setError(err instanceof Error ? err.message : 'Failed to load verification.')
       })
       .finally(() => {
         if (!cancelled) setIsLoading(false)

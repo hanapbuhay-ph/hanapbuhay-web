@@ -5,32 +5,19 @@ function extractErrorMessage(error: unknown): string | null {
   if (error instanceof AxiosError) {
     const responseData = error.response?.data
 
-    if (
-      typeof responseData?.title === 'string' &&
-      responseData.title.length > 0
-    ) {
+    if (typeof responseData?.title === 'string' && responseData.title.length > 0) {
       return responseData.title
     }
 
-    if (
-      typeof responseData?.message === 'string' &&
-      responseData.message.length > 0
-    ) {
+    if (typeof responseData?.message === 'string' && responseData.message.length > 0) {
       return responseData.message
     }
 
-    if (
-      typeof responseData?.error === 'string' &&
-      responseData.error.length > 0
-    ) {
+    if (typeof responseData?.error === 'string' && responseData.error.length > 0) {
       return responseData.error
     }
 
-    if (
-      responseData &&
-      typeof responseData === 'object' &&
-      'errors' in responseData
-    ) {
+    if (responseData && typeof responseData === 'object' && 'errors' in responseData) {
       const errors = responseData.errors
       if (errors && typeof errors === 'object') {
         const firstError = Object.values(errors).flatMap((value) =>
@@ -42,9 +29,13 @@ function extractErrorMessage(error: unknown): string | null {
         }
       }
     }
+  }
 
-    // No usable API message — fall back to generic
-    return null
+  if (error && typeof error === 'object' && 'message' in error) {
+    const message = error.message
+    if (typeof message === 'string' && message.length > 0) {
+      return message
+    }
   }
 
   return null

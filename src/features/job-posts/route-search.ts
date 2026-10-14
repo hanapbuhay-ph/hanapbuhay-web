@@ -21,7 +21,7 @@ function positiveInteger(value: unknown): number | undefined {
 }
 
 export function validateJobPostsSearch(
-  search: Record<string, unknown>
+  search: Record<string, unknown>,
 ): JobPostsSearch {
   const verification =
     search.verification === 'verified' || search.verification === 'unverified'

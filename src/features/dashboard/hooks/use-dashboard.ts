@@ -59,10 +59,10 @@ export function useDashboard(): UseDashboardResult {
     },
     staleTime: 30 * 1000,
   })
-  const recentActivity = query.data?.recent_activity ?? []
+  const { recent_activity: recentActivity = [], ...data } = query.data ?? {}
 
   return {
-    data: query.data ?? null,
+    data: query.data ? data : null,
     recentActivity,
     isLoading: query.isLoading,
     error: query.error
