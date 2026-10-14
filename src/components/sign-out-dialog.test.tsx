@@ -4,54 +4,38 @@ import { userEvent } from 'vitest/browser'
 import { SignOutDialog } from './sign-out-dialog'
 
 const mocks = vi.hoisted(() => ({
-  navigate: vi.fn(),
-  reset: vi.fn(),
-  MOCK_HREF: 'https://app.test/dashboard?tab=1',
+  post: vi.fn(),
+  logout: vi.fn(),
 }))
 
-vi.mock('@/stores/auth-store', () => ({
-  useAuthStore: () => ({
-    auth: { reset: mocks.reset },
-  }),
-}))
-
-vi.mock('@tanstack/react-router', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@tanstack/react-router')>()
-  return {
-    ...actual,
-    useNavigate: () => mocks.navigate,
-    useLocation: () => ({ href: mocks.MOCK_HREF }),
-  }
-})
+vi.mock('@/lib/api', () => ({ api: { post: mocks.post } }))
+vi.mock('@/lib/auth', () => ({ logout: mocks.logout }))
 
 describe('SignOutDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mocks.post.mockResolvedValue(undefined)
   })
 
-  it('calls auth.reset and navigates to sign-in with current location as redirect', async () => {
+  it('calls the logout API and clears local auth state', async () => {
     const { getByRole } = await render(
       <SignOutDialog open onOpenChange={vi.fn()} />
     )
 
     await userEvent.click(getByRole('button', { name: /^Sign out$/i }))
 
-    expect(mocks.reset).toHaveBeenCalledOnce()
-    expect(mocks.navigate).toHaveBeenCalledWith({
-      to: '/sign-in',
-      search: { redirect: mocks.MOCK_HREF },
-      replace: true,
-    })
+    await vi.waitFor(() => expect(mocks.logout).toHaveBeenCalledOnce())
+    expect(mocks.post).toHaveBeenCalledWith('/auth/logout')
   })
 
-  it('does not call reset or navigate when Cancel is clicked', async () => {
+  it('does not request logout when Cancel is clicked', async () => {
     const { getByRole } = await render(
       <SignOutDialog open onOpenChange={vi.fn()} />
     )
 
     await userEvent.click(getByRole('button', { name: /^Cancel$/i }))
 
-    expect(mocks.reset).not.toHaveBeenCalled()
-    expect(mocks.navigate).not.toHaveBeenCalled()
+    expect(mocks.post).not.toHaveBeenCalled()
+    expect(mocks.logout).not.toHaveBeenCalled()
   })
 })
