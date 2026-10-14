@@ -3,8 +3,8 @@ import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
 import { Camera, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { api } from '@/lib/api'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -55,8 +55,7 @@ const profileSchema = z.object({
     .optional()
     .refine(
       (value) =>
-        !value ||
-        /^(09\d{9}|\+639\d{9})$/.test(value.replace(/[\s()-]/g, '')),
+        !value || /^(09\d{9}|\+639\d{9})$/.test(value.replace(/[\s()-]/g, '')),
       'Enter a Philippine mobile number, e.g. 0917 123 4567.'
     ),
 })
@@ -82,15 +81,39 @@ export function ProfileForm() {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState<string | null>(null)
-  const [pendingEmailVerification, setPendingEmailVerification] = useState<string | null>(null)
+  const [pendingEmailVerification, setPendingEmailVerification] = useState<
+    string | null
+  >(null)
   const [verificationCode, setVerificationCode] = useState('')
   const [isVerifyingEmail, setIsVerifyingEmail] = useState(false)
+  const [isResendingVerificationCode, setIsResendingVerificationCode] =
+    useState(false)
+  const [otpSecondsRemaining, setOtpSecondsRemaining] = useState(0)
+
+  useEffect(() => {
+    if (otpSecondsRemaining <= 0) return
+    const intervalId = window.setInterval(
+      () => setOtpSecondsRemaining((seconds) => Math.max(0, seconds - 1)),
+      1000
+    )
+    return () => window.clearInterval(intervalId)
+  }, [otpSecondsRemaining])
+
+  function startEmailVerificationExpiry(validitySeconds?: number) {
+    const duration =
+      Number.isFinite(validitySeconds) && validitySeconds && validitySeconds > 0
+        ? validitySeconds
+        : 5 * 60
+    setOtpSecondsRemaining(duration)
+  }
 
   // ── Fetch profile ──────────────────────────────────────────────────────────
   const { data: profile, isLoading } = useQuery<UserProfile>({
     queryKey: ['user_profile'],
     queryFn: async () => {
-      const res = await api.get<{ success: boolean; data: UserProfile }>('/user')
+      const res = await api.get<{ success: boolean; data: UserProfile }>(
+        '/user'
+      )
       return res.data.data
     },
   })
@@ -137,15 +160,14 @@ export function ProfileForm() {
         formData.append('profile_photo', selectedFile)
       }
 
-      const res = await api.post<{ success: boolean; data: { user: UserProfile } }>(
-        '/user/profile',
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      )
+      const res = await api.post<{
+        success: boolean
+        data: { user: UserProfile }
+      }>('/user/profile', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
 
       return res.data.data.user
     },
@@ -157,16 +179,26 @@ export function ProfileForm() {
       }
 
       const emailChanged =
-        values.email.trim().toLowerCase() !== (profile?.email ?? '').trim().toLowerCase()
+        values.email.trim().toLowerCase() !==
+        (profile?.email ?? '').trim().toLowerCase()
 
       if (emailChanged) {
         try {
-          await api.post('/auth/email/resend-otp', { email: values.email.trim() })
+          const response = await api.post('/auth/email/resend-otp', {
+            email: values.email.trim(),
+          })
           setPendingEmailVerification(values.email.trim())
           setVerificationCode('')
-          toast.info('Profile updated. A verification code has been sent to your new email address.')
+          startEmailVerificationExpiry(
+            response.data?.data?.otp_expires_in_seconds
+          )
+          toast.info(
+            'Profile updated. A verification code has been sent to your new email address.'
+          )
         } catch {
-          toast.error('Profile updated, but the verification code could not be sent.')
+          toast.error(
+            'Profile updated, but the verification code could not be sent.'
+          )
         }
       } else {
         toast.success('Profile updated.')
@@ -187,32 +219,66 @@ export function ProfileForm() {
     setIsVerifyingEmail(true)
 
     try {
-      const res = await api.post<{ success: boolean; data: { user: UserProfile } }>(
-        '/auth/email/verify',
-        {
-          email: pendingEmailVerification,
-          code: verificationCode.trim(),
-        }
-      )
+      const res = await api.post<{
+        success: boolean
+        data: { user: UserProfile }
+      }>('/auth/email/verify', {
+        email: pendingEmailVerification,
+        code: verificationCode.trim(),
+      })
 
       queryClient.setQueryData(['user_profile'], res.data.data.user)
       setPendingEmailVerification(null)
+      setOtpSecondsRemaining(0)
       setVerificationCode('')
       toast.success('Email verified successfully.')
     } catch (error) {
       const message =
         error && typeof error === 'object' && 'response' in error
-          ? (error.response as { data?: { message?: string; error?: string } } | undefined)?.data
-              ?.message ??
-            (error.response as { data?: { message?: string; error?: string } } | undefined)?.data
-              ?.error ??
-            'Unable to verify the email change.'
+          ? ((
+              error.response as
+                | { data?: { message?: string; error?: string } }
+                | undefined
+            )?.data?.message ??
+            (
+              error.response as
+                | { data?: { message?: string; error?: string } }
+                | undefined
+            )?.data?.error ??
+            'Unable to verify the email change.')
           : error instanceof Error
             ? error.message
             : 'Unable to verify the email change.'
       toast.error(message)
     } finally {
       setIsVerifyingEmail(false)
+    }
+  }
+
+  async function handleResendEmailVerification() {
+    if (!pendingEmailVerification) return
+    setIsResendingVerificationCode(true)
+    try {
+      const response = await api.post('/auth/email/resend-otp', {
+        email: pendingEmailVerification,
+      })
+      const expiresIn = Number(response.data?.data?.otp_expires_in_seconds)
+      if (expiresIn > 0) {
+        setVerificationCode('')
+        startEmailVerificationExpiry(expiresIn)
+        toast.success('A new verification code has been sent.')
+      } else {
+        toast.info(response.data?.message ?? 'No new code was sent.')
+      }
+    } catch (error) {
+      const message =
+        error && typeof error === 'object' && 'response' in error
+          ? ((error.response as { data?: { message?: string } } | undefined)
+              ?.data?.message ?? 'Unable to resend the verification code.')
+          : 'Unable to resend the verification code.'
+      toast.error(message)
+    } finally {
+      setIsResendingVerificationCode(false)
     }
   }
 
@@ -239,7 +305,7 @@ export function ProfileForm() {
                 alt={profile?.name ?? 'Profile'}
               />
             ) : null}
-            <AvatarFallback className='bg-primary/10 text-primary font-semibold'>
+            <AvatarFallback className='bg-primary/10 font-semibold text-primary'>
               {profile ? getInitials(profile.name) : '?'}
             </AvatarFallback>
           </Avatar>
@@ -248,7 +314,7 @@ export function ProfileForm() {
             type='button'
             aria-label='Upload profile photo'
             onClick={() => fileInputRef.current?.click()}
-            className='absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-background bg-primary text-primary-foreground shadow-sm transition-opacity hover:opacity-90'
+            className='absolute -right-1 -bottom-1 flex h-7 w-7 items-center justify-center rounded-full border border-background bg-primary text-primary-foreground shadow-sm transition-opacity hover:opacity-90'
           >
             <Camera className='h-3.5 w-3.5' />
           </button>
@@ -274,7 +340,14 @@ export function ProfileForm() {
       {pendingEmailVerification && (
         <div className='rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900'>
           <p className='font-medium'>Verify your new email address</p>
-          <p className='mt-1'>A verification code was sent to {pendingEmailVerification}.</p>
+          <p className='mt-1'>
+            A verification code was sent to {pendingEmailVerification}.
+          </p>
+          <p className='mt-1'>
+            {otpSecondsRemaining > 0
+              ? `Code expires in ${String(Math.floor(otpSecondsRemaining / 60)).padStart(2, '0')}:${String(otpSecondsRemaining % 60).padStart(2, '0')}.`
+              : 'This code has expired. Request a new one to continue.'}
+          </p>
           <div className='mt-3 flex gap-2'>
             <Input
               type='text'
@@ -283,15 +356,26 @@ export function ProfileForm() {
               onChange={(event) => setVerificationCode(event.target.value)}
               placeholder='Enter verification code'
               className='max-w-xs'
+              disabled={otpSecondsRemaining <= 0}
             />
             <Button
               type='button'
               variant='outline'
               onClick={handleVerifyEmail}
-              disabled={isVerifyingEmail}
+              disabled={isVerifyingEmail || otpSecondsRemaining <= 0}
             >
               {isVerifyingEmail ? 'Verifying...' : 'Verify'}
             </Button>
+            {otpSecondsRemaining <= 0 && (
+              <Button
+                type='button'
+                variant='outline'
+                onClick={handleResendEmailVerification}
+                disabled={isResendingVerificationCode}
+              >
+                {isResendingVerificationCode ? 'Sending...' : 'Resend code'}
+              </Button>
+            )}
           </div>
         </div>
       )}
@@ -324,10 +408,15 @@ export function ProfileForm() {
               <FormItem>
                 <FormLabel>Email</FormLabel>
                 <FormControl>
-                  <Input type='email' placeholder='admin@hanapbuhay.com' {...field} />
+                  <Input
+                    type='email'
+                    placeholder='admin@hanapbuhay.com'
+                    {...field}
+                  />
                 </FormControl>
                 <FormDescription>
-                  Changing your email will send a verification code to the new address.
+                  Changing your email will send a verification code to the new
+                  address.
                 </FormDescription>
                 <FormMessage />
               </FormItem>

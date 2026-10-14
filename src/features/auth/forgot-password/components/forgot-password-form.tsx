@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { z } from 'zod'
 import { AxiosError } from 'axios'
 import { useForm } from 'react-hook-form'
@@ -24,6 +24,8 @@ import {
   InputOTPSlot,
 } from '@/components/ui/input-otp'
 import { PasswordInput } from '@/components/password-input'
+
+const OTP_VALIDITY_SECONDS = 5 * 60
 
 const emailSchema = z.object({
   email: z
@@ -63,6 +65,7 @@ export function ForgotPasswordForm({
   const [step, setStep] = useState<'email' | 'otp' | 'reset'>('email')
   const [email, setEmail] = useState('')
   const [resetToken, setResetToken] = useState('')
+  const [otpSecondsRemaining, setOtpSecondsRemaining] = useState(0)
 
   const emailForm = useForm<z.infer<typeof emailSchema>>({
     resolver: zodResolver(emailSchema),
@@ -79,13 +82,32 @@ export function ForgotPasswordForm({
     defaultValues: { password: '', passwordConfirmation: '' },
   })
 
+  useEffect(() => {
+    if (step !== 'otp' || otpSecondsRemaining <= 0) return
+    const intervalId = window.setInterval(
+      () => setOtpSecondsRemaining((seconds) => Math.max(0, seconds - 1)),
+      1000
+    )
+    return () => window.clearInterval(intervalId)
+  }, [otpSecondsRemaining, step])
+
+  function startOtpExpiryWindow(validitySeconds?: number) {
+    const duration =
+      Number.isFinite(validitySeconds) && validitySeconds && validitySeconds > 0
+        ? validitySeconds
+        : OTP_VALIDITY_SECONDS
+    setOtpSecondsRemaining(duration)
+  }
+
   async function handleSendResetCode(data: z.infer<typeof emailSchema>) {
     setIsLoading(true)
 
     try {
-      await api.post('/auth/password/forgot', { email: data.email })
+      const res = await api.post('/auth/password/forgot', { email: data.email })
       setEmail(data.email)
       emailForm.reset()
+      otpForm.reset()
+      startOtpExpiryWindow(res.data?.data?.otp_expires_in_seconds)
       setStep('otp')
       toast.success(`A password reset code has been sent to ${data.email}.`)
     } catch (err) {
@@ -100,7 +122,26 @@ export function ForgotPasswordForm({
     }
   }
 
+  async function handleResendResetCode() {
+    setIsLoading(true)
+    try {
+      const res = await api.post('/auth/password/forgot', { email })
+      otpForm.reset()
+      startOtpExpiryWindow(res.data?.data?.otp_expires_in_seconds)
+      toast.success('A new password reset code has been requested.')
+    } catch (err) {
+      const axiosErr = err instanceof AxiosError ? err : null
+      toast.error(
+        axiosErr?.response?.data?.message ??
+          'Unable to request a new reset code.'
+      )
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   async function handleVerifyOtp(data: z.infer<typeof otpSchema>) {
+    if (otpSecondsRemaining <= 0) return
     setIsLoading(true)
 
     try {
@@ -115,6 +156,7 @@ export function ForgotPasswordForm({
       }
 
       setResetToken(nextResetToken)
+      setOtpSecondsRemaining(0)
       otpForm.reset()
       setStep('reset')
       toast.success('Code verified. You can now set a new password.')
@@ -186,13 +228,22 @@ export function ForgotPasswordForm({
             />
             <Button type='submit' className='mt-2' disabled={isLoading}>
               Continue
-              {isLoading ? <Loader2 className='animate-spin' /> : <ArrowRight />}
+              {isLoading ? (
+                <Loader2 className='animate-spin' />
+              ) : (
+                <ArrowRight />
+              )}
             </Button>
           </>
         )}
 
         {step === 'otp' && (
           <>
+            <p className='text-center text-sm text-muted-foreground'>
+              {otpSecondsRemaining > 0
+                ? `Code expires in ${String(Math.floor(otpSecondsRemaining / 60)).padStart(2, '0')}:${String(otpSecondsRemaining % 60).padStart(2, '0')}`
+                : 'This code has expired. Request a new code to continue.'}
+            </p>
             <FormField
               control={otpForm.control}
               name='otp'
@@ -204,6 +255,7 @@ export function ForgotPasswordForm({
                       maxLength={6}
                       value={field.value}
                       onChange={field.onChange}
+                      disabled={otpSecondsRemaining <= 0}
                       containerClassName='justify-center gap-2 [&_[data-slot="input-otp-group"]]:gap-2 [&_[data-slot="input-otp-group"]>div]:h-11 [&_[data-slot="input-otp-group"]>div]:w-10 sm:[&_[data-slot="input-otp-group"]>div]:w-11'
                     >
                       <InputOTPGroup>
@@ -220,10 +272,28 @@ export function ForgotPasswordForm({
                 </FormItem>
               )}
             />
-            <Button type='submit' className='mt-2' disabled={isLoading}>
+            <Button
+              type='submit'
+              className='mt-2'
+              disabled={isLoading || otpSecondsRemaining <= 0}
+            >
               Verify code
-              {isLoading ? <Loader2 className='animate-spin' /> : <ArrowRight />}
+              {isLoading ? (
+                <Loader2 className='animate-spin' />
+              ) : (
+                <ArrowRight />
+              )}
             </Button>
+            {otpSecondsRemaining <= 0 && (
+              <Button
+                type='button'
+                variant='outline'
+                onClick={handleResendResetCode}
+                disabled={isLoading}
+              >
+                Request a new code
+              </Button>
+            )}
           </>
         )}
 
@@ -257,7 +327,11 @@ export function ForgotPasswordForm({
             />
             <Button type='submit' className='mt-2' disabled={isLoading}>
               Reset password
-              {isLoading ? <Loader2 className='animate-spin' /> : <ArrowRight />}
+              {isLoading ? (
+                <Loader2 className='animate-spin' />
+              ) : (
+                <ArrowRight />
+              )}
             </Button>
           </>
         )}

@@ -49,8 +49,11 @@ interface LoginApiResponse {
       role: string | null
     }
     requiresOtp?: boolean
+    otp_expires_in_seconds?: number
   }
 }
+
+const OTP_VALIDITY_SECONDS = 5 * 60
 
 // ── Validation schema ─────────────────────────────────────────────────────────
 
@@ -74,9 +77,9 @@ export function LoginForm() {
   const [otpDialogOpen, setOtpDialogOpen] = useState(false)
   const [otpEmail, setOtpEmail] = useState('')
   const [otpCode, setOtpCode] = useState('')
-  const [otpExpiresAt, setOtpExpiresAt] = useState<number | null>(null)
-  const [otpCountdown, setOtpCountdown] = useState('10:00')
-  const [otpExpired, setOtpExpired] = useState(false)
+  const [otpSecondsRemaining, setOtpSecondsRemaining] = useState<number | null>(
+    null
+  )
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false)
   const [isResendingOtp, setIsResendingOtp] = useState(false)
   const googleButtonRef = useRef<HTMLDivElement>(null)
@@ -118,40 +121,24 @@ export function LoginForm() {
     return `${platform} • Browser`
   }
 
-  function startOtpExpiryWindow() {
-    const expiry = Date.now() + 10 * 60 * 1000
-    setOtpExpiresAt(expiry)
-    setOtpExpired(false)
-  }
-
-  function formatCountdown(expiry: number) {
-    const remainingMs = Math.max(expiry - Date.now(), 0)
-    const totalSeconds = Math.ceil(remainingMs / 1000)
-    const minutes = Math.floor(totalSeconds / 60)
-    const seconds = totalSeconds % 60
-
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+  function startOtpExpiryWindow(validitySeconds = OTP_VALIDITY_SECONDS) {
+    setOtpSecondsRemaining(validitySeconds)
   }
 
   useEffect(() => {
-    if (!otpDialogOpen || otpExpiresAt === null) {
+    if (
+      !otpDialogOpen ||
+      otpSecondsRemaining === null ||
+      otpSecondsRemaining <= 0
+    ) {
       return
     }
-
-    setOtpCountdown(formatCountdown(otpExpiresAt))
-
     const intervalId = window.setInterval(() => {
-      const nextCountdown = formatCountdown(otpExpiresAt)
-      setOtpCountdown(nextCountdown)
-
-      if (Date.now() >= otpExpiresAt) {
-        setOtpExpired(true)
-        window.clearInterval(intervalId)
-      }
+      setOtpSecondsRemaining((seconds) => Math.max(0, (seconds ?? 0) - 1))
     }, 1000)
 
     return () => window.clearInterval(intervalId)
-  }, [otpDialogOpen, otpExpiresAt])
+  }, [otpDialogOpen, otpSecondsRemaining])
 
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
@@ -213,7 +200,7 @@ export function LoginForm() {
       if (res.data.data.requiresOtp) {
         setOtpEmail(data.email)
         setOtpCode('')
-        startOtpExpiryWindow()
+        startOtpExpiryWindow(res.data.data.otp_expires_in_seconds)
         setOtpDialogOpen(true)
         toast.info('A verification code has been sent to your email.')
         return
@@ -288,7 +275,7 @@ export function LoginForm() {
 
         setOtpEmail(email)
         setOtpCode('')
-        startOtpExpiryWindow()
+        startOtpExpiryWindow(res.data.data.otp_expires_in_seconds)
         setOtpDialogOpen(true)
         toast.info('A verification code has been sent to your admin email.')
         return
@@ -385,10 +372,12 @@ export function LoginForm() {
     setIsResendingOtp(true)
 
     try {
-      await api.post('/auth/admin/login/resend-otp', { email: otpEmail })
+      const res = await api.post<LoginApiResponse>(
+        '/auth/admin/login/resend-otp',
+        { email: otpEmail }
+      )
       setOtpCode('')
-      setOtpExpired(false)
-      startOtpExpiryWindow()
+      startOtpExpiryWindow(res.data.data.otp_expires_in_seconds)
       toast.success('A new verification code has been sent.')
     } catch (err) {
       const axiosErr = err instanceof AxiosError ? err : null
@@ -505,9 +494,11 @@ export function LoginForm() {
 
           <div className='flex flex-col items-center gap-3 py-2'>
             <p className='text-sm text-muted-foreground'>
-              {otpExpired
+              {otpSecondsRemaining === 0
                 ? 'This code has expired. Request a new one.'
-                : `Code expires in ${otpCountdown}`}
+                : otpSecondsRemaining === null
+                  ? 'Code expires in 05:00'
+                  : `Code expires in ${String(Math.floor(otpSecondsRemaining / 60)).padStart(2, '0')}:${String(otpSecondsRemaining % 60).padStart(2, '0')}`}
             </p>
 
             <InputOTP
@@ -515,7 +506,7 @@ export function LoginForm() {
               value={otpCode}
               onChange={setOtpCode}
               containerClassName='justify-between sm:[&>[data-slot="input-otp-group"]>div]:w-12'
-              disabled={otpExpired}
+              disabled={otpSecondsRemaining === 0}
             >
               <InputOTPGroup>
                 <InputOTPSlot index={0} />
@@ -546,7 +537,11 @@ export function LoginForm() {
             <Button
               type='button'
               onClick={verifyOtp}
-              disabled={otpCode.length !== 6 || isVerifyingOtp || otpExpired}
+              disabled={
+                otpCode.length !== 6 ||
+                isVerifyingOtp ||
+                otpSecondsRemaining === 0
+              }
             >
               {isVerifyingOtp ? 'Verifying...' : 'Verify'}
             </Button>
