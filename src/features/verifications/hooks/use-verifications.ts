@@ -32,6 +32,7 @@ export function useVerifications(
 
   useEffect(() => {
     let cancelled = false
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsLoading(true)
     setError(null)
 

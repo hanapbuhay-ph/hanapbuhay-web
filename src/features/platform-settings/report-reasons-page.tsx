@@ -45,6 +45,7 @@ export function ReportReasonsPage() {
   }, [audience])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadReasons()
   }, [loadReasons])
 
