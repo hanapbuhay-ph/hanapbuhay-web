@@ -23,6 +23,10 @@ import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
+import {
+  deduplicateBarangays,
+  type BarangayOption,
+} from '@/features/users/barangays'
 import { useUsers } from '@/features/users/hooks/use-users'
 import { type User } from '@/features/users/types'
 import { DeletePostDialog } from './components/delete-post-dialog'
@@ -39,11 +43,6 @@ import {
 } from './types'
 
 interface Category {
-  id: number
-  name: string
-}
-
-interface Barangay {
   id: number
   name: string
 }
@@ -78,7 +77,7 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
   const [isBulkDeleteDialogOpen, setIsBulkDeleteDialogOpen] = useState(false)
   const { isSubmitting: isBulkDeleting, deletePosts } = useJobPostAction()
   const [categories, setCategories] = useState<Category[]>([])
-  const [barangays, setBarangays] = useState<Barangay[]>([])
+  const [barangays, setBarangays] = useState<BarangayOption[]>([])
   const {
     data: workers,
     isLoading: workersLoading,
@@ -164,7 +163,10 @@ export function JobPostsListPage({ search }: { search: JobPostsSearch }) {
         )
         setBarangays(
           Array.isArray(barangayResponse.data?.data)
-            ? barangayResponse.data.data
+            ? deduplicateBarangays(
+                barangayResponse.data.data,
+                barangayId ?? undefined
+              )
             : []
         )
       })
