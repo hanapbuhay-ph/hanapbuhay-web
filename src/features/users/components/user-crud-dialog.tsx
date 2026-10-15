@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { deduplicateBarangays, type BarangayOption } from '../barangays'
 import type { UserInput } from '../hooks/use-user-crud'
 import type { User } from '../types'
 
@@ -27,11 +28,6 @@ interface UserCrudDialogProps {
   isSubmitting: boolean
   onOpenChange: (open: boolean) => void
   onSubmit: (input: UserInput) => Promise<void>
-}
-
-interface Barangay {
-  id: number
-  name: string
 }
 
 const emptyForm: UserInput = {
@@ -72,17 +68,19 @@ function UserCrudDialogForm({
       : emptyForm
   )
   const {
-    data: barangays = [],
+    data: rawBarangays = [],
     isLoading: barangaysLoading,
     error: barangayLoadError,
   } = useQuery({
     queryKey: ['barangays'],
     queryFn: async () => {
-      const response = await api.get<{ data: Barangay[] }>('/barangays')
+      const response = await api.get<{ data: BarangayOption[] }>('/barangays')
       return response.data.data ?? []
     },
+    select: (barangays) => deduplicateBarangays(barangays, user?.barangay_id),
     enabled: open,
   })
+  const barangays = rawBarangays
   const barangayError = barangayLoadError ? 'Unable to load barangays.' : null
   const isEdit = user !== null
   const canAssignAdminRole =
