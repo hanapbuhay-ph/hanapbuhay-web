@@ -239,14 +239,16 @@ export function UsersTable({
                                 <Pencil className='h-4 w-4' /> Edit
                               </DropdownMenuItem>
                             )}
-                            {onDelete && currentUserId !== user.id && (
-                              <DropdownMenuItem
-                                className='text-destructive'
-                                onClick={() => onDelete(user)}
-                              >
-                                <Trash2 className='h-4 w-4' /> Delete
-                              </DropdownMenuItem>
-                            )}
+                            {onDelete &&
+                              currentUserIsSuperAdmin &&
+                              currentUserId !== user.id && (
+                                <DropdownMenuItem
+                                  className='text-destructive'
+                                  onClick={() => onDelete(user)}
+                                >
+                                  <Trash2 className='h-4 w-4' /> Delete
+                                </DropdownMenuItem>
+                              )}
                           </>
                         )}
                         <DropdownMenuItem
