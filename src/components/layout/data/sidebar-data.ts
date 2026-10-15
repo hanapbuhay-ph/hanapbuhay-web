@@ -10,6 +10,7 @@ import {
   Settings2,
   Briefcase,
   Bell,
+  ChartNoAxesCombined,
 } from 'lucide-react'
 import { HanapBuhayLogo } from '@/assets/logo'
 import { type SidebarData } from '../types'
@@ -70,6 +71,11 @@ export const sidebarData: SidebarData = {
           title: 'Reports',
           url: '/reports',
           icon: Flag,
+        },
+        {
+          title: 'Report Analytics',
+          url: '/report-analytics',
+          icon: ChartNoAxesCombined,
         },
         {
           title: 'Reviews',
