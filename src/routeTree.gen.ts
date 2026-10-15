@@ -31,6 +31,7 @@ import { Route as AuthenticatedTasksIndexRouteImport } from './routes/_authentic
 import { Route as AuthenticatedSettingsIndexRouteImport } from './routes/_authenticated/settings/index'
 import { Route as AuthenticatedReviewsIndexRouteImport } from './routes/_authenticated/reviews/index'
 import { Route as AuthenticatedReportsIndexRouteImport } from './routes/_authenticated/reports/index'
+import { Route as AuthenticatedReportAnalyticsIndexRouteImport } from './routes/_authenticated/report-analytics/index'
 import { Route as AuthenticatedPlatformSettingsIndexRouteImport } from './routes/_authenticated/platform-settings/index'
 import { Route as AuthenticatedNotificationsIndexRouteImport } from './routes/_authenticated/notifications/index'
 import { Route as AuthenticatedJobPostsIndexRouteImport } from './routes/_authenticated/job-posts/index'
@@ -174,6 +175,12 @@ const AuthenticatedReportsIndexRoute =
   AuthenticatedReportsIndexRouteImport.update({
     id: '/reports/',
     path: '/reports/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedReportAnalyticsIndexRoute =
+  AuthenticatedReportAnalyticsIndexRouteImport.update({
+    id: '/report-analytics/',
+    path: '/report-analytics/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedPlatformSettingsIndexRoute =
@@ -398,6 +405,7 @@ export interface FileRoutesByFullPath {
   '/job-posts/': typeof AuthenticatedJobPostsIndexRoute
   '/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/platform-settings/': typeof AuthenticatedPlatformSettingsIndexRoute
+  '/report-analytics/': typeof AuthenticatedReportAnalyticsIndexRoute
   '/reports/': typeof AuthenticatedReportsIndexRoute
   '/reviews/': typeof AuthenticatedReviewsIndexRoute
   '/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -448,6 +456,7 @@ export interface FileRoutesByTo {
   '/job-posts': typeof AuthenticatedJobPostsIndexRoute
   '/notifications': typeof AuthenticatedNotificationsIndexRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsIndexRoute
+  '/report-analytics': typeof AuthenticatedReportAnalyticsIndexRoute
   '/reports': typeof AuthenticatedReportsIndexRoute
   '/reviews': typeof AuthenticatedReviewsIndexRoute
   '/settings': typeof AuthenticatedSettingsIndexRoute
@@ -504,6 +513,7 @@ export interface FileRoutesById {
   '/_authenticated/job-posts/': typeof AuthenticatedJobPostsIndexRoute
   '/_authenticated/notifications/': typeof AuthenticatedNotificationsIndexRoute
   '/_authenticated/platform-settings/': typeof AuthenticatedPlatformSettingsIndexRoute
+  '/_authenticated/report-analytics/': typeof AuthenticatedReportAnalyticsIndexRoute
   '/_authenticated/reports/': typeof AuthenticatedReportsIndexRoute
   '/_authenticated/reviews/': typeof AuthenticatedReviewsIndexRoute
   '/_authenticated/settings/': typeof AuthenticatedSettingsIndexRoute
@@ -558,6 +568,7 @@ export interface FileRouteTypes {
     | '/job-posts/'
     | '/notifications/'
     | '/platform-settings/'
+    | '/report-analytics/'
     | '/reports/'
     | '/reviews/'
     | '/settings/'
@@ -608,6 +619,7 @@ export interface FileRouteTypes {
     | '/job-posts'
     | '/notifications'
     | '/platform-settings'
+    | '/report-analytics'
     | '/reports'
     | '/reviews'
     | '/settings'
@@ -663,6 +675,7 @@ export interface FileRouteTypes {
     | '/_authenticated/job-posts/'
     | '/_authenticated/notifications/'
     | '/_authenticated/platform-settings/'
+    | '/_authenticated/report-analytics/'
     | '/_authenticated/reports/'
     | '/_authenticated/reviews/'
     | '/_authenticated/settings/'
@@ -839,6 +852,13 @@ declare module '@tanstack/react-router' {
       path: '/reports'
       fullPath: '/reports/'
       preLoaderRoute: typeof AuthenticatedReportsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/report-analytics/': {
+      id: '/_authenticated/report-analytics/'
+      path: '/report-analytics'
+      fullPath: '/report-analytics/'
+      preLoaderRoute: typeof AuthenticatedReportAnalyticsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/platform-settings/': {
@@ -1128,6 +1148,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedJobPostsIndexRoute: typeof AuthenticatedJobPostsIndexRoute
   AuthenticatedNotificationsIndexRoute: typeof AuthenticatedNotificationsIndexRoute
   AuthenticatedPlatformSettingsIndexRoute: typeof AuthenticatedPlatformSettingsIndexRoute
+  AuthenticatedReportAnalyticsIndexRoute: typeof AuthenticatedReportAnalyticsIndexRoute
   AuthenticatedReportsIndexRoute: typeof AuthenticatedReportsIndexRoute
   AuthenticatedReviewsIndexRoute: typeof AuthenticatedReviewsIndexRoute
   AuthenticatedTasksIndexRoute: typeof AuthenticatedTasksIndexRoute
@@ -1165,6 +1186,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsIndexRoute: AuthenticatedNotificationsIndexRoute,
   AuthenticatedPlatformSettingsIndexRoute:
     AuthenticatedPlatformSettingsIndexRoute,
+  AuthenticatedReportAnalyticsIndexRoute:
+    AuthenticatedReportAnalyticsIndexRoute,
   AuthenticatedReportsIndexRoute: AuthenticatedReportsIndexRoute,
   AuthenticatedReviewsIndexRoute: AuthenticatedReviewsIndexRoute,
   AuthenticatedTasksIndexRoute: AuthenticatedTasksIndexRoute,
