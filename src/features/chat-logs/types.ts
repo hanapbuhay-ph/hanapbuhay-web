@@ -1,17 +1,12 @@
 export type SenderRole = 'client' | 'worker'
 
 export interface ChatMessage {
-  id: string
+  id: number
   booking_code?: string
-  sender_id: number
-  sender_name: string
-  sender_profile_photo_url?: string | null
-  content: string
-  attachment_url: string | null
+  has_attachment: boolean
   is_read: boolean
   created_at: string
-  sender_role?: SenderRole
-  is_flagged?: boolean
+  sender_role: SenderRole
 }
 
 export interface Conversation {
@@ -26,7 +21,7 @@ export interface Conversation {
     name: string
     profile_photo_url: string | null
   }
-  last_message: string | null
+  last_message_has_attachment: boolean
   last_message_at: string | null
   messages_count: number
   bookings_count: number

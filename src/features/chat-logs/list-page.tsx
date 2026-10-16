@@ -94,8 +94,8 @@ export function ChatLogsListPage() {
             Chat Logs
           </h1>
           <p className='mt-1 text-sm text-muted-foreground'>
-            Browse message histories grouped by the client and worker
-            communicating, across their bookings.
+            Browse conversation activity metadata grouped by client and worker.
+            Message content and attachments remain private.
           </p>
         </div>
 
@@ -127,7 +127,7 @@ export function ChatLogsListPage() {
                   Worker
                 </TableHead>
                 <TableHead className='font-semibold text-foreground'>
-                  Latest Message
+                  Latest Activity
                 </TableHead>
                 <TableHead className='font-semibold text-foreground'>
                   Messages
@@ -227,18 +227,18 @@ export function ChatLogsListPage() {
                       {log.worker.name}
                     </TableCell>
                     <TableCell className='text-sm text-muted-foreground'>
-                      {log.last_message ? (
+                      {log.last_message_at ? (
                         <>
                           <span className='block max-w-xs truncate'>
-                            {log.last_message}
+                            {log.last_message_has_attachment
+                              ? 'Attachment sent'
+                              : 'Message sent'}
                           </span>
                           <span className='text-xs'>
-                            {log.last_message_at
-                              ? format(
-                                  new Date(log.last_message_at),
-                                  'MMM d, yyyy h:mm a'
-                                )
-                              : '—'}
+                            {format(
+                              new Date(log.last_message_at),
+                              'MMM d, yyyy h:mm a'
+                            )}
                           </span>
                         </>
                       ) : (

@@ -1,5 +1,13 @@
 import { useState } from 'react'
-import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  LoaderCircle,
+  Trash2,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { api } from '@/lib/api'
 import { getUser } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -37,6 +45,7 @@ export function AuditLogsListPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [page, setPage] = useState(1)
+  const [isExporting, setIsExporting] = useState(false)
   const { data, pagination, isLoading, error, refetch } = useAuditLogs(
     actionFilter,
     targetType,
@@ -72,6 +81,40 @@ export function AuditLogsListPage() {
     setPage(1)
   }
 
+  async function exportLogs() {
+    setIsExporting(true)
+    try {
+      const params: Record<string, string> = {}
+      if (actionFilter !== 'all') params.action = actionFilter
+      if (targetType !== 'all') params.target_type = targetType
+      if (actorName.trim()) params.admin_name = actorName.trim()
+      if (category !== 'all') params.category = category
+      if (outcome !== 'all') params.outcome = outcome
+      if (ipAddress.trim()) params.ip_address = ipAddress.trim()
+      if (dateFrom) params.date_from = dateFrom
+      if (dateTo) params.date_to = dateTo
+
+      const response = await api.get<Blob>('/admin/audit-logs/export', {
+        params,
+        responseType: 'blob',
+      })
+      const url = URL.createObjectURL(response.data)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `hanapbuhay-audit-logs-${dateFrom || 'all'}-${dateTo || 'all'}.csv`
+      document.body.appendChild(anchor)
+      anchor.click()
+      anchor.remove()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Unable to export audit logs.'
+      )
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   return (
     <>
       <Header>
@@ -103,20 +146,35 @@ export function AuditLogsListPage() {
                 or date.
               </p>
             </div>
-            <Button variant='outline' size='sm' onClick={clearFilters}>
-              Clear filters
-            </Button>
-            {canDeleteLogs && (
-              <Button
-                variant='destructive'
-                size='sm'
-                onClick={() => setDeleteAllOpen(true)}
-                disabled={isLoading || !data.length || isDeleting}
-              >
-                <Trash2 className='me-1 h-4 w-4' />
-                Delete all logs
+            <div className='flex flex-wrap items-center gap-2'>
+              <Button variant='outline' size='sm' onClick={clearFilters}>
+                Clear filters
               </Button>
-            )}
+              <Button
+                variant='outline'
+                size='sm'
+                onClick={() => void exportLogs()}
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <LoaderCircle className='me-1 size-4 animate-spin' />
+                ) : (
+                  <Download className='me-1 size-4' />
+                )}
+                {isExporting ? 'Exporting…' : 'Export CSV'}
+              </Button>
+              {canDeleteLogs && (
+                <Button
+                  variant='destructive'
+                  size='sm'
+                  onClick={() => setDeleteAllOpen(true)}
+                  disabled={isLoading || !data.length || isDeleting}
+                >
+                  <Trash2 className='me-1 h-4 w-4' />
+                  Delete all logs
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className='grid gap-3 md:grid-cols-2 xl:grid-cols-4'>
