@@ -15,6 +15,10 @@ export interface UserInput {
   barangay_id?: number
 }
 
+interface UserCrudResponse {
+  data?: { data?: { email_sent?: boolean } }
+}
+
 function getErrorMessage(error: unknown): string {
   if (error instanceof AxiosError) {
     const validationErrors = error.response?.data?.errors as
@@ -56,13 +60,20 @@ export function useUserCrud(onSuccess: () => void) {
   }
 
   async function submit(
-    request: () => Promise<unknown>,
+    request: () => Promise<UserCrudResponse>,
     successMessage: string
   ) {
     setIsSubmitting(true)
     try {
-      await request()
-      toast.success(successMessage)
+      const response = await request()
+      const emailSent = response.data?.data?.email_sent
+      if (emailSent === false) {
+        toast.error(
+          `${successMessage} The email could not be sent; check the API mail configuration.`
+        )
+      } else {
+        toast.success(successMessage)
+      }
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       onSuccess()
     } catch (error) {

@@ -10,6 +10,7 @@ interface UserActionResult {
   is_active: boolean
   action?: 'suspend'
   scheduled_for?: string
+  email_sent?: boolean
 }
 
 interface UseUserActionResult {
@@ -40,7 +41,13 @@ export function useUserAction(): UseUserActionResult {
         action,
         ...(reason ? { reason } : {}),
       })
-      toast.success(res.data.message)
+      if (res.data.data.email_sent === false) {
+        toast.error(
+          `${res.data.message} The email could not be sent; check the API mail configuration.`
+        )
+      } else {
+        toast.success(res.data.message)
+      }
       onSuccess(res.data.data)
     } catch (err) {
       const msg =
