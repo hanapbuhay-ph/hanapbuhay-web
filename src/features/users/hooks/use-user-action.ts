@@ -6,16 +6,23 @@ import { AxiosError } from 'axios'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
 
+interface UserActionResult {
+  is_active: boolean
+  action?: 'suspend'
+  scheduled_for?: string
+  email_sent?: boolean
+}
+
 interface UseUserActionResult {
   isSubmitting: boolean
   suspend: (
     id: string | number,
     reason: string,
-    onSuccess: (isActive: boolean) => void
+    onSuccess: (result: UserActionResult) => void
   ) => Promise<void>
   reactivate: (
     id: string | number,
-    onSuccess: (isActive: boolean) => void
+    onSuccess: (result: UserActionResult) => void
   ) => Promise<void>
 }
 
@@ -25,7 +32,7 @@ export function useUserAction(): UseUserActionResult {
   async function toggleStatus(
     id: string | number,
     action: 'suspend' | 'reactivate',
-    onSuccess: (isActive: boolean) => void,
+    onSuccess: (result: UserActionResult) => void,
     reason?: string
   ) {
     setIsSubmitting(true)
@@ -34,8 +41,14 @@ export function useUserAction(): UseUserActionResult {
         action,
         ...(reason ? { reason } : {}),
       })
-      toast.success(res.data.message)
-      onSuccess(res.data.data.is_active)
+      if (res.data.data.email_sent === false) {
+        toast.error(
+          `${res.data.message} The email could not be sent; check the API mail configuration.`
+        )
+      } else {
+        toast.success(res.data.message)
+      }
+      onSuccess(res.data.data)
     } catch (err) {
       const msg =
         err instanceof AxiosError

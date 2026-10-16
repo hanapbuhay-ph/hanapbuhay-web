@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
-  Flag,
   InboxIcon,
   RefreshCw,
 } from 'lucide-react'
@@ -93,8 +92,9 @@ export function ChatLogDetailPage({
                   : 'Chat Conversation'}
             </h1>
             <p className='text-sm text-muted-foreground'>
-              Read-only message history across{' '}
-              {conversation?.bookings_count ?? 'their'} booking(s).
+              Message activity metadata across{' '}
+              {conversation?.bookings_count ?? 'their'} booking(s). Message
+              content and attachments are not available in the admin panel.
             </p>
           </div>
         </div>
@@ -122,12 +122,12 @@ export function ChatLogDetailPage({
           </div>
         )}
 
-        {/* Empty — booking found but no chat log record */}
+        {/* Empty — conversation found but no message metadata */}
         {!isLoading && !error && !data && (
           <div className='flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-card py-16 text-center'>
             <InboxIcon className='h-8 w-8 text-muted-foreground' />
             <p className='text-sm font-semibold text-foreground'>
-              No chat history found for this booking.
+              No message activity found for this conversation.
             </p>
             <p className='text-xs text-muted-foreground'>
               The conversation may not have started yet, or it has not been
@@ -136,7 +136,7 @@ export function ChatLogDetailPage({
           </div>
         )}
 
-        {/* Chat view */}
+        {/* Metadata-only activity view */}
         {!isLoading && !error && data && (
           <div className='flex flex-col gap-4'>
             {/* Participants legend */}
@@ -186,14 +186,6 @@ export function ChatLogDetailPage({
                     </div>
                   ))
                 })()}
-                {data.some((m) => m.is_flagged) && (
-                  <div className='flex items-center gap-2'>
-                    <span className='h-3 w-3 rounded-full bg-amber-400' />
-                    <span className='text-sm text-amber-700'>
-                      Amber border = flagged by automated moderation
-                    </span>
-                  </div>
-                )}
               </CardContent>
             </Card>
             {pagination && pagination.last_page > 1 && (
@@ -226,7 +218,7 @@ export function ChatLogDetailPage({
               </div>
             )}
 
-            {/* Message bubbles */}
+            {/* Message metadata */}
             <Card
               className='rounded-2xl border-border bg-card'
               style={{ boxShadow: '0 2px 12px rgba(52,168,53,0.08)' }}
@@ -237,28 +229,10 @@ export function ChatLogDetailPage({
                     No messages in this conversation.
                   </p>
                 ) : (
-                  <MessageList
-                    messages={data}
-                    clientId={clientId}
-                    clientPhotoUrl={
-                      conversation?.client.profile_photo_url ?? null
-                    }
-                    workerPhotoUrl={
-                      conversation?.worker.profile_photo_url ?? null
-                    }
-                  />
+                  <MessageTimeline messages={data} />
                 )}
               </CardContent>
             </Card>
-
-            {/* is_flagged note */}
-            <p className='text-center text-xs text-muted-foreground'>
-              {/* is_flagged messages are flagged by the mobile app's automated
-                  moderation. The admin view is read-only — admins cannot
-                  flag/unflag messages in this version. */}
-              Flagged messages are marked by the mobile app's automated
-              moderation. Admin view is read-only.
-            </p>
           </div>
         )}
       </Main>
@@ -266,19 +240,9 @@ export function ChatLogDetailPage({
   )
 }
 
-// ── Message list with date separators ────────────────────────────────────────
+// ── Metadata timeline with date separators ───────────────────────────────────
 
-function MessageList({
-  messages,
-  clientId,
-  clientPhotoUrl,
-  workerPhotoUrl,
-}: {
-  messages: ChatMessage[]
-  clientId: number
-  clientPhotoUrl: string | null
-  workerPhotoUrl: string | null
-}) {
+function MessageTimeline({ messages }: { messages: ChatMessage[] }) {
   return (
     <>
       {messages.map((msg, idx) => {
@@ -292,12 +256,7 @@ function MessageList({
             {showDateSeparator && (
               <DateSeparator date={new Date(msg.created_at)} />
             )}
-            <MessageBubble
-              message={msg}
-              profilePhotoUrl={
-                msg.sender_id === clientId ? clientPhotoUrl : workerPhotoUrl
-              }
-            />
+            <MessageActivity message={msg} />
           </div>
         )
       })}
@@ -319,100 +278,25 @@ function DateSeparator({ date }: { date: Date }) {
   )
 }
 
-// ── Single message bubble ─────────────────────────────────────────────────────
+// ── Single message metadata row ───────────────────────────────────────────────
 
-function MessageBubble({
-  message,
-  profilePhotoUrl,
-}: {
-  message: ChatMessage
-  profilePhotoUrl: string | null
-}) {
-  const isWorker = message.sender_role === 'worker'
-  const initials = getInitials(message.sender_name)
-  const avatarUrl =
-    profilePhotoUrl ?? message.sender_profile_photo_url ?? undefined
-
+function MessageActivity({ message }: { message: ChatMessage }) {
   return (
-    <div
-      className={[
-        'mb-2 flex items-end gap-2',
-        isWorker ? 'justify-end' : 'justify-start',
-      ].join(' ')}
-    >
-      {!isWorker && (
-        <Avatar className='h-8 w-8 shrink-0'>
-          <AvatarImage src={avatarUrl} alt={`${message.sender_name} profile`} />
-          <AvatarFallback className='bg-primary/10 text-xs text-primary'>
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-      )}
-      <div
-        className={[
-          'flex max-w-[75%] flex-col',
-          isWorker ? 'items-end' : 'items-start',
-        ].join(' ')}
-      >
-        <span className='mb-1 px-1 text-[11px] font-semibold text-muted-foreground'>
-          {message.sender_name}
-          {message.booking_code ? ` · ${message.booking_code}` : ''}
-        </span>
-        <div
-          className={[
-            'relative rounded-2xl px-3.5 py-2.5',
-            isWorker
-              ? 'rounded-br-sm bg-primary text-white'
-              : 'rounded-bl-sm bg-muted text-foreground',
-            message.is_flagged
-              ? isWorker
-                ? 'border-l-4 border-amber-400 bg-primary/80'
-                : 'border-l-4 border-amber-400 bg-amber-50'
-              : '',
-          ].join(' ')}
-        >
-          <p className='text-sm leading-relaxed'>{message.content}</p>
-          {message.attachment_url && (
-            <a
-              href={message.attachment_url}
-              target='_blank'
-              rel='noreferrer'
-              className='mt-2 block text-xs underline'
-            >
-              View attachment
-            </a>
-          )}
-          <div
-            className={[
-              'mt-1 flex items-center gap-2',
-              isWorker ? 'justify-end' : 'justify-start',
-            ].join(' ')}
-          >
-            <span
-              className={[
-                'text-[10px]',
-                isWorker ? 'text-white/70' : 'text-muted-foreground',
-              ].join(' ')}
-            >
-              {format(new Date(message.created_at), 'h:mm a')}
-            </span>
-            {message.is_flagged && (
-              <span className='inline-flex items-center gap-0.5 rounded-full bg-amber-400/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-700'>
-                <Flag className='h-2.5 w-2.5' />
-                Flagged
-              </span>
-            )}
-          </div>
-        </div>
+    <div className='mb-2 flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2'>
+      <div className='min-w-0'>
+        <p className='truncate text-sm font-medium text-foreground'>
+          {message.sender_role === 'worker' ? 'Worker' : 'Client'} sent a
+          message
+        </p>
+        <p className='text-xs text-muted-foreground'>
+          {message.booking_code ? `Booking ${message.booking_code} · ` : ''}
+          {message.has_attachment ? 'Attachment included · ' : ''}
+          {message.is_read ? 'Read' : 'Unread'}
+        </p>
       </div>
-      {isWorker && (
-        <Avatar className='h-8 w-8 shrink-0'>
-          <AvatarImage src={avatarUrl} alt={`${message.sender_name} profile`} />
-          <AvatarFallback className='bg-primary/10 text-xs text-primary'>
-            {initials}
-          </AvatarFallback>
-        </Avatar>
-      )}
+      <span className='shrink-0 text-xs text-muted-foreground'>
+        {format(new Date(message.created_at), 'h:mm a')}
+      </span>
     </div>
   )
 }
@@ -434,21 +318,13 @@ function ChatSkeleton() {
 
       <Card className='rounded-2xl border-border bg-card'>
         <CardContent className='flex flex-col gap-4 p-4'>
-          {/* Simulate alternating left/right bubbles */}
-          {[false, true, false, true, false].map((right, i) => (
-            <div
-              key={i}
-              className={[
-                'flex flex-col',
-                right ? 'items-end' : 'items-start',
-              ].join(' ')}
-            >
-              <Skeleton className='mb-1 h-3 w-20' />
-              <Skeleton
-                className={['h-10 rounded-2xl', right ? 'w-48' : 'w-56'].join(
-                  ' '
-                )}
-              />
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className='flex justify-between gap-4'>
+              <div className='flex flex-col gap-2'>
+                <Skeleton className='h-4 w-32' />
+                <Skeleton className='h-3 w-40' />
+              </div>
+              <Skeleton className='h-3 w-16' />
             </div>
           ))}
         </CardContent>

@@ -9,6 +9,12 @@ export interface User {
   barangay_id?: number
   worker_profile_id?: number | null
   is_active: boolean
+  pending_admin_action?: {
+    id: number
+    action: 'delete' | 'suspend'
+    reason: string
+    scheduled_for: string
+  } | null
   created_at: string
   profile_photo_url?: string | null
   // Present on detail (GET /admin/users/:id), not in list

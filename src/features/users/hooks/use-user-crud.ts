@@ -13,7 +13,10 @@ export interface UserInput {
   mobile_number?: string
   role: User['role']
   barangay_id?: number
-  is_active?: boolean
+}
+
+interface UserCrudResponse {
+  data?: { data?: { email_sent?: boolean } }
 }
 
 function getErrorMessage(error: unknown): string {
@@ -49,21 +52,28 @@ export function useUserCrud(onSuccess: () => void) {
     )
   }
 
-  async function deleteUser(id: number) {
+  async function deleteUser(id: number, reason: string) {
     await submit(
-      () => api.delete(`/admin/users/${id}`),
-      'User deleted successfully.'
+      () => api.delete(`/admin/users/${id}`, { data: { reason } }),
+      'User deletion scheduled. The account will be deleted after 24 hours.'
     )
   }
 
   async function submit(
-    request: () => Promise<unknown>,
+    request: () => Promise<UserCrudResponse>,
     successMessage: string
   ) {
     setIsSubmitting(true)
     try {
-      await request()
-      toast.success(successMessage)
+      const response = await request()
+      const emailSent = response.data?.data?.email_sent
+      if (emailSent === false) {
+        toast.error(
+          `${successMessage} The email could not be sent; check the API mail configuration.`
+        )
+      } else {
+        toast.success(successMessage)
+      }
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] })
       onSuccess()
     } catch (error) {

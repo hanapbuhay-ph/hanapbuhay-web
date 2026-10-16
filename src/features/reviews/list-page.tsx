@@ -7,18 +7,7 @@ import {
   InboxIcon,
   RefreshCw,
   Search,
-  Trash2,
 } from 'lucide-react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,17 +27,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
 import { Header } from '@/components/layout/header'
 import { Main } from '@/components/layout/main'
 import { ProfileDropdown } from '@/components/profile-dropdown'
 import { ThemeSwitch } from '@/components/theme-switch'
 import { ReviewRecipients } from './components/review-recipients'
 import { StarRating } from './components/star-rating'
-import { useReviewAction } from './hooks/use-review-action'
 import { useReviews } from './hooks/use-reviews'
 import {
-  type Review,
   type ReviewRecipient,
   type ScoreFilter,
   type DirectionFilter,
@@ -79,20 +65,6 @@ export function ReviewsListPage() {
     page,
     selectedRecipient?.id ?? null
   )
-  const { isSubmitting, removeRating } = useReviewAction()
-
-  const [targetReview, setTargetReview] = useState<Review | null>(null)
-  const [removeReason, setRemoveReason] = useState('')
-
-  function handleRemoveConfirm() {
-    if (!targetReview) return
-    removeRating(targetReview.id, removeReason, () => {
-      setTargetReview(null)
-      setRemoveReason('')
-      refetch()
-    })
-  }
-
   if (!selectedRecipient) {
     return (
       <ReviewRecipients
@@ -213,9 +185,6 @@ export function ReviewsListPage() {
                 <TableHead className='font-semibold text-foreground'>
                   Date
                 </TableHead>
-                <TableHead className='font-semibold text-foreground'>
-                  Action
-                </TableHead>
               </TableRow>
             </TableHeader>
 
@@ -241,15 +210,12 @@ export function ReviewsListPage() {
                     <TableCell>
                       <Skeleton className='h-4 w-20' />
                     </TableCell>
-                    <TableCell>
-                      <Skeleton className='h-7 w-16 rounded-lg' />
-                    </TableCell>
                   </TableRow>
                 ))}
 
               {!isLoading && error && (
                 <TableRow>
-                  <TableCell colSpan={7}>
+                  <TableCell colSpan={6}>
                     <div className='flex flex-col items-center gap-2 py-12 text-center'>
                       <AlertTriangle className='h-7 w-7 text-destructive' />
                       <p className='text-sm font-semibold text-foreground'>
@@ -272,7 +238,7 @@ export function ReviewsListPage() {
 
               {!isLoading && !error && data.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={7}>
+                  <TableCell colSpan={6}>
                     <div className='flex flex-col items-center gap-2 py-12 text-center'>
                       <InboxIcon className='h-7 w-7 text-muted-foreground' />
                       <p className='text-sm font-semibold text-foreground'>
@@ -340,20 +306,6 @@ export function ReviewsListPage() {
                     <TableCell className='text-sm text-muted-foreground'>
                       {format(new Date(review.created_at), 'MMM d, yyyy')}
                     </TableCell>
-                    <TableCell>
-                      <Button
-                        size='sm'
-                        variant='outline'
-                        className='h-7 border-destructive/40 text-xs text-destructive hover:bg-destructive/5'
-                        onClick={() => {
-                          setTargetReview(review)
-                          setRemoveReason('')
-                        }}
-                      >
-                        <Trash2 className='h-3 w-3' />
-                        Remove
-                      </Button>
-                    </TableCell>
                   </TableRow>
                 ))}
             </TableBody>
@@ -390,46 +342,6 @@ export function ReviewsListPage() {
           </div>
         )}
       </Main>
-
-      {/* Remove confirm dialog */}
-      <AlertDialog
-        open={!!targetReview}
-        onOpenChange={(open) => {
-          if (!open) setTargetReview(null)
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove Review</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete the review by{' '}
-              <span className='font-medium text-foreground'>
-                {targetReview?.rated_by.name}
-              </span>{' '}
-              and update the user's average rating where applicable. This action
-              cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <Textarea
-            placeholder='Reason for removal (required)'
-            value={removeReason}
-            onChange={(e) => setRemoveReason(e.target.value)}
-            className='mt-2 min-h-[80px]'
-          />
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isSubmitting}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isSubmitting || !removeReason.trim()}
-              onClick={handleRemoveConfirm}
-              className='bg-destructive text-white hover:bg-destructive/90'
-            >
-              {isSubmitting ? 'Removing…' : 'Remove'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   )
 }
