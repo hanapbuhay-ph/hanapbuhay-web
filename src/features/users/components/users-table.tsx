@@ -209,7 +209,16 @@ export function UsersTable({
                   {user.barangay}
                 </TableCell>
                 <TableCell>
-                  <UserStatusBadge isActive={user.is_active} />
+                  <div className='flex flex-col items-start gap-1'>
+                    <UserStatusBadge isActive={user.is_active} />
+                    {user.pending_admin_action && (
+                      <span className='rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-950 dark:text-amber-200'>
+                        {user.pending_admin_action.action === 'delete'
+                          ? 'Deletion scheduled'
+                          : 'Suspension scheduled'}
+                      </span>
+                    )}
+                  </div>
                 </TableCell>
                 {hasActions && (
                   <TableCell onClick={(e) => e.stopPropagation()}>
@@ -241,7 +250,8 @@ export function UsersTable({
                             )}
                             {onDelete &&
                               currentUserIsSuperAdmin &&
-                              currentUserId !== user.id && (
+                              currentUserId !== user.id &&
+                              !user.pending_admin_action && (
                                 <DropdownMenuItem
                                   className='text-destructive'
                                   onClick={() => onDelete(user)}

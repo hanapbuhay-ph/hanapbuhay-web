@@ -13,7 +13,6 @@ export interface UserInput {
   mobile_number?: string
   role: User['role']
   barangay_id?: number
-  is_active?: boolean
 }
 
 function getErrorMessage(error: unknown): string {
@@ -49,10 +48,10 @@ export function useUserCrud(onSuccess: () => void) {
     )
   }
 
-  async function deleteUser(id: number) {
+  async function deleteUser(id: number, reason: string) {
     await submit(
-      () => api.delete(`/admin/users/${id}`),
-      'User deleted successfully.'
+      () => api.delete(`/admin/users/${id}`, { data: { reason } }),
+      'User deletion scheduled. The account will be deleted after 24 hours.'
     )
   }
 

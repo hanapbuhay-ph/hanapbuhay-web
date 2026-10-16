@@ -38,7 +38,6 @@ const emptyForm: UserInput = {
   mobile_number: '',
   role: 'client',
   barangay_id: undefined,
-  is_active: true,
 }
 
 export function UserCrudDialog({ open, user, ...props }: UserCrudDialogProps) {
@@ -61,7 +60,6 @@ function UserCrudDialogForm({
           mobile_number: user.mobile_number ?? '',
           role: user.role,
           barangay_id: user.barangay_id,
-          is_active: user.is_active,
           password: '',
           password_confirmation: '',
         }

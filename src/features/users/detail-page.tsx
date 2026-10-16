@@ -118,16 +118,37 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
 
   function handleSuspendConfirm(reason: string) {
     if (!data) return
-    suspend(data.id, reason, (isActive) => {
-      setData((prev) => (prev ? { ...prev, is_active: isActive } : prev))
+    suspend(data.id, reason, (result) => {
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              is_active: result.is_active,
+              pending_admin_action: {
+                id: 0,
+                action: 'suspend',
+                reason,
+                scheduled_for: result.scheduled_for ?? '',
+              },
+            }
+          : prev
+      )
       setShowSuspend(false)
     })
   }
 
   function handleReactivateConfirm() {
     if (!data) return
-    reactivate(data.id, (isActive) => {
-      setData((prev) => (prev ? { ...prev, is_active: isActive } : prev))
+    reactivate(data.id, (result) => {
+      setData((prev) =>
+        prev
+          ? {
+              ...prev,
+              is_active: result.is_active,
+              pending_admin_action: null,
+            }
+          : prev
+      )
       setShowReactivate(false)
     })
   }
@@ -229,6 +250,28 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
                     <UserRoleBadge role={data.role} />
                     <UserStatusBadge isActive={data.is_active} />
                   </div>
+                  {data.pending_admin_action && (
+                    <div className='mt-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-100'>
+                      <p className='font-semibold'>
+                        {data.pending_admin_action.action === 'delete'
+                          ? 'Account deletion scheduled'
+                          : 'Account suspension scheduled'}
+                      </p>
+                      <p className='mt-1'>
+                        Takes effect{' '}
+                        {data.pending_admin_action.scheduled_for
+                          ? format(
+                              new Date(data.pending_admin_action.scheduled_for),
+                              'MMM d, yyyy h:mm a'
+                            )
+                          : 'after the 24-hour notice period'}
+                        .
+                      </p>
+                      <p className='mt-1'>
+                        Reason: {data.pending_admin_action.reason}
+                      </p>
+                    </div>
+                  )}
                   {data.role === 'super_admin' && (
                     <p className='mt-3 flex items-center gap-2 text-sm text-amber-700 dark:text-amber-300'>
                       <ShieldCheck className='h-4 w-4 shrink-0' />
@@ -236,7 +279,9 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
                     </p>
                   )}
                 </div>
-                {data.role !== 'super_admin' && data.is_active ? (
+                {data.role !== 'super_admin' &&
+                data.is_active &&
+                !data.pending_admin_action ? (
                   <Button
                     variant='outline'
                     onClick={() => setShowSuspend(true)}
@@ -246,7 +291,8 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
                     <UserX className='h-4 w-4' />
                     Suspend User
                   </Button>
-                ) : data.role !== 'super_admin' ? (
+                ) : data.role !== 'super_admin' &&
+                  !data.pending_admin_action ? (
                   <Button
                     onClick={() => setShowReactivate(true)}
                     disabled={isSubmitting}

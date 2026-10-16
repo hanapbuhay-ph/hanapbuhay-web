@@ -51,7 +51,8 @@ export function SuspendDialog({
           <DialogDescription>
             You are suspending{' '}
             <span className='font-semibold text-foreground'>{userName}</span>.
-            They will lose access to the platform immediately.
+            They will receive a 24-hour notice and can continue using their
+            account until the scheduled suspension.
           </DialogDescription>
         </DialogHeader>
 
@@ -93,7 +94,7 @@ export function SuspendDialog({
             disabled={isSubmitting || isEmpty}
           >
             {isSubmitting && <Loader2 className='h-4 w-4 animate-spin' />}
-            Confirm Suspend
+            Schedule Suspension
           </Button>
         </DialogFooter>
       </DialogContent>

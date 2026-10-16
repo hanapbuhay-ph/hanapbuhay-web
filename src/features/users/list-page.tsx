@@ -90,9 +90,9 @@ export function UsersListPage() {
     setDeleteDialogOpen(true)
   }
 
-  async function handleDeleteConfirm() {
+  async function handleDeleteConfirm(reason: string) {
     if (deleteUserId === null) return
-    await deleteUser(deleteUserId)
+    await deleteUser(deleteUserId, reason)
     setDeleteDialogOpen(false)
     setDeleteUserId(null)
   }

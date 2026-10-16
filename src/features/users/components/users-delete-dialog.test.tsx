@@ -18,7 +18,7 @@ describe('UsersDeleteDialog', () => {
   it('renders the dialog with the correct title and action summary', async () => {
     const onOpenChange = vi.fn()
     const onConfirm = vi.fn()
-    const { getByText, getByRole } = await render(
+    const { getByText, getByRole, getByLabelText } = await render(
       <UsersDeleteDialog
         open
         onOpenChange={onOpenChange}
@@ -31,21 +31,23 @@ describe('UsersDeleteDialog', () => {
       level: 2,
       name: /Delete User/i,
     })
-    const desc = getByText(/Are you sure you want to delete John Doe/i)
+    const desc = getByText(/You are scheduling deletion of John Doe/i)
     const cancelButton = getByRole('button', { name: /Cancel/i })
-    const deleteButton = getByRole('button', { name: /Delete/i })
+    const deleteButton = getByRole('button', { name: /Schedule Deletion/i })
+    const reason = getByLabelText(/Reason for deletion/i)
 
     await expect.element(title).toBeInTheDocument()
     await expect.element(desc).toBeInTheDocument()
+    await expect.element(reason).toBeInTheDocument()
     await expect.element(cancelButton).toBeInTheDocument()
     await expect.element(deleteButton).toBeInTheDocument()
-    await expect.element(deleteButton).toBeEnabled()
+    await expect.element(deleteButton).toBeDisabled()
   })
 
-  it('calls the confirm handler when the delete button is clicked', async () => {
+  it('requires and passes a reason when scheduling deletion', async () => {
     const onOpenChange = vi.fn()
     const onConfirm = vi.fn()
-    const { getByRole } = await render(
+    const { getByRole, getByLabelText } = await render(
       <UsersDeleteDialog
         open
         onOpenChange={onOpenChange}
@@ -54,10 +56,15 @@ describe('UsersDeleteDialog', () => {
       />
     )
 
-    const deleteButton = getByRole('button', { name: /Delete/i })
+    const deleteButton = getByRole('button', { name: /Schedule Deletion/i })
+    await expect.element(deleteButton).toBeDisabled()
+    await userEvent.fill(
+      getByLabelText(/Reason for deletion/i),
+      'Policy violations'
+    )
     await userEvent.click(deleteButton)
 
-    expect(onConfirm).toHaveBeenCalledOnce()
+    expect(onConfirm).toHaveBeenCalledWith('Policy violations')
     expect(onOpenChange).not.toHaveBeenCalled()
   })
 
@@ -74,7 +81,7 @@ describe('UsersDeleteDialog', () => {
       />
     )
 
-    const deleteButton = getByRole('button', { name: /Deleting/i })
+    const deleteButton = getByRole('button', { name: /Scheduling/i })
     await expect.element(deleteButton).toBeDisabled()
   })
 })
