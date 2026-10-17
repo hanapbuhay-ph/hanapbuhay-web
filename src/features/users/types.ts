@@ -4,7 +4,7 @@ export interface User {
   id: number
   name: string
   email: string
-  role: UserRole
+  role: UserRole | null
   barangay: string | null
   barangay_id?: number
   worker_profile_id?: number | null
@@ -111,7 +111,7 @@ export interface ActivityPage<T> {
   pagination: ActivityPagination
 }
 
-export type RoleFilter = UserRole | 'all'
+export type RoleFilter = UserRole | 'all' | 'incomplete'
 export type StatusFilter = 'active' | 'suspended' | 'all'
 export type DeletionRequestStatus = 'pending' | 'approved' | 'denied'
 

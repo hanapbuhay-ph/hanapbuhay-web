@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select'
 import { deduplicateBarangays, type BarangayOption } from '../barangays'
 import type { UserInput } from '../hooks/use-user-crud'
-import type { User } from '../types'
+import type { User, UserRole } from '../types'
 
 interface UserCrudDialogProps {
   open: boolean
@@ -58,7 +58,7 @@ function UserCrudDialogForm({
           name: user.name,
           email: user.email,
           mobile_number: user.mobile_number ?? '',
-          role: user.role,
+          role: user.role ?? 'client',
           barangay_id: user.barangay_id,
           password: '',
           password_confirmation: '',
@@ -155,7 +155,7 @@ function UserCrudDialogForm({
                 className='h-10 rounded-md border border-input bg-background px-3 text-sm'
                 value={form.role}
                 onChange={(event) =>
-                  updateField('role', event.target.value as User['role'])
+                  updateField('role', event.target.value as UserRole)
                 }
               >
                 <option value='client'>Client</option>

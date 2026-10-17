@@ -3,7 +3,7 @@ import { AxiosError } from 'axios'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { api } from '@/lib/api'
-import type { User } from '../types'
+import type { UserRole } from '../types'
 
 export interface UserInput {
   name: string
@@ -11,7 +11,7 @@ export interface UserInput {
   password?: string
   password_confirmation?: string
   mobile_number?: string
-  role: User['role']
+  role: UserRole
   barangay_id?: number
 }
 

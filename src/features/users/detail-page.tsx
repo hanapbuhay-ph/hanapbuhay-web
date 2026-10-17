@@ -709,7 +709,7 @@ export function UserDetailPage({ id }: UserDetailPageProps) {
                     <section id='user-detail-bookings' className='scroll-mt-24'>
                       <BookingActivity
                         userId={data.id}
-                        role={data.role}
+                        role={data.role ?? 'client'}
                         total={data.activity.bookings.total}
                         byStatus={data.activity.bookings.by_status}
                         initialItems={data.activity.bookings.recent}
