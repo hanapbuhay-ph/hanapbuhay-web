@@ -64,9 +64,10 @@ export function ForgotPasswordForm({
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<'email' | 'otp' | 'reset'>('email')
   const [email, setEmail] = useState('')
-  const [resetCodeExpiresAt, setResetCodeExpiresAt] = useState<number | null>(
-    null
-  )
+  const [resetRequestSubmitted, setResetRequestSubmitted] = useState(false)
+  const [resetCodeSecondsRemaining, setResetCodeSecondsRemaining] = useState<
+    number | null
+  >(null)
   const [resetToken, setResetToken] = useState('')
   const [otpSecondsRemaining, setOtpSecondsRemaining] = useState(0)
 
@@ -94,6 +95,18 @@ export function ForgotPasswordForm({
     return () => window.clearInterval(intervalId)
   }, [otpSecondsRemaining, step])
 
+  useEffect(() => {
+    if (!resetRequestSubmitted || step !== 'email') return
+    const intervalId = window.setInterval(
+      () =>
+        setResetCodeSecondsRemaining((seconds) =>
+          seconds === null ? null : Math.max(0, seconds - 1)
+        ),
+      1000
+    )
+    return () => window.clearInterval(intervalId)
+  }, [resetRequestSubmitted, step])
+
   function startOtpExpiryWindow(validitySeconds?: number) {
     const duration =
       Number.isFinite(validitySeconds) && validitySeconds && validitySeconds > 0
@@ -103,9 +116,7 @@ export function ForgotPasswordForm({
   }
 
   function continueToOtp() {
-    const remainingSeconds = resetCodeExpiresAt
-      ? Math.max(0, Math.ceil((resetCodeExpiresAt - Date.now()) / 1000))
-      : OTP_VALIDITY_SECONDS
+    const remainingSeconds = resetCodeSecondsRemaining ?? OTP_VALIDITY_SECONDS
     otpForm.reset()
     setOtpSecondsRemaining(remainingSeconds)
     setStep('otp')
@@ -126,7 +137,8 @@ export function ForgotPasswordForm({
         Number.isFinite(validitySeconds) && validitySeconds > 0
           ? validitySeconds
           : OTP_VALIDITY_SECONDS
-      setResetCodeExpiresAt(Date.now() + duration * 1000)
+      setResetCodeSecondsRemaining(duration)
+      setResetRequestSubmitted(true)
       emailForm.reset({ email: data.email })
       toast.success(
         'If an account is eligible, a reset code will be sent. Check your email.'
@@ -236,7 +248,7 @@ export function ForgotPasswordForm({
       >
         {step === 'email' && (
           <>
-            {resetCodeExpiresAt === null ? (
+            {!resetRequestSubmitted ? (
               <>
                 <FormField
                   control={emailForm.control}
@@ -281,7 +293,10 @@ export function ForgotPasswordForm({
                 <Button
                   type='button'
                   variant='outline'
-                  onClick={() => setResetCodeExpiresAt(null)}
+                  onClick={() => {
+                    setResetRequestSubmitted(false)
+                    setResetCodeSecondsRemaining(null)
+                  }}
                   disabled={isLoading}
                 >
                   Use a different email
