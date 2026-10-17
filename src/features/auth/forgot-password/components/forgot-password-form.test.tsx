@@ -28,7 +28,7 @@ describe('ForgotPasswordForm', () => {
     vi.clearAllMocks()
     apiPostMock.mockImplementation(
       async (url: string, payload?: Record<string, unknown>) => {
-        if (url === '/auth/password/forgot') {
+        if (url === '/auth/admin/password/forgot') {
           return { data: { success: true, message: 'Code sent' } }
         }
 
@@ -87,10 +87,24 @@ describe('ForgotPasswordForm', () => {
     await userEvent.click(continueButton)
 
     await vi.waitFor(() => {
-      expect(apiPostMock).toHaveBeenCalledWith('/auth/password/forgot', {
+      expect(apiPostMock).toHaveBeenCalledWith('/auth/admin/password/forgot', {
         email: 'user@example.com',
       })
     })
+
+    await expect
+      .element(screen.getByRole('status'))
+      .toHaveTextContent(/if an account is eligible/i)
+    await expect
+      .element(screen.getByRole('button', { name: /^I have a code$/i }))
+      .toBeInTheDocument()
+    await expect
+      .element(screen.getByRole('textbox', { name: /One-time password/i }))
+      .not.toBeInTheDocument()
+
+    await userEvent.click(
+      screen.getByRole('button', { name: /^I have a code$/i })
+    )
 
     await expect
       .element(screen.getByRole('button', { name: /^Verify code$/i }))

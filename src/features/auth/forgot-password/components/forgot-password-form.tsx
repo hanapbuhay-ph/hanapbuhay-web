@@ -64,6 +64,9 @@ export function ForgotPasswordForm({
   const [isLoading, setIsLoading] = useState(false)
   const [step, setStep] = useState<'email' | 'otp' | 'reset'>('email')
   const [email, setEmail] = useState('')
+  const [resetCodeExpiresAt, setResetCodeExpiresAt] = useState<number | null>(
+    null
+  )
   const [resetToken, setResetToken] = useState('')
   const [otpSecondsRemaining, setOtpSecondsRemaining] = useState(0)
 
@@ -99,17 +102,35 @@ export function ForgotPasswordForm({
     setOtpSecondsRemaining(duration)
   }
 
+  function continueToOtp() {
+    const remainingSeconds = resetCodeExpiresAt
+      ? Math.max(0, Math.ceil((resetCodeExpiresAt - Date.now()) / 1000))
+      : OTP_VALIDITY_SECONDS
+    otpForm.reset()
+    setOtpSecondsRemaining(remainingSeconds)
+    setStep('otp')
+  }
+
   async function handleSendResetCode(data: z.infer<typeof emailSchema>) {
     setIsLoading(true)
 
     try {
-      const res = await api.post('/auth/password/forgot', { email: data.email })
+      const res = await api.post('/auth/admin/password/forgot', {
+        email: data.email,
+      })
       setEmail(data.email)
-      emailForm.reset()
       otpForm.reset()
-      startOtpExpiryWindow(res.data?.data?.otp_expires_in_seconds)
-      setStep('otp')
-      toast.success(`A password reset code has been sent to ${data.email}.`)
+      const validitySeconds =
+        res.data?.data?.otp_expires_in_seconds ?? OTP_VALIDITY_SECONDS
+      const duration =
+        Number.isFinite(validitySeconds) && validitySeconds > 0
+          ? validitySeconds
+          : OTP_VALIDITY_SECONDS
+      setResetCodeExpiresAt(Date.now() + duration * 1000)
+      emailForm.reset({ email: data.email })
+      toast.success(
+        'If an account is eligible, a reset code will be sent. Check your email.'
+      )
     } catch (err) {
       const axiosErr = err instanceof AxiosError ? err : null
       const message =
@@ -125,10 +146,12 @@ export function ForgotPasswordForm({
   async function handleResendResetCode() {
     setIsLoading(true)
     try {
-      const res = await api.post('/auth/password/forgot', { email })
+      const res = await api.post('/auth/admin/password/forgot', { email })
       otpForm.reset()
       startOtpExpiryWindow(res.data?.data?.otp_expires_in_seconds)
-      toast.success('A new password reset code has been requested.')
+      toast.success(
+        'If an account is eligible, a new reset code will be sent. Check your email.'
+      )
     } catch (err) {
       const axiosErr = err instanceof AxiosError ? err : null
       toast.error(
@@ -213,27 +236,58 @@ export function ForgotPasswordForm({
       >
         {step === 'email' && (
           <>
-            <FormField
-              control={emailForm.control}
-              name='email'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input placeholder='name@example.com' {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type='submit' className='mt-2' disabled={isLoading}>
-              Continue
-              {isLoading ? (
-                <Loader2 className='animate-spin' />
-              ) : (
-                <ArrowRight />
-              )}
-            </Button>
+            {resetCodeExpiresAt === null ? (
+              <>
+                <FormField
+                  control={emailForm.control}
+                  name='email'
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder='name@example.com' {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type='submit' className='mt-2' disabled={isLoading}>
+                  Continue
+                  {isLoading ? (
+                    <Loader2 className='animate-spin' />
+                  ) : (
+                    <ArrowRight />
+                  )}
+                </Button>
+              </>
+            ) : (
+              <>
+                <p
+                  role='status'
+                  className='text-center text-sm text-muted-foreground'
+                >
+                  If an account is eligible for password reset, a code will be
+                  sent. Check your email. If you have a code, continue below.
+                </p>
+                <Button
+                  type='button'
+                  className='mt-2'
+                  onClick={continueToOtp}
+                  disabled={isLoading}
+                >
+                  I have a code
+                  <ArrowRight />
+                </Button>
+                <Button
+                  type='button'
+                  variant='outline'
+                  onClick={() => setResetCodeExpiresAt(null)}
+                  disabled={isLoading}
+                >
+                  Use a different email
+                </Button>
+              </>
+            )}
           </>
         )}
 
