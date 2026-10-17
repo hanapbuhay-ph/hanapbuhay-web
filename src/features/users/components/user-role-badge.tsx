@@ -1,7 +1,7 @@
 ﻿import { type UserRole } from '../types'
 
 interface UserRoleBadgeProps {
-  role: UserRole
+  role: UserRole | null
 }
 
 const config: Record<UserRole, { label: string; className: string }> = {
@@ -24,6 +24,14 @@ const config: Record<UserRole, { label: string; className: string }> = {
 }
 
 export function UserRoleBadge({ role }: UserRoleBadgeProps) {
+  if (role === null) {
+    return (
+      <span className='inline-flex items-center rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300'>
+        Profile incomplete
+      </span>
+    )
+  }
+
   const { label, className } = config[role] ?? config.client
   return (
     <span

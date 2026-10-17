@@ -30,6 +30,7 @@ const ROLE_TABS: { value: RoleFilter; label: string }[] = [
   { value: 'worker', label: 'Worker' },
   { value: 'admin', label: 'Admin' },
   { value: 'super_admin', label: 'Super Admin' },
+  { value: 'incomplete', label: 'Profile Incomplete' },
 ]
 
 const STATUS_TABS: { value: StatusFilter; label: string }[] = [

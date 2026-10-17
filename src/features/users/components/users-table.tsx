@@ -243,7 +243,7 @@ export function UsersTable({
                           </DropdownMenuItem>
                         ) : (
                           <>
-                            {onEdit && (
+                            {onEdit && user.role !== null && (
                               <DropdownMenuItem onClick={() => onEdit(user)}>
                                 <Pencil className='h-4 w-4' /> Edit
                               </DropdownMenuItem>
